@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detail Buku Custom — YourPrint</title>
+<meta name="description" content="Detail buku custom YourPrint — pilih ukuran, isi data anak, dan pesan langsung.">
+<link rel="icon" type="image/png" href="images/logo/logo.png">
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: { DEFAULT: '#16233F', light: '#24365C' },
+          paper: '#F3F5F7',
+          stamp: { DEFAULT: '#E4572E', dark: '#C6431E' },
+          highlight: '#FFC53D',
+          slate: { soft: '#5B6B7F' },
+          line: '#D8DEE4',
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['"Inter"', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+      }
+    }
+  }
+</script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+
+<style>
+  body { padding-bottom: 0; }
+  @media (max-width: 767px) { body { padding-bottom: 4.5rem; } }
+
+  .detail-hero {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    max-height: 420px;
+    border-radius: 0 0 1.5rem 1.5rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--ink-light), var(--ink));
+  }
+  .detail-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .detail-hero__fallback {
+    display: none;
+    font-size: 5rem;
+  }
+
+  .detail-code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .72rem;
+    letter-spacing: .04em;
+    color: var(--highlight);
+    background: rgba(var(--highlight-rgb), 0.12);
+    border: 1px solid rgba(var(--highlight-rgb), 0.3);
+    padding: .2rem .6rem;
+    border-radius: .35rem;
+    display: inline-block;
+  }
+
+  /* Size selector */
+  .size-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .75rem;
+  }
+  .size-option {
+    position: relative;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: .85rem .75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+    background: #fff;
+  }
+  .size-option:hover {
+    border-color: var(--stamp);
+    background: rgba(var(--stamp-rgb), 0.03);
+  }
+  .size-option.selected {
+    border-color: var(--stamp);
+    background: rgba(var(--stamp-rgb), 0.03);
+    box-shadow: 0 0 0 3px rgba(var(--stamp-rgb), 0.15);
+  }
+  .size-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .size-option__name {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--ink);
+  }
+  .size-option__dim {
+    font-size: .65rem;
+    color: var(--slate);
+    margin-top: .15rem;
+  }
+  .size-option__price {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: .8rem;
+    color: var(--stamp);
+    margin-top: .35rem;
+  }
+  .size-option.selected .size-option__name { color: var(--stamp); }
+
+  /* Form fields */
+  .form-field label {
+    display: block;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: .35rem;
+  }
+  .form-field input,
+  .form-field textarea {
+    width: 100%;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: .65rem .85rem;
+    font-size: .88rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    background: #fff;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .form-field input:focus,
+  .form-field textarea:focus {
+    outline: none;
+    border-color: var(--stamp);
+    box-shadow: 0 0 0 3px rgba(var(--stamp-rgb), 0.12);
+  }
+  .form-field input::placeholder,
+  .form-field textarea::placeholder { color: #a0aec0; }
+  .form-field textarea { resize: vertical; min-height: 80px; }
+
+  /* Action buttons */
+  .btn-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .15s, border-color .15s;
+  }
+  .btn-back:hover { background: var(--paper); border-color: var(--ink); }
+  .btn-wa {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    background: #25D366;
+    color: #fff;
+    font-weight: 600;
+    font-size: .88rem;
+    padding: .8rem 1rem;
+    border-radius: .6rem;
+    border: none;
+    cursor: pointer;
+    transition: background .18s ease;
+  }
+  .btn-wa:hover { background: #1da851; }
+  .btn-wa:disabled { opacity: .5; cursor: not-allowed; }
+
+</style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+
+<!-- HEADER -->
+<header class="sticky top-0 z-50 bg-paper/90 backdrop-blur border-b border-line">
+  <div class="max-w-7xl mx-auto px-4 md:px-8 flex items-center h-14 md:h-16 gap-3">
+    <a href="index.html#galeri" class="flex items-center gap-2 text-ink hover:text-stamp transition-colors group">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span class="text-sm font-medium hidden sm:inline">Kembali</span>
+    </a>
+    <h1 class="font-display font-bold text-base md:text-lg truncate" id="headerTitle">Buku Custom</h1>
+  </div>
+</header>
+
+<!-- EMPTY STATE -->
+<div id="emptyState" class="empty-state hidden">
+  <div style="font-size:3rem;margin-bottom:1rem;">📖</div>
+  <h2>Buku tidak ditemukan</h2>
+  <p>Buku yang Anda cari mungkin sudah tidak tersedia atau URL tidak valid.</p>
+  <a href="index.html#galeri" class="back-btn">← Kembali ke Galeri</a>
+</div>
+
+<!-- LOADING SKELETON -->
+<div id="loadingState" class="max-w-7xl mx-auto px-4 md:px-8 py-6">
+  <div class="skeleton" style="width:100%;aspect-ratio:3/4;border-radius:0 0 1.5rem 1.5rem;max-height:420px;"></div>
+  <div class="mt-5 space-y-3">
+    <div class="skeleton" style="width:100px;height:20px;border-radius:9999px;"></div>
+    <div class="skeleton" style="width:80%;height:28px;"></div>
+    <div class="skeleton" style="width:100%;height:60px;"></div>
+    <div class="skeleton" style="width:100%;height:120px;"></div>
+  </div>
+</div>
+
+<!-- PAGE CONTENT -->
+<div id="pageContent" class="hidden">
+
+  <!-- Hero Image -->
+  <div id="detailHero" class="detail-hero">
+    <img id="heroImg" alt="" loading="eager">
+    <span id="heroFallback" class="detail-hero__fallback">📘</span>
+  </div>
+
+  <div class="detail-body">
+
+    <!-- Code Badge -->
+    <div class="mb-3">
+      <span id="detailCode" class="detail-code"></span>
+    </div>
+
+    <!-- Book Title -->
+    <h2 id="detailTitle" class="font-display font-bold text-2xl md:text-3xl leading-tight mb-3"></h2>
+
+    <!-- Description -->
+    <div class="detail-divider pt-4 pb-4">
+      <p id="detailDesc" class="detail-desc"></p>
+    </div>
+
+    <!-- Size Selector -->
+    <div class="detail-divider pt-4 pb-4">
+      <p class="text-xs font-mono font-semibold text-slate-soft uppercase tracking-wider mb-3">Pilih Ukuran</p>
+      <div id="sizeOptions" class="size-options">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Custom Form: Data Pemesan -->
+    <div class="detail-divider pt-4 pb-4">
+      <p class="text-xs font-mono font-semibold text-slate-soft uppercase tracking-wider mb-3">Data Pemesan</p>
+      <div class="space-y-3">
+        <div class="form-field">
+          <label for="orderName">Nama Pemesan <span class="text-stamp">*</span></label>
+          <input type="text" id="orderName" placeholder="Contoh: Budi Santoso">
+        </div>
+        <div class="form-field">
+          <label for="orderPhone">Nomor WhatsApp <span class="text-stamp">*</span></label>
+          <input type="tel" id="orderPhone" placeholder="Contoh: 081234567890">
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Form: Data Anak -->
+    <div class="detail-divider pt-4 pb-4">
+      <p class="text-xs font-mono font-semibold text-slate-soft uppercase tracking-wider mb-3">Data Anak (Bila Perlu)</p>
+      <div class="space-y-3">
+        <div class="form-field">
+          <label for="childName">Nama Anak</label>
+          <input type="text" id="childName" placeholder="Contoh: Ahmad Rizki">
+        </div>
+        <div class="form-field">
+          <label for="childSchool">Nama Sekolah</label>
+          <input type="text" id="childSchool" placeholder="Contoh: SDN 05 Menteng">
+        </div>
+        <div class="form-field">
+          <label for="childClass">Kelas / Tingkat</label>
+          <input type="text" id="childClass" placeholder="Contoh: Kelas 2">
+        </div>
+        <div class="form-field">
+          <label for="childNotes">Catatan</label>
+          <textarea id="childNotes" placeholder="Pilihan cover, warna, nama di buku, dll."></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FIXED ACTION BUTTONS -->
+<div id="actionBar" class="detail-actions hidden" style="display:none;">
+  <button id="btnBack" class="btn-back" aria-label="Kembali">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+  </button>
+  <button id="btnOrder" class="btn-wa">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676 1.007 3.503 1.586 5.388 1.591 5.448 0 9.886-4.433 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+    Pesan via WhatsApp
+  </button>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script src="config.js"></script>
+<script src="buku-custom-detail.js"></script>
+</body>
+</html>

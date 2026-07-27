@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detail Produk — YourPrint</title>
+<meta name="description" content="Detail produk ATK YourPrint — lihat info lengkap, harga, dan pesan langsung.">
+<link rel="icon" type="image/png" href="images/logo/logo.png">
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: { DEFAULT: '#16233F', light: '#24365C' },
+          paper: '#F3F5F7',
+          stamp: { DEFAULT: '#E4572E', dark: '#C6431E' },
+          highlight: '#FFC53D',
+          slate: { soft: '#5B6B7F' },
+          line: '#D8DEE4',
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['"Inter"', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+      }
+    }
+  }
+</script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+
+<style>
+  body { padding-bottom: 0; }
+  @media (max-width: 767px) { body { padding-bottom: 4.5rem; } }
+
+  .detail-hero {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 0 0 1.5rem 1.5rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .detail-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .detail-hero__fallback {
+    display: none;
+    font-size: 5rem;
+  }
+  .detail-hero--fallback {
+    background: var(--hero-bg, #EAF1FB);
+  }
+  .detail-hero--fallback .detail-hero__fallback {
+    display: grid;
+    place-items: center;
+  }
+
+  .detail-category {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .25rem .65rem;
+    border-radius: 9999px;
+    background: rgba(var(--stamp-rgb), 0.07);
+    color: var(--stamp);
+    border: 1px solid rgba(var(--stamp-rgb), 0.15);
+  }
+
+  .detail-price {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: var(--stamp);
+    line-height: 1.1;
+  }
+
+  .detail-qty {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    width: fit-content;
+    background: #fff;
+  }
+  .detail-qty__btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    display: grid;
+    place-items: center;
+    background: var(--paper);
+    border: none;
+    cursor: pointer;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ink);
+    transition: background .15s ease;
+  }
+  .detail-qty__btn:hover { background: var(--line); }
+  .detail-qty__btn:disabled { opacity: .35; cursor: not-allowed; }
+  .detail-qty__value {
+    width: 3.5rem;
+    height: 2.75rem;
+    text-align: center;
+    border: none;
+    font-size: 1.05rem;
+    font-weight: 600;
+    background: #fff;
+    -moz-appearance: textfield;
+  }
+  .detail-qty__value::-webkit-inner-spin-button,
+  .detail-qty__value::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .detail-btn-cart {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    background: var(--ink);
+    color: #fff;
+    font-weight: 600;
+    font-size: .88rem;
+    padding: .8rem 1rem;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: background .18s ease;
+  }
+  .detail-btn-cart:hover { background: var(--ink-light); }
+  .detail-btn-buy {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    background: #25D366;
+    color: #fff;
+    font-weight: 600;
+    font-size: .88rem;
+    padding: .8rem 1rem;
+    border-radius: .6rem;
+    border: none;
+    cursor: pointer;
+    transition: background .18s ease;
+  }
+  .detail-btn-buy:hover { background: #1da851; }
+
+  .related-section {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 0 1rem 8rem;
+  }
+  .related-scroll {
+    display: flex;
+    gap: .75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding-bottom: .5rem;
+    scrollbar-width: none;
+  }
+  .related-scroll::-webkit-scrollbar { display: none; }
+  .related-card {
+    scroll-snap-align: start;
+    flex: 0 0 140px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: .4rem .4rem .55rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .related-card:hover {
+    box-shadow: 0 8px 20px -10px rgba(var(--ink-rgb), .18);
+    transform: translateY(-2px);
+  }
+  .related-card__thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: .35rem;
+    background: var(--paper);
+  }
+  .related-card__thumb img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .related-card__name {
+    font-size: .65rem;
+    line-height: 1.25;
+    font-weight: 500;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .related-card__price {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: .75rem;
+    color: var(--stamp);
+    margin-top: .15rem;
+  }
+
+</style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+
+<!-- HEADER -->
+<header class="sticky top-0 z-50 bg-paper/90 backdrop-blur border-b border-line">
+  <div class="max-w-7xl mx-auto px-4 md:px-8 flex items-center h-14 md:h-16 gap-3">
+    <a href="index.html" class="flex items-center gap-2 text-ink hover:text-stamp transition-colors group">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span class="text-sm font-medium hidden sm:inline">Kembali</span>
+    </a>
+    <h1 class="font-display font-bold text-base md:text-lg truncate" id="headerTitle">Produk</h1>
+  </div>
+</header>
+
+<!-- EMPTY STATE -->
+<div id="emptyState" class="empty-state hidden">
+  <div style="font-size:3rem;margin-bottom:1rem;">📦</div>
+  <h2>Produk tidak ditemukan</h2>
+  <p>Produk yang Anda cari mungkin sudah tidak tersedia atau URL tidak valid.</p>
+  <a href="index.html" class="back-btn">← Kembali ke Beranda</a>
+</div>
+
+<!-- LOADING SKELETON -->
+<div id="loadingState" class="max-w-7xl mx-auto px-4 md:px-8 py-6">
+  <div class="skeleton" style="width:100%;aspect-ratio:1/1;border-radius:0 0 1.5rem 1.5rem;max-height:400px;"></div>
+  <div class="mt-5 space-y-3">
+    <div class="skeleton" style="width:120px;height:24px;border-radius:9999px;"></div>
+    <div class="skeleton" style="width:100%;height:28px;"></div>
+    <div class="skeleton" style="width:60%;height:32px;"></div>
+    <div class="skeleton" style="width:100%;height:80px;"></div>
+  </div>
+</div>
+
+<!-- PAGE CONTENT -->
+<div id="pageContent" class="hidden">
+
+  <!-- Hero Image -->
+  <div id="detailHero" class="detail-hero">
+    <img id="heroImg" alt="" loading="eager">
+    <span id="heroFallback" class="detail-hero__fallback"></span>
+  </div>
+
+  <div class="detail-body">
+    <!-- Category Badge -->
+    <div class="mb-3">
+      <span id="detailCategory" class="detail-category"></span>
+    </div>
+
+    <!-- Product Name -->
+    <h2 id="detailName" class="font-display font-bold text-2xl md:text-3xl leading-tight mb-2"></h2>
+
+    <!-- Price -->
+    <p id="detailPrice" class="detail-price mb-4"></p>
+
+    <!-- Description -->
+    <div class="detail-divider pt-4 pb-4">
+      <p id="detailDesc" class="detail-desc"></p>
+    </div>
+
+    <!-- Info Ringan -->
+    <div class="detail-divider pt-4 pb-4">
+      <p class="text-xs font-mono font-semibold text-slate-soft uppercase tracking-wider mb-3">Detail Produk</p>
+      <div id="infoRows" class="space-y-2"></div>
+    </div>
+
+    <!-- Quantity Selector -->
+    <div class="detail-divider pt-4 pb-4">
+      <p class="text-xs font-mono font-semibold text-slate-soft uppercase tracking-wider mb-3">Jumlah</p>
+      <div class="flex items-center justify-between">
+        <div class="detail-qty">
+          <button class="detail-qty__btn" id="qtyMinus" disabled>−</button>
+          <input type="number" class="detail-qty__value" id="qtyInput" value="1" min="1" max="99">
+          <button class="detail-qty__btn" id="qtyPlus">+</button>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-slate-soft">Subtotal</p>
+          <p id="detailSubtotal" class="font-display font-bold text-lg text-ink"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  <div id="relatedSection" class="related-section hidden">
+    <p class="text-xs font-mono font-semibold text-slate-soft uppercase tracking-wider mb-3">Produk Lainnya</p>
+    <div id="relatedScroll" class="related-scroll"></div>
+  </div>
+</div>
+
+<!-- FIXED ACTION BUTTONS (mobile) -->
+<div id="actionBar" class="detail-actions hidden" style="display:none;">
+  <button id="btnAddToCart" class="detail-btn-cart">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.5 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 8H6"/></svg>
+    Keranjang
+  </button>
+  <button id="btnBuyNow" class="detail-btn-buy">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676 1.007 3.503 1.586 5.388 1.591 5.448 0 9.886-4.433 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+    Beli Langsung
+  </button>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- CUSTOMER MODAL -->
+<div id="customerOverlay" style="position:fixed;inset:0;background:rgba(22,35,63,.5);backdrop-filter:blur(4px);z-index:60;display:none;place-items:center;padding:1.25rem;">
+  <div style="background:#fff;border-radius:1rem;width:100%;max-width:24rem;padding:1.5rem;position:relative;">
+    <button id="customerClose" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.25rem;color:#5B6B7F;cursor:pointer;">✕</button>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#E4572E;font-weight:600;margin-bottom:.5rem;">Data Pemesan</p>
+    <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:.25rem;">Sebelum checkout, kenalan dulu yuk</h3>
+    <p style="font-size:.8rem;color:#5B6B7F;margin-bottom:1.25rem;">Data ini dipakai untuk menghubungi Anda via WhatsApp.</p>
+    <form id="customerForm" class="space-y-3">
+      <div>
+        <label style="display:block;font-size:.75rem;font-weight:600;margin-bottom:.35rem;">Nama</label>
+        <input id="custName" type="text" required placeholder="Nama lengkap" style="width:100%;border:1.5px solid #D8DEE4;border-radius:.5rem;padding:.6rem .8rem;font-size:.85rem;outline:none;transition:border-color .15s;">
+      </div>
+      <div>
+        <label style="display:block;font-size:.75rem;font-weight:600;margin-bottom:.35rem;">Nomor WhatsApp</label>
+        <input id="custPhone" type="tel" required placeholder="08xxxxxxxxxx" style="width:100%;border:1.5px solid #D8DEE4;border-radius:.5rem;padding:.6rem .8rem;font-size:.85rem;outline:none;transition:border-color .15s;">
+      </div>
+      <button type="submit" style="width:100%;padding:.75rem;background:#E4572E;color:#fff;border:none;border-radius:.5rem;font-weight:600;font-size:.88rem;cursor:pointer;margin-top:.5rem;">Simpan & Lanjutkan</button>
+    </form>
+  </div>
+</div>
+
+<!-- BOTTOM NAV (mobile) — hidden on detail page, replaced by action bar -->
+<nav class="bottom-nav md:hidden" style="display:none;">
+  <a href="index.html#home" class="bottom-nav__item">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+    Home
+  </a>
+  <a href="index.html#layanan" class="bottom-nav__item">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Layanan
+  </a>
+  <a href="index.html#produk" class="bottom-nav__item is-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Produk
+  </a>
+  <a href="akun.html" class="bottom-nav__item">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Akun
+  </a>
+</nav>
+
+<script src="config.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  var params = new URLSearchParams(window.location.search);
+  var productId = params.get('id');
+
+  if (!productId) {
+    showEmpty();
+    return;
+  }
+
+  var allProducts = [];
+  var currentProduct = null;
+
+  function formatRupiah(n) { return 'Rp' + Number(n).toLocaleString('id-ID'); }
+
+  function fixGoogleDriveUrl(url) {
+    if (!url) return '';
+    if (url.includes('drive.google.com') || url.includes('googleusercontent.com')) {
+      var matchD = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      var matchId = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      var fileId = matchD ? matchD[1] : (matchId ? matchId[1] : null);
+      if (fileId) return 'https://lh3.googleusercontent.com/d/' + fileId;
+    }
+    return url;
+  }
+
+  function handleImgError(img) {
+    if (img.dataset.retried) { img.style.display = 'none'; return; }
+    img.dataset.retried = '1';
+    var m = img.src.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (m) img.src = 'https://drive.google.com/uc?export=view&id=' + m[1];
+    else img.style.display = 'none';
+  }
+
+  function getCachedData(key) {
+    try { var c = localStorage.getItem(key); if (c) return JSON.parse(c); } catch(e) {}
+    return null;
+  }
+
+  function setCachedData(key, data) {
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function() {
+      t.style.opacity = '0';
+      t.style.transform = 'translateX(-50%) translateY(20px)';
+    }, 2400);
+  }
+
+  function showEmpty() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('emptyState').classList.remove('hidden');
+  }
+
+  function showContent() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('pageContent').classList.remove('hidden');
+    document.getElementById('actionBar').style.display = 'flex';
+  }
+
+  function renderProduct(p) {
+    currentProduct = p;
+
+    document.title = p.name + ' — YourPrint';
+    document.getElementById('headerTitle').textContent = p.name;
+    document.getElementById('detailCategory').textContent = (p.category || 'Umum').toUpperCase();
+    document.getElementById('detailName').textContent = p.name;
+    document.getElementById('detailPrice').textContent = formatRupiah(p.price);
+
+    var desc = p.description || p.name + ' — produk berkualitas dari YourPrint. Tersedia stok selalu ada, siap kirim atau diambil di toko.';
+    document.getElementById('detailDesc').textContent = desc;
+
+    var imgUrl = fixGoogleDriveUrl(p.image);
+    var hero = document.getElementById('detailHero');
+    var heroImg = document.getElementById('heroImg');
+    var heroFallback = document.getElementById('heroFallback');
+
+    if (imgUrl) {
+      heroImg.src = imgUrl;
+      heroImg.alt = p.name;
+      heroImg.onerror = function() { handleImgError(this); };
+      heroImg.onload = function() {
+        hero.classList.remove('detail-hero--fallback');
+      };
+      heroImg.style.display = 'block';
+      heroFallback.style.display = 'none';
+    } else {
+      heroImg.style.display = 'none';
+      heroFallback.textContent = p.emoji || '📦';
+      heroFallback.style.display = 'grid';
+    }
+    hero.style.setProperty('--hero-bg', p.bg || '#EAF1FB');
+
+    document.getElementById('infoRows').innerHTML =
+      '<div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid #F3F5F7;font-size:.85rem;">' +
+        '<span style="color:#5B6B7F;">Kategori</span>' +
+        '<span style="font-weight:600;">' + (p.category || '-') + '</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid #F3F5F7;font-size:.85rem;">' +
+        '<span style="color:#5B6B7F;">Harga</span>' +
+        '<span style="font-weight:600;color:#E4572E;">' + formatRupiah(p.price) + '</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid #F3F5F7;font-size:.85rem;">' +
+        '<span style="color:#5B6B7F;">Stok</span>' +
+        '<span style="font-weight:600;color:#2E7D32;">Tersedia</span>' +
+      '</div>';
+
+    updateSubtotal();
+    renderRelated(p);
+  }
+
+  /* ---- Qty ---- */
+  var qtyInput = document.getElementById('qtyInput');
+  var qtyMinus = document.getElementById('qtyMinus');
+  var qtyPlus = document.getElementById('qtyPlus');
+
+  function updateSubtotal() {
+    if (!currentProduct) return;
+    var qty = parseInt(qtyInput.value) || 1;
+    document.getElementById('detailSubtotal').textContent = formatRupiah(qty * currentProduct.price);
+  }
+
+  qtyMinus.addEventListener('click', function() {
+    var v = parseInt(qtyInput.value) || 1;
+    if (v > 1) { qtyInput.value = v - 1; updateSubtotal(); }
+  });
+  qtyPlus.addEventListener('click', function() {
+    var v = parseInt(qtyInput.value) || 1;
+    if (v < 99) { qtyInput.value = v + 1; updateSubtotal(); }
+  });
+  qtyInput.addEventListener('input', function() {
+    var v = parseInt(qtyInput.value);
+    if (isNaN(v) || v < 1) qtyInput.value = 1;
+    if (v > 99) qtyInput.value = 99;
+    updateSubtotal();
+  });
+
+  /* ---- Add to Cart ---- */
+  document.getElementById('btnAddToCart').addEventListener('click', function() {
+    if (!currentProduct) return;
+    var qty = parseInt(qtyInput.value) || 1;
+
+    var cart = [];
+    try { var saved = localStorage.getItem('yp_cart'); if (saved) cart = JSON.parse(saved); } catch(e) {}
+
+    var existing = cart.find(function(i) { return i.id === currentProduct.id; });
+    if (existing) {
+      existing.qty += qty;
+    } else {
+      cart.push({ id: currentProduct.id, name: currentProduct.name, price: currentProduct.price, qty: qty });
+    }
+
+    try { localStorage.setItem('yp_cart', JSON.stringify(cart)); } catch(e) {}
+    showToast(currentProduct.name + ' x' + qty + ' ditambahkan ke keranjang');
+
+    var badge = document.getElementById('cartCountLocal');
+    if (badge) {
+      var total = cart.reduce(function(s, i) { return s + i.qty; }, 0);
+      badge.textContent = total;
+    }
+  });
+
+  /* ---- Buy Now (WhatsApp) ---- */
+  function buildWaMessage(name, phone) {
+    var qty = parseInt(qtyInput.value) || 1;
+    var subtotal = qty * currentProduct.price;
+    var msg = 'Halo YourPrint, saya ' + name + ' ingin memesan:\n\n';
+    msg += '📦 Produk: ' + currentProduct.name + '\n';
+    msg += '💰 Harga: ' + formatRupiah(currentProduct.price) + '\n';
+    msg += '🔢 Jumlah: ' + qty + '\n';
+    msg += '💳 Subtotal: ' + formatRupiah(subtotal) + '\n\n';
+    msg += 'Mohon konfirmasi ketersediaan dan total akhir. Terima kasih!';
+    return msg;
+  }
+
+  function doBuyNow(name, phone) {
+    var msg = buildWaMessage(name, phone);
+    var cfg = window.YOURPRINT_CONFIG || {};
+    var waNumber = cfg.WHATSAPP_NUMBER || '6281234567890';
+
+    var payload = {
+      type: 'order',
+      timestamp: Date.now(),
+      customerName: name,
+      customerPhone: phone,
+      items: [{ name: currentProduct.name, qty: parseInt(qtyInput.value) || 1, price: currentProduct.price }],
+      subtotal: (parseInt(qtyInput.value) || 1) * currentProduct.price
+    };
+
+    sendToBackend(payload).catch(function() {});
+    window.open('https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg), '_blank');
+  }
+
+  function sendToBackend(payload) {
+    var cfg = window.YOURPRINT_CONFIG || {};
+    if (!cfg.GAS_URL || cfg.GAS_URL.indexOf('PASTE_URL') !== -1) return Promise.resolve();
+    return fetch(cfg.GAS_URL.trim(), {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+  }
+
+  /* ---- Customer Modal ---- */
+  var customerInfo = null;
+  var pendingBuy = null;
+
+  var customerOverlay = document.getElementById('customerOverlay');
+  var customerClose = document.getElementById('customerClose');
+  var customerForm = document.getElementById('customerForm');
+  var custName = document.getElementById('custName');
+  var custPhone = document.getElementById('custPhone');
+
+  function loadSession() {
+    try {
+      var raw = localStorage.getItem('yp_user_info');
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (!data || !data.phone) return;
+      if (data.expiry && Date.now() > data.expiry) { localStorage.removeItem('yp_user_info'); return; }
+      customerInfo = { name: data.name, phone: data.phone };
+      custName.value = data.name || '';
+      custPhone.value = data.phone || '';
+    } catch(e) {}
+  }
+
+  function requireCustomer(action) {
+    if (customerInfo) { action(); return; }
+    pendingBuy = action;
+    customerOverlay.style.display = 'grid';
+  }
+
+  customerClose.addEventListener('click', function() {
+    customerOverlay.style.display = 'none';
+    pendingBuy = null;
+  });
+  customerOverlay.addEventListener('click', function(e) {
+    if (e.target === customerOverlay) {
+      customerOverlay.style.display = 'none';
+      pendingBuy = null;
+    }
+  });
+
+  customerForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    customerInfo = { name: custName.value.trim(), phone: custPhone.value.trim() };
+    customerOverlay.style.display = 'none';
+    if (pendingBuy) {
+      var action = pendingBuy;
+      pendingBuy = null;
+      action();
+    }
+  });
+
+  document.getElementById('btnBuyNow').addEventListener('click', function() {
+    if (!currentProduct) return;
+    requireCustomer(function() {
+      doBuyNow(customerInfo.name, customerInfo.phone);
+    });
+  });
+
+  /* ---- Related Products ---- */
+  function renderRelated(p) {
+    var related = allProducts.filter(function(r) {
+      return r.id !== p.id && r.category === p.category;
+    });
+    if (related.length === 0) {
+      related = allProducts.filter(function(r) { return r.id !== p.id; }).slice(0, 4);
+    }
+    if (related.length === 0) {
+      document.getElementById('relatedSection').classList.add('hidden');
+      return;
+    }
+
+    document.getElementById('relatedSection').classList.remove('hidden');
+    document.getElementById('relatedScroll').innerHTML = related.slice(0, 6).map(function(r) {
+      var imgUrl = fixGoogleDriveUrl(r.image);
+      return '<a href="produk-detail.html?id=' + r.id + '" class="related-card">' +
+        '<div class="related-card__thumb" style="background:' + (r.bg || '#F3F5F7') + '">' +
+          (imgUrl
+            ? '<img src="' + imgUrl + '" alt="' + r.name + '" loading="lazy" onerror="this.style.display=\'none\';">'
+            : '<div style="width:100%;height:100%;display:grid;place-items:center;font-size:1.6rem;">' + (r.emoji || '📦') + '</div>') +
+        '</div>' +
+        '<div class="related-card__name">' + r.name + '</div>' +
+        '<div class="related-card__price">' + formatRupiah(r.price) + '</div>' +
+      '</a>';
+    }).join('');
+  }
+
+  /* ---- Init: fetch data ---- */
+  async function init() {
+    var cached = getCachedData('yp_products');
+    if (cached && cached.length > 0) {
+      allProducts = cached;
+    }
+
+    try {
+      var cfg = window.YOURPRINT_CONFIG || {};
+      if (cfg.GAS_URL && cfg.GAS_URL.indexOf('PASTE_URL') === -1) {
+        var res = await fetch(cfg.GAS_URL.trim() + '?action=getProducts&t=' + Date.now());
+        var fresh = await res.json();
+        if (Array.isArray(fresh) && fresh.length > 0) {
+          allProducts = fresh;
+          setCachedData('yp_products', allProducts);
+        }
+      }
+    } catch(e) {
+      if (allProducts.length === 0) {
+        showEmpty();
+        return;
+      }
+    }
+
+    var product = allProducts.find(function(p) { return String(p.id) === String(productId); });
+    if (!product) {
+      showEmpty();
+      return;
+    }
+
+    showContent();
+    renderProduct(product);
+    loadSession();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YourPrint — ATK & Jasa Percetakan Online</title>
+<meta name="description" content="YourPrint: toko alat tulis kantor dan jasa percetakan online. Cetak dokumen, foto, banner, dan jilid dalam hitungan menit.">
+<meta name="keywords" content="percetakan online, toko ATK, cetak dokumen, cetak banner, jasa jilid, buku custom, Manado">
+<meta name="author" content="YourPrint">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="YourPrint — ATK & Jasa Percetakan Online">
+<meta property="og:description" content="Toko alat tulis kantor dan jasa percetakan online. Cetak dokumen, foto, banner, dan jilid dalam hitungan menit.">
+<meta property="og:url" content="https://yourprint.id">
+<meta property="og:site_name" content="YourPrint">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="YourPrint — ATK & Jasa Percetakan Online">
+<meta name="twitter:description" content="Toko alat tulis kantor dan jasa percetakan online. Cetak dokumen, foto, banner, dan jilid dalam hitungan menit.">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="images/logo/logo.png">
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: {
+            DEFAULT: '#16233F',
+            light: '#24365C',
+          },
+          paper: '#F3F5F7',
+          stamp: {
+            DEFAULT: '#E4572E',
+            dark: '#C6431E',
+          },
+          highlight: '#FFC53D',
+          slate: {
+            soft: '#5B6B7F',
+          },
+          line: '#D8DEE4',
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['"Inter"', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+      }
+    }
+  }
+</script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-paper text-ink font-body antialiased">
+
+<!-- ============ NAVBAR ============ -->
+<header class="sticky top-0 z-40 bg-paper/90 backdrop-blur border-b border-line">
+  <div class="max-w-7xl mx-auto px-4 md:px-8">
+    <div class="flex items-center justify-between h-14 md:h-16">
+
+      <!-- Logo -->
+      <a href="#home" class="flex items-center gap-2 group">
+        <span class="relative grid place-items-center w-8 h-8 md:w-9 md:h-9 rounded-md overflow-hidden bg-ink text-paper font-display font-bold text-lg rotate-[-3deg] group-hover:rotate-0 transition-transform">
+          <img src="images/logo/logo.png" alt="YourPrint" class="w-full h-full object-cover"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+          <span class="logo-fallback">Y</span>
+        </span>
+        <span class="font-display font-bold text-lg md:text-xl tracking-tight">Your<span class="text-stamp">Print</span></span>
+      </a>
+
+      <!-- Desktop nav -->
+      <nav class="hidden md:flex items-center gap-7 font-medium text-sm">
+        <a href="#home" class="nav-link">Home</a>
+        <a href="#layanan" class="nav-link">Layanan Cetak</a>
+        <a href="#produk" class="nav-link">Produk Populer</a>
+        <a href="#unggulan" class="nav-link">Buku Custom</a>
+        <a href="#kontak" class="nav-link">Kontak</a>
+      </nav>
+
+      <!-- Right side: cart + mobile toggle -->
+      <div class="flex items-center gap-2 md:gap-3">
+        <button id="cartToggle" class="relative flex items-center gap-2 px-2.5 py-1.5 md:px-3 md:py-2 rounded-md border border-ink/15 hover:border-stamp hover:text-stamp transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.5 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 8H6"/></svg>
+          <span class="hidden sm:inline text-sm font-medium">Keranjang</span>
+          <span id="cartCount" class="absolute -top-2 -right-2 bg-stamp text-white text-[11px] font-bold w-5 h-5 rounded-full grid place-items-center">0</span>
+          <span id="cartBadge" class="absolute -top-2 -left-2 bg-green-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full grid place-items-center hidden">0</span>
+        </button>
+
+        <button id="mobileMenuBtn" class="md:hidden p-2 -mr-2" aria-label="Buka menu">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search bar -->
+    <div class="pb-2.5 md:pb-3">
+      <div class="relative">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute left-3.5 md:left-4 top-1/2 -translate-y-1/2 text-slate-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="productSearch" type="search" placeholder="Cari produk ATK... misal: pulpen, kertas, buku"
+          class="w-full h-9 md:h-10 pl-9 md:pl-10 pr-8 md:pr-9 rounded-full border border-line bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-stamp/40 focus:border-stamp">
+        <button id="productSearchClear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-soft hover:text-stamp" aria-label="Hapus pencarian">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile nav -->
+    <nav id="mobileMenu" class="hidden md:hidden pb-3 flex flex-col gap-1 font-medium text-sm">
+      <a href="#home" class="mobile-nav-link">Home</a>
+      <a href="#layanan" class="mobile-nav-link">Layanan Cetak</a>
+      <a href="#produk" class="mobile-nav-link">Produk Populer</a>
+      <a href="#unggulan" class="mobile-nav-link">Buku Custom</a>
+      <a href="#kontak" class="mobile-nav-link">Kontak</a>
+    </nav>
+
+    <!-- Quick-nav pills -->
+    <div class="flex items-center gap-2 overflow-x-auto quicknav-scroll pb-2.5">
+      <a href="#layanan" class="quicknav-pill">🖨️ Layanan Cetak</a>
+      <a href="#produk" class="quicknav-pill">📦 Produk Populer</a>
+      <a href="#unggulan" class="quicknav-pill">📘 Buku Custom</a>
+      <a href="#kontak" class="quicknav-pill">💬 Kontak</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO BANNER CAROUSEL ============ -->
+<section id="home" class="px-4 md:px-8 py-3 md:py-5 max-w-7xl mx-auto">
+  <div id="bannerCarousel" class="banner-carousel">
+    <!-- Skeleton loading -->
+    <div class="banner-skeleton"></div>
+  </div>
+</section>
+
+<!-- ============ LAYANAN PERCETAKAN ============ -->
+<section id="layanan" class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+  <div class="max-w-2xl mb-6 md:mb-8">
+    <p class="eyebrow">Layanan Percetakan</p>
+    <h2 class="section-title">Pilih layanan, unggah file, kami yang cetak.</h2>
+    <p class="text-slate-soft text-sm md:text-base mt-2">Pilih layanan, unggah file Anda, lalu kami proses secepatnya.</p>
+  </div>
+
+  <div class="print-scroll lg:grid lg:grid-cols-4 lg:gap-4" id="printServices">
+    <!-- Skeleton loading -->
+    <div class="print-card animate-pulse" style="height: 260px; background: #f9fafb;"></div>
+    <div class="print-card animate-pulse" style="height: 260px; background: #f9fafb;"></div>
+    <div class="print-card animate-pulse" style="height: 260px; background: #f9fafb;"></div>
+    <div class="print-card animate-pulse" style="height: 260px; background: #f9fafb;"></div>
+  </div>
+</section>
+
+<!-- ============ PRODUK POPULER ============ -->
+<section id="produk" class="bg-white border-y border-line">
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+    <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Produk Populer</p>
+        <h2 class="section-title">Alat tulis kantor, stok selalu ada.</h2>
+      </div>
+      <p class="text-slate-soft text-xs md:text-sm">Menampilkan <span id="productCountLabel" class="font-semibold text-ink">8</span> produk</p>
+    </div>
+
+    <!-- Filter tabs kategori -->
+    <div id="categoryTabs" class="flex items-center gap-1.5 md:gap-2 overflow-x-auto quicknav-scroll mb-4 md:mb-5">
+      <button class="quicknav-pill is-active" data-category="Semua">Semua</button>
+      <button class="quicknav-pill" data-category="Kertas">📄 Kertas</button>
+      <button class="quicknav-pill" data-category="Alat Tulis">🖊️ Alat Tulis</button>
+      <button class="quicknav-pill" data-category="Aksesoris">📁 Aksesoris</button>
+      <button class="quicknav-pill" data-category="Perlengkapan">📎 Perlengkapan</button>
+    </div>
+
+    <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 md:gap-3.5">
+      <!-- Skeleton loading -->
+      <div class="product-card animate-pulse" style="height: 180px; background: #f9fafb;"></div>
+      <div class="product-card animate-pulse" style="height: 180px; background: #f9fafb;"></div>
+      <div class="product-card animate-pulse" style="height: 180px; background: #f9fafb;"></div>
+      <div class="product-card animate-pulse" style="height: 180px; background: #f9fafb;"></div>
+    </div>
+
+    <p id="productEmptyMsg" class="hidden text-center text-slate-soft text-sm py-10">
+      Produk tidak ditemukan. Coba kata kunci lain, atau hubungi kami langsung lewat WhatsApp.
+    </p>
+
+    <!-- Tombol Lihat Semua -->
+    <div id="showAllWrap" class="hidden text-center mt-5">
+      <button id="showAllBtn" class="cta-secondary text-sm" style="padding: .45rem 1.2rem;">
+        Lihat Semua Produk
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LAYANAN UNGGULAN ============ -->
+<section id="unggulan" class="relative overflow-hidden bg-ink text-paper py-10 md:py-14">
+  <div class="absolute -left-16 -top-16 w-72 h-72 rounded-full bg-stamp/20 blur-3xl"></div>
+  <div class="absolute -right-10 bottom-0 w-56 h-56 rounded-full bg-highlight/10 blur-3xl"></div>
+
+  <div class="max-w-7xl mx-auto px-4 md:px-8 relative">
+    <div class="max-w-2xl mb-6 md:mb-8">
+      <span class="inline-flex items-center gap-2 bg-highlight/15 text-highlight border border-highlight/40 text-xs font-mono font-medium px-3 py-1 rounded-full">
+        ⭐ LAYANAN UNGGULAN
+      </span>
+      <h2 class="section-title text-white mt-4">Yang paling dipercaya pelanggan kami.</h2>
+      <p class="text-paper/70 mt-2 text-sm md:text-base">Bukan sekadar cetak biasa — ini yang sudah terbukti dipesan berulang.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4 md:gap-6">
+
+      <!-- Card 1: Buku Custom & TPQ -->
+      <div class="featured-card">
+        <div class="featured-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+            <path d="M8 7h6"/>
+            <path d="M8 11h8"/>
+          </svg>
+        </div>
+        <h3 class="font-display font-bold text-lg md:text-xl mt-3">Buku Custom &amp; TPQ</h3>
+        <p class="text-paper/60 text-xs md:text-sm mt-1.5 leading-relaxed">
+          Buku tulis dan buku TPQ dengan desain cover, ukuran, dan isi sesuai kebutuhan Anda —
+          cocok untuk sekolah, TPQ/madrasah, komunitas, atau brand pribadi.
+        </p>
+        <div class="featured-card__stats mt-3">
+          <span class="featured-card__stat-item">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            20+ pelanggan
+          </span>
+          <span class="featured-card__stat-item">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            100+ pcs pesanan
+          </span>
+        </div>
+        <a href="https://wa.me/6285242410880?text=Halo%20YourPrint%2C%20saya%20ingin%20konsultasi%20pesan%20buku%20custom%2FTPQ"
+          target="_blank" rel="noopener" class="cta-primary mt-4 text-sm">
+          Konsultasi via WhatsApp
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Card 2: Jasa Desain -->
+      <div class="featured-card">
+        <div class="featured-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            <path d="M5 3v4"/>
+            <path d="M19 17v4"/>
+            <path d="M3 5h4"/>
+            <path d="M17 19h4"/>
+          </svg>
+        </div>
+        <h3 class="font-display font-bold text-lg md:text-xl mt-3">Jasa Desain</h3>
+        <p class="text-paper/60 text-xs md:text-sm mt-1.5 leading-relaxed">
+          Butuh desain sebelum dicetak? Kami bantu buatkan desain cover buku, banner, undangan,
+          hingga materi promosi — hasil desain langsung lanjut dicetak di YourPrint.
+        </p>
+        <div class="featured-card__stats mt-3">
+          <span class="featured-card__stat-item">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            Logo &amp; Layout
+          </span>
+          <span class="featured-card__stat-item">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+            Desain Cetak
+          </span>
+        </div>
+        <a href="https://wa.me/6285242410880?text=Halo%20YourPrint%2C%20saya%20ingin%20konsultasi%20jasa%20desain"
+          target="_blank" rel="noopener" class="cta-primary mt-4 text-sm">
+          Konsultasi via WhatsApp
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALERI BUKU ============ -->
+<section id="galeri" class="bg-ink border-t border-white/5 py-8 md:py-12">
+  <div class="max-w-7xl mx-auto px-4 md:px-8">
+    <div class="flex items-center justify-between gap-4 mb-1.5">
+      <h3 class="font-display font-semibold text-base md:text-lg text-white">Contoh Buku yang Pernah Kami Buat</h3>
+      <div class="flex gap-2 shrink-0">
+        <button id="galleryPrev" class="gallery-nav-btn" aria-label="Sebelumnya">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button id="galleryNext" class="gallery-nav-btn" aria-label="Berikutnya">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+    <p class="text-paper/50 text-xs md:text-sm mb-4">Tertarik salah satu? Klik buku-nya, kode bukunya otomatis terisi saat chat WhatsApp.</p>
+
+    <div id="bookGallery" class="book-carousel">
+      <!-- Skeleton loading -->
+      <div class="book-card animate-pulse" style="flex: 0 0 140px; min-height: 190px; background: rgba(255,255,255,0.05)"></div>
+      <div class="book-card animate-pulse" style="flex: 0 0 140px; min-height: 190px; background: rgba(255,255,255,0.05)"></div>
+      <div class="book-card animate-pulse" style="flex: 0 0 140px; min-height: 190px; background: rgba(255,255,255,0.05)"></div>
+      <div class="book-card animate-pulse" style="flex: 0 0 140px; min-height: 190px; background: rgba(255,255,255,0.05)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ KONTAK / CTA STRIP ============ -->
+<section id="kontak-cta" class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-10">
+  <div class="rounded-xl md:rounded-2xl bg-ink text-paper px-5 md:px-10 py-6 md:py-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 relative overflow-hidden">
+    <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-stamp/20 blur-2xl"></div>
+    <div class="relative text-center md:text-left">
+      <h3 class="font-display font-bold text-xl md:text-2xl">Butuh cetak dalam jumlah besar?</h3>
+      <p class="text-paper/70 mt-1.5 text-sm md:text-base max-w-md">Chat tim kami untuk penawaran harga khusus korporat & sekolah.</p>
+    </div>
+    <a href="#kontak" class="relative cta-primary shrink-0 text-sm">
+      Hubungi via WhatsApp
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ============ TESTIMONI PELANGGAN ============ -->
+<section id="testimoni" class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+  <div class="max-w-2xl mb-6 md:mb-8">
+    <p class="eyebrow">Testimoni Pelanggan</p>
+    <h2 class="section-title">Apa kata mereka tentang YourPrint?</h2>
+    <p class="text-slate-soft text-sm md:text-base mt-2">Dari ratusan pelanggan yang sudah puas, berikut beberapa kata mereka.</p>
+  </div>
+
+  <div id="testimonialGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+    <div class="animate-pulse rounded-xl border border-line p-5 h-36 bg-white"></div>
+    <div class="animate-pulse rounded-xl border border-line p-5 h-36 bg-white"></div>
+    <div class="animate-pulse rounded-xl border border-line p-5 h-36 bg-white"></div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer id="kontak" class="bg-ink text-paper/80">
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-14 grid sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
+
+    <div>
+      <a href="#home" class="flex items-center gap-2 mb-3">
+        <span class="grid place-items-center w-8 h-8 rounded-md bg-paper text-ink font-display font-bold">Y</span>
+        <span class="font-display font-bold text-lg text-white">Your<span class="text-stamp">Print</span></span>
+      </a>
+      <p class="text-sm leading-relaxed max-w-xs">Toko ATK &amp; jasa percetakan online — cepat, rapi, dan bisa diandalkan sejak 2019.</p>
+    </div>
+
+    <div>
+      <h4 class="font-display font-semibold text-white mb-3 text-sm tracking-wide">ALAMAT TOKO</h4>
+      <p class="text-sm leading-relaxed">
+        Jl. Trans Sulawesi<br>
+        Gorntalo, Gorontalo Utara, Kwandang <br>
+        Indonesia
+      </p>
+    </div>
+
+    <div>
+      <h4 class="font-display font-semibold text-white mb-3 text-sm tracking-wide">KONTAK</h4>
+      <a href="https://wa.me/6285242410880" target="_blank" rel="noopener" class="flex items-center gap-2 text-sm hover:text-white transition-colors mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.29-1.39a9.9 9.9 0 0 0 4.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.51 2 12.04 2Zm5.8 14.03c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.12.11-1.8-.11-.42-.13-.95-.31-1.64-.6-2.87-1.24-4.75-4.14-4.9-4.33-.14-.2-1.17-1.56-1.17-2.97 0-1.42.74-2.11 1-2.4.26-.29.57-.36.76-.36h.55c.18 0 .42-.01.65.5.24.55.82 1.9.9 2.04.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.16-.29.36-.42.49-.14.14-.28.28-.12.56.16.29.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.06.18-.27.36-.22.6-.13.24.09 1.55.73 1.82.87.27.13.45.2.51.31.07.11.07.63-.17 1.31Z"/></svg>
+        +62 852-4241-0880
+      </a>
+      <a href="mailto:halo@yourprint.id" class="flex items-center gap-2 text-sm hover:text-white transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity="0"/><path d="m3 6 9 6 9-6"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+        halo@yourprint.id
+      </a>
+    </div>
+
+    <div>
+      <h4 class="font-display font-semibold text-white mb-3 text-sm tracking-wide">JAM OPERASIONAL</h4>
+      <ul class="text-sm space-y-1.5 font-mono">
+        <li class="flex justify-between gap-4"><span>Senin – Jumat</span><span>08.00–20.00</span></li>
+        <li class="flex justify-between gap-4"><span>Sabtu</span><span>08.00–17.00</span></li>
+        <li class="flex justify-between gap-4"><span>Minggu</span><span>Tutup</span></li>
+      </ul>
+    </div>
+
+  </div>
+  <div class="border-t border-white/10 py-4 flex items-center justify-between text-xs text-paper/50 px-4 md:px-8 max-w-7xl mx-auto">
+    <span>© 2026 YourPrint. Seluruh hak cipta dilindungi.</span>
+    <a href="admin.html" class="hover:text-white transition-colors">Admin Login</a>
+  </div>
+</footer>
+
+<!-- ============ CART DRAWER ============ -->
+<div id="cartOverlay" class="fixed inset-0 bg-ink/40 backdrop-blur-sm z-50 hidden"></div>
+
+<aside id="cartDrawer" class="fixed top-0 right-0 h-full w-full sm:w-[380px] bg-white z-50 translate-x-full transition-transform duration-300 ease-out flex flex-col shadow-2xl">
+
+  <!-- Header + Tab Bar -->
+  <div class="border-b border-dashed border-ink/20">
+    <div class="flex items-center justify-between px-5 py-4">
+      <h3 class="font-display font-bold text-lg flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.5 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 8H6"/></svg>
+        <span id="cartDrawerTitle">Keranjang</span>
+      </h3>
+      <button id="cartClose" class="p-1.5 hover:text-stamp transition-colors" aria-label="Tutup keranjang">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="flex px-5 -mb-px">
+      <button id="tabCartBtn" class="cart-tab cart-tab--active" data-tab="cart">Keranjang</button>
+      <button id="tabOrdersBtn" class="cart-tab" data-tab="orders">Pesanan Saya</button>
+    </div>
+  </div>
+
+  <!-- TAB: Keranjang -->
+  <div id="cartTabCart" class="flex-1 flex flex-col min-h-0">
+    <div class="flex-1 overflow-y-auto px-5 py-4 font-mono text-sm">
+      <p class="text-center text-xs tracking-[0.2em] text-slate-soft mb-1">YOURPRINT STORE</p>
+      <p class="text-center text-[11px] text-slate-soft mb-4">STRUK BELANJA SEMENTARA</p>
+      <div id="cartItems" class="space-y-3"></div>
+      <p id="cartEmptyMsg" class="text-center text-slate-soft text-xs py-10">Keranjang masih kosong.<br>Yuk tambahkan produk ATK favoritmu.</p>
+    </div>
+    <div id="cartFooter" class="px-5 py-4 border-t-2 border-dashed border-ink/30">
+      <div class="flex justify-between items-center font-mono text-xs text-slate-soft mb-1">
+        <span>SUBTOTAL</span>
+        <span id="cartSubtotal">Rp0</span>
+      </div>
+      <div class="flex justify-between items-center font-display font-bold text-lg mb-4">
+        <span>TOTAL</span>
+        <span id="cartTotal">Rp0</span>
+      </div>
+      <button id="checkoutBtn" class="w-full cta-primary justify-center">Checkout via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- TAB: Pesanan Saya -->
+  <div id="cartTabOrders" class="flex-1 flex-col min-h-0 hidden overflow-y-auto">
+    <div class="px-5 py-4">
+      <p class="text-slate-soft text-xs mb-3">Masukkan nomor WhatsApp yang dipakai saat memesan.</p>
+      <div id="orderLookupForm" class="flex gap-2 mb-4">
+        <input id="orderPhoneInput" type="tel" placeholder="08xxxxxxxxxx"
+          class="flex-1 min-w-0 border border-line rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-stamp/40 focus:border-stamp">
+        <button id="orderLookupBtn" class="bg-ink text-white text-sm font-semibold px-3 py-2.5 rounded-lg hover:bg-ink-light transition-colors shrink-0">
+          Cek
+        </button>
+      </div>
+      <div id="orderLookupLoading" class="hidden">
+        <div class="animate-pulse rounded-lg border border-line p-5 h-24 bg-paper mb-3"></div>
+        <div class="animate-pulse rounded-lg border border-line p-5 h-24 bg-paper"></div>
+      </div>
+      <p id="orderLookupEmpty" class="hidden text-center text-slate-soft text-xs py-8">Tidak ada pesanan ditemukan untuk nomor ini.</p>
+      <p id="orderLookupError" class="hidden text-center text-stamp text-xs py-8">Terjadi kesalahan. Silakan coba lagi.</p>
+      <div id="orderList" class="space-y-3"></div>
+    </div>
+  </div>
+
+  <div class="cart-tear-edge"></div>
+</aside>
+
+<!-- ============ MODAL: DATA PEMESAN ============ -->
+<div id="customerModalOverlay" class="fixed inset-0 bg-ink/50 backdrop-blur-sm z-[60] hidden grid place-items-center px-5">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-6 relative">
+    <button id="customerModalClose" class="absolute top-4 right-4 text-slate-soft hover:text-stamp" aria-label="Tutup">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <p class="eyebrow">Data Pemesan</p>
+    <h3 class="font-display font-bold text-xl mb-1">Sebelum lanjut, kenalan dulu yuk</h3>
+    <p class="text-slate-soft text-sm mb-5">Data ini dipakai untuk mencatat pesanan Anda dan menghubungi via WhatsApp.</p>
+    <form id="customerForm" class="space-y-3">
+      <div>
+        <label class="block text-xs font-medium mb-1.5" for="customerNameInput">Nama</label>
+        <input id="customerNameInput" type="text" required placeholder="Nama lengkap"
+          class="w-full border border-line rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-stamp/40 focus:border-stamp">
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1.5" for="customerPhoneInput">Nomor WhatsApp</label>
+        <input id="customerPhoneInput" type="tel" required placeholder="08xxxxxxxxxx"
+          class="w-full border border-line rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-stamp/40 focus:border-stamp">
+      </div>
+      <button type="submit" class="cta-primary w-full justify-center mt-2">Simpan &amp; Lanjutkan</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ BOTTOM NAV (mobile) ============ -->
+<nav id="bottomNav" class="bottom-nav md:hidden">
+  <a href="#home" class="bottom-nav__item is-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+    Home
+  </a>
+  <a href="#layanan" class="bottom-nav__item">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Layanan
+  </a>
+  <a href="#produk" class="bottom-nav__item">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Produk
+  </a>
+  <a href="akun.html" class="bottom-nav__item">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Akun
+  </a>
+</nav>
+
+<!-- pdf.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<script src="config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

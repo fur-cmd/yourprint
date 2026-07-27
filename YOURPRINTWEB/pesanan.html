@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pesanan — YourPrint</title>
+<link rel="icon" type="image/png" href="images/logo/logo.png">
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: { DEFAULT: '#16233F', light: '#24365C' },
+          paper: '#F3F5F7',
+          stamp: { DEFAULT: '#E4572E', dark: '#C6431E' },
+          highlight: '#FFC53D',
+          slate: { soft: '#5B6B7F' },
+          line: '#D8DEE4',
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['"Inter"', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+  .page-header {
+    background: var(--ink); color: var(--paper); padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: .75rem;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .page-header a { color: var(--paper); text-decoration: none; display: flex; align-items: center; gap: .4rem; font-size: .85rem; }
+  .page-header a:hover { color: var(--stamp); }
+  .page-header h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1rem; }
+
+  .detail-card {
+    background: #fff; border: 1px solid var(--line); border-radius: .75rem;
+    padding: 1.25rem; margin-bottom: 1rem;
+  }
+  .detail-card h2 {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+    font-size: 1rem; margin-bottom: .75rem; display: flex; align-items: center; gap: .4rem;
+  }
+  .detail-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .45rem 0; border-bottom: 1px solid var(--paper); font-size: .85rem;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label { color: var(--slate); }
+  .detail-value { font-weight: 600; text-align: right; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .option-group { margin-bottom: 1.25rem; }
+  .option-label { font-weight: 600; font-size: .85rem; margin-bottom: .5rem; display: block; }
+
+  .radio-group { display: flex; flex-direction: column; gap: .5rem; }
+  .radio-card {
+    display: flex; align-items: center; gap: .65rem;
+    background: #fff; border: 1.5px solid var(--line); border-radius: .6rem;
+    padding: .65rem .85rem; cursor: pointer; transition: all .15s ease;
+  }
+  .radio-card:hover { border-color: rgba(var(--ink-rgb), 0.19); }
+  .radio-card.selected { border-color: var(--stamp); background: rgba(var(--stamp-rgb), 0.03); }
+  .radio-card input[type="radio"] { accent-color: var(--stamp); width: 1rem; height: 1rem; }
+  .radio-card .radio-text { font-size: .85rem; font-weight: 500; }
+  .radio-card .radio-price { font-size: .75rem; color: var(--slate); margin-left: auto; }
+
+  .qty-control {
+    display: flex; align-items: center; gap: 0;
+    border: 1.5px solid var(--line); border-radius: .6rem; overflow: hidden;
+    width: fit-content; background: #fff;
+  }
+  .qty-btn {
+    width: 2.5rem; height: 2.5rem; display: grid; place-items: center;
+    background: var(--paper); border: none; cursor: pointer; font-size: 1.1rem;
+    font-weight: 600; color: var(--ink); transition: background .15s ease;
+  }
+  .qty-btn:hover { background: var(--line); }
+  .qty-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .qty-value {
+    width: 3.5rem; height: 2.5rem; text-align: center; border: none;
+    font-size: 1rem; font-weight: 600; background: #fff;
+    -moz-appearance: textfield;
+  }
+  .qty-value::-webkit-inner-spin-button,
+  .qty-value::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .notes-area {
+    width: 100%; border: 1.5px solid var(--line); border-radius: .6rem;
+    padding: .65rem .85rem; font-size: .85rem; font-family: 'Inter', sans-serif;
+    resize: vertical; min-height: 80px; transition: border-color .15s ease;
+  }
+  .notes-area:focus { outline: none; border-color: var(--stamp); }
+
+  .summary-box {
+    background: #fff; border: 1.5px solid var(--line); border-radius: .75rem;
+    padding: 1.25rem; margin-top: 1rem;
+  }
+  .summary-row {
+    display: flex; justify-content: space-between; font-size: .85rem;
+    padding: .3rem 0;
+  }
+  .summary-divider { border-top: 1.5px dashed var(--line); margin: .5rem 0; }
+  .summary-total {
+    display: flex; justify-content: space-between; font-size: 1.05rem;
+    font-weight: 700; padding-top: .5rem;
+  }
+
+  .submit-btn {
+    width: 100%; margin-top: 1.25rem; padding: .85rem 1rem;
+    background: #25D366; color: #fff; font-weight: 700; font-size: .95rem;
+    border: none; border-radius: .6rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: .5rem;
+    transition: background .18s ease;
+  }
+  .submit-btn:hover { background: #1da851; }
+  .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .empty-state {
+    text-align: center; padding: 3rem 1.5rem; color: var(--slate);
+  }
+  .empty-state h2 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.1rem; margin-bottom: .5rem; color: var(--ink); }
+  .empty-state p { font-size: .85rem; margin-bottom: 1.25rem; }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: .35rem;
+    background: var(--ink); color: var(--paper); padding: .6rem 1.2rem;
+    border-radius: .5rem; text-decoration: none; font-weight: 600; font-size: .85rem;
+    transition: background .18s ease;
+  }
+  .back-btn:hover { background: var(--stamp); }
+
+  @media (min-width: 640px) {
+    .page-content { max-width: 480px; margin: 0 auto; padding: 1.5rem 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="page-header">
+  <a href="index.html">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+    Kembali
+  </a>
+  <h1>Pesanan Cetak</h1>
+</header>
+
+<!-- EMPTY STATE (jika tidak ada data) -->
+<div id="emptyState" class="empty-state hidden" style="margin-top: 4rem;">
+  <h2>Tidak ada data pesanan</h2>
+  <p>Silakan kembali ke halaman utama dan pilih layanan cetak terlebih dahulu.</p>
+  <a href="index.html" class="back-btn">← Kembali ke Beranda</a>
+</div>
+
+<!-- PAGE CONTENT -->
+<div id="pageContent" class="page-content px-4 pt-5 pb-8 hidden">
+
+  <!-- Detail Pesanan -->
+  <div class="detail-card">
+    <h2>📄 Detail Pesanan</h2>
+    <div class="detail-row">
+      <span class="detail-label">Layanan</span>
+      <span class="detail-value" id="dService">—</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">File</span>
+      <span class="detail-value" id="dFile">—</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Halaman</span>
+      <span class="detail-value" id="dPages">—</span>
+      <div id="pageInputWrap" style="display:none;margin-top:.35rem;">
+        <input type="number" id="pageManualInput" value="1" min="1" max="9999" style="width:80px;padding:.35rem .5rem;border:1px solid #D8DEE4;border-radius:.35rem;font-size:.82rem;text-align:center;">
+        <button type="button" id="pageManualBtn" style="padding:.35rem .7rem;background:#E4572E;color:#fff;border:none;border-radius:.35rem;font-size:.75rem;font-weight:600;cursor:pointer;margin-left:.35rem;">Set</button>
+        <span style="font-size:.7rem;color:#5B6B7F;margin-left:.35rem;">Masukkan jumlah halaman</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Diri -->
+  <div class="detail-card">
+    <h2>👤 Data Diri</h2>
+    <div class="option-group">
+      <span class="option-label">Nama Lengkap</span>
+      <input type="text" id="nameInput" class="notes-area" style="min-height:auto;resize:none;" placeholder="Masukkan nama lengkap Anda" required>
+    </div>
+    <div class="option-group">
+      <span class="option-label">No. WhatsApp</span>
+      <input type="tel" id="phoneInput" class="notes-area" style="min-height:auto;resize:none;" placeholder="Contoh: 6281234567890" required>
+      <p style="font-size:.72rem;color:#5B6B7F;margin-top:.25rem;">Gunakan format internasional (62xxx)</p>
+    </div>
+    <div class="option-group">
+      <span class="option-label">Alamat Lengkap <span style="color:#E4572E;">*</span></span>
+      <textarea id="addressInput" class="notes-area" rows="2" placeholder="Jalan, No. Rumah, Kelurahan, Kecamatan" required style="min-height:auto;resize:none;"></textarea>
+      <p style="font-size:.72rem;color:#5B6B7F;margin-top:.25rem;">Wajib diisi untuk pengiriman/penjemputan</p>
+    </div>
+    <div class="option-group">
+      <button type="button" id="mapsBtn" class="maps-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Kirim Lokasi via Google Maps
+      </button>
+      <p id="mapsStatus" style="font-size:.72rem;color:#5B6B7F;margin-top:.25rem;">Klik untuk membuka Google Maps dan bagikan lokasi Anda</p>
+    </div>
+    <div class="option-group">
+      <span class="option-label">Metode Pembayaran</span>
+      <div class="radio-group">
+        <label class="radio-card selected" id="radioCash">
+          <input type="radio" name="paymentMethod" value="Tunai" checked>
+          <span class="radio-text">💵 Tunai</span>
+          <span class="radio-price">Bayar di tempat</span>
+        </label>
+        <label class="radio-card" id="radioTransfer">
+          <input type="radio" name="paymentMethod" value="Transfer">
+          <span class="radio-text">🏦 Transfer Bank</span>
+          <span class="radio-price">Konfirmasi ke admin</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Opsi Cetak -->
+  <div class="detail-card">
+    <h2>⚙️ Opsi Cetak</h2>
+
+    <!-- Mode Cetak -->
+    <div class="option-group">
+      <span class="option-label">Mode Cetak</span>
+      <div class="radio-group">
+        <label class="radio-card selected" id="radioBw">
+          <input type="radio" name="colorMode" value="bw" checked>
+          <span class="radio-text">Hitam Putih</span>
+          <span class="radio-price" id="priceBwLabel">Rp500/lbr</span>
+        </label>
+        <label class="radio-card" id="radioColor">
+          <input type="radio" name="colorMode" value="color">
+          <span class="radio-text">Warna</span>
+          <span class="radio-price" id="priceColorLabel">Rp1.000/lbr</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Jumlah Salinan -->
+    <div class="option-group">
+      <span class="option-label">Jumlah Salinan</span>
+      <div class="qty-control">
+        <button class="qty-btn" id="qtyMinus" disabled>−</button>
+        <input type="number" class="qty-value" id="qtyInput" value="1" min="1" max="1000">
+        <button class="qty-btn" id="qtyPlus">+</button>
+      </div>
+    </div>
+
+    <!-- Laminasi -->
+    <div class="option-group">
+      <span class="option-label">Laminasi</span>
+      <div class="radio-group">
+        <label class="radio-card selected" id="radioLamNone">
+          <input type="radio" name="lamination" value="none" checked>
+          <span class="radio-text">Tidak ada</span>
+          <span class="radio-price">+Rp0</span>
+        </label>
+        <label class="radio-card" id="radioLamGlossy">
+          <input type="radio" name="lamination" value="glossy">
+          <span class="radio-text">Glossy</span>
+          <span class="radio-price">+Rp5.000/lbr</span>
+        </label>
+        <label class="radio-card" id="radioLamDoff">
+          <input type="radio" name="lamination" value="doff">
+          <span class="radio-text">Doff</span>
+          <span class="radio-price">+Rp5.000/lbr</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Catatan -->
+    <div class="option-group">
+      <span class="option-label">Catatan (opsional)</span>
+      <textarea class="notes-area" id="notesInput" placeholder="Contoh: jilid spiral, kertas A4, double-sided, dsb."></textarea>
+    </div>
+  </div>
+
+  <!-- Ringkasan Harga -->
+  <div class="summary-box">
+    <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;margin-bottom:.75rem;">💰 Ringkasan Harga</h2>
+    <div class="summary-row">
+      <span id="summaryPages">—</span>
+      <span id="summaryPagesCalc">—</span>
+    </div>
+    <div class="summary-row">
+      <span>Cetak</span>
+      <span id="summaryPrintPrice">—</span>
+    </div>
+    <div class="summary-row">
+      <span>Laminasi</span>
+      <span id="summaryLamPrice">—</span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-total">
+      <span>Total Estimasi</span>
+      <span id="summaryTotal">Rp0</span>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <button class="submit-btn" id="submitBtn">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676 1.007 3.503 1.586 5.388 1.591 5.448 0 9.886-4.433 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+    Kirim via WhatsApp
+  </button>
+
+</div>
+
+<script src="config.js"></script>
+<script>
+(function() {
+  var raw = sessionStorage.getItem('yp_order');
+  if (!raw) {
+    document.getElementById('emptyState').classList.remove('hidden');
+    return;
+  }
+
+  var order;
+  try { order = JSON.parse(raw); } catch(e) {
+    document.getElementById('emptyState').classList.remove('hidden');
+    return;
+  }
+
+  document.getElementById('pageContent').classList.remove('hidden');
+
+  // Auto-fill Data Diri dari Session Pelanggan
+  try {
+    var rawUser = localStorage.getItem('yp_user_info');
+    if (rawUser) {
+      var userInfo = JSON.parse(rawUser);
+      if (userInfo && userInfo.expiry && Date.now() < userInfo.expiry) {
+        if (userInfo.name) {
+          var nameInput = document.getElementById('nameInput');
+          nameInput.value = userInfo.name;
+          nameInput.readOnly = true;
+          nameInput.style.backgroundColor = '#F3F5F7';
+        }
+        if (userInfo.phone) {
+          var phoneInput = document.getElementById('phoneInput');
+          phoneInput.value = userInfo.phone;
+          phoneInput.readOnly = true;
+          phoneInput.style.backgroundColor = '#F3F5F7';
+        }
+        if (userInfo.address) {
+          document.getElementById('addressInput').value = userInfo.address;
+        }
+        if (userInfo.mapsLink) {
+          mapsLink = userInfo.mapsLink;
+          var mBtn = document.getElementById('mapsBtn');
+          var mStatus = document.getElementById('mapsStatus');
+          if (mBtn && mStatus) {
+            mBtn.textContent = '✓ Lokasi Tersimpan';
+            mBtn.style.background = '#16A34A';
+            mBtn.style.color = '#fff';
+            mStatus.textContent = 'Lokasi sebelumnya telah dimuat';
+            mStatus.style.color = '#16A34A';
+          }
+        }
+      }
+    }
+  } catch(e) {}
+
+  var serviceName = order.service || 'Cetak Dokumen';
+  var pageCount = parseInt(order.pageCount) || 0;
+  
+  // Bug Fix: Cegah harga Rp 0 jika file gagal dibaca
+  if (pageCount <= 0) {
+    var pageInputWrap = document.getElementById('pageInputWrap');
+    var pageManualInput = document.getElementById('pageManualInput');
+    var pageManualBtn = document.getElementById('pageManualBtn');
+    var dPages = document.getElementById('dPages');
+    pageInputWrap.style.display = 'inline-flex';
+    pageInputWrap.style.alignItems = 'center';
+    dPages.style.display = 'none';
+    pageCount = 1;
+    pageManualBtn.addEventListener('click', function() {
+      var v = parseInt(pageManualInput.value) || 1;
+      if (v < 1) v = 1;
+      pageCount = v;
+      pageInputWrap.style.display = 'none';
+      dPages.style.display = '';
+      dPages.textContent = pageCount + ' halaman (manual)';
+      updateSummary();
+    });
+    pageManualInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') pageManualBtn.click();
+    });
+  }
+  var fileName = order.fileName || 'file';
+  var priceBw = parseInt(order.priceBw) || 500;
+  var priceColor = parseInt(order.priceColor) || 1000;
+  var lamPrice = 5000;
+
+  document.getElementById('dService').textContent = serviceName;
+  document.getElementById('dFile').textContent = fileName;
+  document.getElementById('dPages').textContent = pageCount ? pageCount + ' halaman' : 'Tidak terbaca';
+  document.getElementById('priceBwLabel').textContent = 'Rp' + priceBw.toLocaleString('id-ID') + '/lbr';
+  document.getElementById('priceColorLabel').textContent = 'Rp' + priceColor.toLocaleString('id-ID') + '/lbr';
+
+  var qtyInput = document.getElementById('qtyInput');
+  var qtyMinus = document.getElementById('qtyMinus');
+  var qtyPlus = document.getElementById('qtyPlus');
+
+  qtyMinus.addEventListener('click', function() {
+    var v = parseInt(qtyInput.value) || 1;
+    if (v > 1) { qtyInput.value = v - 1; updateSummary(); }
+  });
+  qtyPlus.addEventListener('click', function() {
+    var v = parseInt(qtyInput.value) || 1;
+    if (v < 1000) { qtyInput.value = v + 1; updateSummary(); }
+  });
+  qtyInput.addEventListener('input', function() {
+    var v = parseInt(qtyInput.value);
+    if (isNaN(v) || v < 1) qtyInput.value = 1;
+    if (v > 1000) qtyInput.value = 1000;
+    updateSummary();
+  });
+
+  var radioCards = document.querySelectorAll('.radio-card');
+  radioCards.forEach(function(card) {
+    card.addEventListener('click', function() {
+      var group = card.closest('.radio-group');
+      group.querySelectorAll('.radio-card').forEach(function(c) { c.classList.remove('selected'); });
+      card.classList.add('selected');
+      card.querySelector('input[type="radio"]').checked = true;
+      updateSummary();
+    });
+  });
+
+  function formatRupiah(n) {
+    return 'Rp' + Number(n).toLocaleString('id-ID');
+  }
+
+  function getSelectedRadio(name) {
+    var checked = document.querySelector('input[name="' + name + '"]:checked');
+    return checked ? checked.value : '';
+  }
+
+  function updateSummary() {
+    var qty = parseInt(qtyInput.value) || 1;
+    var mode = getSelectedRadio('colorMode');
+    var lam = getSelectedRadio('lamination');
+    var rate = mode === 'color' ? priceColor : priceBw;
+    var lamRate = lam === 'none' ? 0 : lamPrice;
+
+    var totalSheets = pageCount * qty;
+    var printCost = totalSheets * rate;
+    var lamCost = totalSheets * lamRate;
+    var total = printCost + lamCost;
+
+    document.getElementById('summaryPages').textContent = pageCount + ' lbr × ' + qty + ' sal = ' + totalSheets + ' lbr';
+    document.getElementById('summaryPagesCalc').textContent = '';
+    document.getElementById('summaryPrintPrice').textContent = formatRupiah(printCost);
+    document.getElementById('summaryLamPrice').textContent = lamRate > 0 ? formatRupiah(lamCost) : '—';
+    document.getElementById('summaryTotal').textContent = formatRupiah(total);
+  }
+
+  updateSummary();
+
+  // Maps button handler
+  var mapsLink = '';
+  var mapsBtn = document.getElementById('mapsBtn');
+  var mapsStatus = document.getElementById('mapsStatus');
+  if (mapsBtn) {
+    mapsBtn.addEventListener('click', function() {
+      if (!navigator.geolocation) {
+        mapsStatus.textContent = 'Browser tidak mendukung deteksi lokasi.';
+        mapsStatus.style.color = '#E4572E';
+        return;
+      }
+
+      mapsBtn.disabled = true;
+      mapsBtn.textContent = 'Mendapatkan lokasi...';
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          var lat = pos.coords.latitude;
+          var lng = pos.coords.longitude;
+          mapsLink = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+          mapsStatus.textContent = '✓ Lokasi berhasil dideteksi';
+          mapsStatus.style.color = '#16A34A';
+          mapsBtn.textContent = '✓ Lokasi Terkirim';
+          mapsBtn.style.background = '#16A34A';
+          mapsBtn.style.color = '#fff';
+        },
+        function(err) {
+          mapsBtn.disabled = false;
+          mapsBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Kirim Lokasi';
+          if (err.code === 1) {
+            mapsStatus.textContent = 'Izin lokasi ditolak. Izinkan akses lokasi di pengaturan browser, lalu coba lagi.';
+          } else if (err.code === 2) {
+            mapsStatus.textContent = 'Lokasi tidak tersedia. Pastikan GPS/lokasi aktif di perangkat Anda.';
+          } else {
+            mapsStatus.textContent = 'Waktu habis. Pastikan lokasi aktif, lalu coba lagi.';
+          }
+          mapsStatus.style.color = '#E4572E';
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+      );
+    });
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', function() {
+    var name = document.getElementById('nameInput').value.trim();
+    var phone = document.getElementById('phoneInput').value.trim();
+    var address = document.getElementById('addressInput').value.trim();
+    var paymentMethod = getSelectedRadio('paymentMethod');
+
+    if (!name) {
+      showToast('Mohon isi nama lengkap Anda');
+      document.getElementById('nameInput').focus();
+      return;
+    }
+    if (!phone) {
+      showToast('Mohon isi nomor WhatsApp Anda');
+      document.getElementById('phoneInput').focus();
+      return;
+    }
+    if (!address) {
+      showToast('Mohon isi alamat lengkap Anda');
+      document.getElementById('addressInput').focus();
+      return;
+    }
+
+    var qty = parseInt(qtyInput.value) || 1;
+    var mode = getSelectedRadio('colorMode');
+    var lam = getSelectedRadio('lamination');
+    var notes = document.getElementById('notesInput').value.trim();
+    var rate = mode === 'color' ? priceColor : priceBw;
+    var lamRate = lam === 'none' ? 0 : lamPrice;
+    var totalSheets = pageCount * qty;
+    var printCost = totalSheets * rate;
+    var lamCost = totalSheets * lamRate;
+    var total = printCost + lamCost;
+
+    var modeLabel = mode === 'color' ? 'Warna' : 'Hitam Putih';
+    var lamLabel = lam === 'none' ? 'Tidak ada' : (lam === 'glossy' ? 'Glossy' : 'Doff');
+
+    var submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Mengirim pesanan...';
+
+    var cfg = window.YOURPRINT_CONFIG || {};
+    var waNumber = cfg.WHATSAPP_NUMBER || '6285242410880';
+
+    var payload = {
+      type: 'print',
+      timestamp: Date.now(),
+      service: serviceName,
+      customerName: name,
+      customerPhone: phone,
+      address: address,
+      mapsLink: mapsLink || '-',
+      paymentMethod: paymentMethod || 'Tunai',
+      fileName: fileName,
+      fileType: order.fileType || 'application/pdf',
+      fileData: order.fileData || null,
+      pageCount: pageCount,
+      colorMode: mode,
+      estimatedPrice: printCost,
+      quantity: qty,
+      lamination: lam,
+      notes: notes || '-',
+      totalPrice: total
+    };
+
+    var msg = 'Halo YourPrint, saya ingin memesan cetak:\n\n';
+    msg += ' Detail Pesanan:\n';
+    msg += '• Layanan: ' + serviceName + '\n';
+    msg += '• File: ' + fileName + ' (' + pageCount + ' halaman)\n';
+    msg += '• Mode: ' + modeLabel + '\n\n';
+    msg += ' Opsi:\n';
+    msg += '• Jumlah salinan: ' + qty + '\n';
+    msg += '• Laminasi: ' + lamLabel + '\n';
+    if (notes) msg += '• Catatan: ' + notes + '\n';
+    msg += '\n Data Diri:\n';
+    msg += '• Nama: ' + name + '\n';
+    msg += '• Alamat: ' + address + '\n';
+    if (mapsLink) msg += '• Lokasi: ' + mapsLink + '\n';
+    msg += '• Pembayaran: ' + paymentMethod + '\n';
+    msg += '\n Estimasi Harga:\n';
+    msg += '• Cetak: ' + totalSheets + ' lbr × ' + formatRupiah(rate) + ' = ' + formatRupiah(printCost) + '\n';
+    if (lamRate > 0) msg += '• Laminasi: ' + formatRupiah(lamCost) + '\n';
+    msg += '• Total: ' + formatRupiah(total) + '\n\n';
+    msg += 'Mohon konfirmasi, terima kasih!';
+
+    // Save address for next time
+    try {
+      var rawUser = localStorage.getItem('yp_user_info');
+      if (rawUser) {
+        var uInfo = JSON.parse(rawUser);
+        uInfo.address = address;
+        if (mapsLink) uInfo.mapsLink = mapsLink;
+        localStorage.setItem('yp_user_info', JSON.stringify(uInfo));
+      }
+    } catch (e) {}
+
+    sendToBackend(payload).then(function() {
+      var waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg);
+      window.open(waUrl, '_blank');
+      sessionStorage.removeItem('yp_order');
+      submitBtn.textContent = '✓ Pesanan Terkirim';
+      submitBtn.style.background = '#2E7D32';
+    }).catch(function() {
+      var waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg);
+      window.open(waUrl, '_blank');
+      sessionStorage.removeItem('yp_order');
+      submitBtn.textContent = '✓ Pesanan Terkirim';
+      submitBtn.style.background = '#2E7D32';
+    });
+  });
+
+  function sendToBackend(payload) {
+    var cfg = window.YOURPRINT_CONFIG || {};
+    if (!cfg.GAS_URL || cfg.GAS_URL.indexOf('PASTE_URL') !== -1) {
+      return Promise.resolve();
+    }
+    return fetch(cfg.GAS_URL.trim(), {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  function showToast(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#16233F;color:#F3F5F7;padding:.6rem 1.2rem;border-radius:.5rem;font-size:.85rem;z-index:999;';
+    document.body.appendChild(t);
+    setTimeout(function() { t.remove(); }, 3000);
+  }
+})();
+</script>
+</body>
+</html>

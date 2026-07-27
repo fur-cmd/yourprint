@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akun Saya — YourPrint</title>
+<meta name="description" content="Akun pelanggan YourPrint — Lihat profil dan riwayat pesanan Anda.">
+
+<link rel="icon" type="image/png" href="images/logo/logo.png">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: { DEFAULT: '#16233F', light: '#24365C' },
+          paper: '#F3F5F7',
+          stamp: { DEFAULT: '#E4572E', dark: '#C6431E' },
+          highlight: '#FFC53D',
+          slate: { soft: '#5B6B7F' },
+          line: '#D8DEE4',
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['"Inter"', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+      }
+    }
+  }
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<style>
+  .akun-header {
+    background: #16233F;
+    color: #fff;
+    padding: 1.25rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+  .akun-header-inner {
+    max-width: 48rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .akun-header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.125rem;
+  }
+  .akun-back {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .akun-back:hover { background: rgba(255,255,255,0.2); }
+
+  .akun-body {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 1rem;
+    padding-bottom: 5rem;
+  }
+
+  .profile-card {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(22,35,63,0.06);
+  }
+  .profile-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 9999px;
+    background: #16233F;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+  .profile-info { flex: 1; min-width: 0; }
+  .profile-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #16233F;
+  }
+  .profile-phone {
+    font-size: 0.8rem;
+    color: #5B6B7F;
+    margin-top: 0.15rem;
+  }
+  .profile-logout {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #E4572E;
+    background: none;
+    border: 1.5px solid #E4572E;
+    padding: 0.4rem 0.85rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+  .profile-logout:hover {
+    background: #E4572E;
+    color: #fff;
+  }
+
+  .section-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #16233F;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .login-prompt {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(22,35,63,0.06);
+  }
+  .login-prompt__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 9999px;
+    background: #F3F5F7;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 1rem;
+    color: #5B6B7F;
+  }
+  .login-prompt h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #16233F;
+    margin-bottom: 0.4rem;
+  }
+  .login-prompt p {
+    font-size: 0.8rem;
+    color: #5B6B7F;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+  .login-prompt .btn-login {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #16233F;
+    color: #fff;
+    padding: 0.7rem 1.5rem;
+    border-radius: 9999px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .login-prompt .btn-login:hover { background: #24365C; }
+
+  .order-section {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(22,35,63,0.06);
+  }
+
+  .loading-state, .empty-state, .error-state {
+    text-align: center;
+    padding: 2rem 0;
+    font-size: 0.85rem;
+    color: #5B6B7F;
+  }
+  .loading-state { color: #16233F; }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+
+  <!-- Header -->
+  <div class="akun-header">
+    <div class="akun-header-inner">
+      <a href="index.html" class="akun-back" aria-label="Kembali">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <h1>Akun Saya</h1>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="akun-body" id="akunBody">
+    <!-- Login prompt (hidden when logged in) -->
+    <div class="login-prompt" id="loginPrompt">
+      <div class="login-prompt__icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <h2>Belum Login</h2>
+      <p>Masuk atau daftar untuk melihat profil dan riwayat pesanan Anda.</p>
+      <a href="login.html" class="btn-login">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Login / Daftar
+      </a>
+    </div>
+
+    <!-- Profile card (hidden when not logged in) -->
+    <div class="profile-card hidden" id="profileCard">
+      <div class="profile-avatar" id="profileAvatar">Y</div>
+      <div class="profile-info">
+        <div class="profile-name" id="profileName">-</div>
+        <div class="profile-phone" id="profilePhone">-</div>
+      </div>
+      <button class="profile-logout" id="logoutBtn">Keluar</button>
+    </div>
+
+    <!-- Order history -->
+    <div id="orderSection" class="hidden">
+      <div class="section-label">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Riwayat Pesanan
+      </div>
+      <div class="order-section">
+        <div class="loading-state" id="orderLoading">Memuat pesanan...</div>
+        <div class="empty-state hidden" id="orderEmpty">Belum ada pesanan.</div>
+        <div class="error-state hidden" id="orderError">Gagal memuat pesanan.</div>
+        <div id="orderList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav md:hidden">
+    <a href="index.html#home" class="bottom-nav__item">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+      Home
+    </a>
+    <a href="index.html#layanan" class="bottom-nav__item">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Layanan
+    </a>
+    <a href="index.html#produk" class="bottom-nav__item">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Produk
+    </a>
+    <a href="akun.html" class="bottom-nav__item is-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Akun
+    </a>
+  </nav>
+
+  <script src="config.js"></script>
+  <script>
+(function() {
+  'use strict';
+
+  const ORDER_STATUSES = ['Menunggu', 'Dikonfirmasi', 'Diproses', 'Siap Diambil', 'Selesai'];
+
+  function getUserSession() {
+    try {
+      const raw = localStorage.getItem('yp_user_info');
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (!data || !data.phone) return null;
+      if (data.expiry && Date.now() > data.expiry) {
+        localStorage.removeItem('yp_user_info');
+        return null;
+      }
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function getStatusClass(status) {
+    const s = (status || 'Menunggu').toLowerCase();
+    if (s === 'dikonfirmasi') return 'dikonfirmasi';
+    if (s === 'diproses') return 'diproses';
+    if (s === 'siap diambil') return 'siapdiambil';
+    if (s === 'selesai') return 'selesai';
+    if (s === 'dibatalkan') return 'dibatalkan';
+    return 'menunggu';
+  }
+
+  function renderProgressBar(currentStatus) {
+    if (currentStatus === 'Dibatalkan') {
+      return '<div class="text-center text-xs font-semibold" style="color:#E4572E;margin-top:0.5rem;">Dibatalkan</div>';
+    }
+    const currentIdx = ORDER_STATUSES.indexOf(currentStatus);
+    if (currentIdx < 0) return '';
+    const steps = ORDER_STATUSES.map((label, i) => {
+      let cls = '';
+      if (i < currentIdx) cls = 'is-done';
+      else if (i === currentIdx) cls = 'is-active';
+      return '<div class="order-progress__step ' + cls + '">' +
+        '<div class="order-progress__dot"></div>' +
+        '<span class="order-progress__label">' + label + '</span>' +
+        '</div>' +
+        (i < ORDER_STATUSES.length - 1 ? '<div class="order-progress__line ' + (i < currentIdx ? 'is-done' : '') + '"></div>' : '');
+    }).join('');
+    return '<div class="order-progress">' + steps + '</div>';
+  }
+
+  function renderOrderCards(orders) {
+    const list = document.getElementById('orderList');
+    const empty = document.getElementById('orderEmpty');
+    if (!orders || orders.length === 0) {
+      list.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    list.innerHTML = orders.map(function(o) {
+      const status = o.Status || 'Menunggu';
+      const statusClass = getStatusClass(status);
+      const badgeCls = 'status-badge status-badge--' + statusClass;
+      const detail = o._type === 'ATK'
+        ? (o['Detail Produk'] || '-')
+        : (o.Layanan || '-') + (o['Nama File'] && o['Nama File'] !== '-' ? ' — ' + o['Nama File'] : '');
+      const harga = o._type === 'ATK'
+        ? Number(o.Subtotal) || 0
+        : Number(o['Total Harga']) || Number(o['Estimasi Harga']) || 0;
+      const alamat = o.Alamat || '';
+      const metodeBayar = o['Metode Bayar'] || '';
+      const mapsLink = o['Link Maps'] || '';
+
+      var metaHtml = '';
+      if (alamat || metodeBayar) {
+        metaHtml = '<div class="order-card__meta">';
+        if (metodeBayar) metaHtml += '<span>&#128179; ' + metodeBayar + '</span>';
+        if (alamat) metaHtml += '<span>&#128205; ' + (alamat.length > 30 ? alamat.substring(0, 30) + '...' : alamat) + '</span>';
+        if (mapsLink && mapsLink !== '-') metaHtml += '<a href="' + mapsLink + '" target="_blank" style="color:#3B82F6;text-decoration:underline;">&#128205; Buka Maps</a>';
+        metaHtml += '</div>';
+      }
+
+      var typeLabel = o._type === 'ATK' ? '&#128230;' : '&#128424;';
+      var typeColor = o._type === 'ATK' ? '#FFC53D' : '#E4572E';
+
+      return '<div class="order-card">' +
+        '<div class="order-card__header">' +
+        '<div style="display:flex;align-items:center;gap:0.35rem;">' +
+        '<span style="font-size:0.7rem;background:' + typeColor + '20;color:' + typeColor + ';padding:0.1rem 0.4rem;border-radius:4px;font-weight:600;line-height:1.4;">' + typeLabel + ' ' + (o._type === 'ATK' ? 'ATK' : 'Cetak') + '</span>' +
+        '<span class="order-card__id">' + (o['Order ID'] || '-') + '</span>' +
+        '</div>' +
+        '<span class="order-card__date">' + new Date(o.Waktu).toLocaleString('id-ID') + '</span>' +
+        '</div>' +
+        '<div class="order-card__detail">' + detail + '</div>' +
+        metaHtml +
+        renderProgressBar(status) +
+        '<div class="order-card__footer">' +
+        '<span class="' + badgeCls + '">' + status + '</span>' +
+        '<span class="order-card__price">Rp' + harga.toLocaleString('id-ID') + '</span>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  async function fetchOrders(phone) {
+    var loadingEl = document.getElementById('orderLoading');
+    var errorEl = document.getElementById('orderError');
+    var list = document.getElementById('orderList');
+
+    loadingEl.classList.remove('hidden');
+    errorEl.classList.add('hidden');
+    document.getElementById('orderEmpty').classList.add('hidden');
+    list.innerHTML = '';
+
+    try {
+      var url = window.YOURPRINT_CONFIG.GAS_URL + '?action=getOrdersByPhone&phone=' + encodeURIComponent(phone) + '&t=' + Date.now();
+      var res = await fetch(url);
+      var data = await res.json();
+      loadingEl.classList.add('hidden');
+
+      if (data.result === 'success') {
+        renderOrderCards(data.orders);
+        updateBadge(data.orders);
+      } else {
+        errorEl.classList.remove('hidden');
+      }
+    } catch (err) {
+      loadingEl.classList.add('hidden');
+      errorEl.classList.remove('hidden');
+    }
+  }
+
+  function updateBadge(orders) {
+    try {
+      var pending = (orders || []).filter(function(o) {
+        return o.Status === 'Dikonfirmasi' || o.Status === 'Siap Diambil' || o.Status === 'Diproses';
+      }).length;
+      var badge = document.getElementById('cartBadge');
+      if (badge) {
+        if (pending > 0) {
+          badge.textContent = pending;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+    } catch(e) {}
+  }
+
+  function init() {
+    var user = getUserSession();
+    var loginPrompt = document.getElementById('loginPrompt');
+    var profileCard = document.getElementById('profileCard');
+    var orderSection = document.getElementById('orderSection');
+
+    if (user && user.phone) {
+      loginPrompt.classList.add('hidden');
+      profileCard.classList.remove('hidden');
+      orderSection.classList.remove('hidden');
+      document.getElementById('profileAvatar').textContent = (user.name || 'U')[0].toUpperCase();
+      document.getElementById('profileName').textContent = user.name || '-';
+      document.getElementById('profilePhone').textContent = user.phone;
+      fetchOrders(user.phone);
+    } else {
+      loginPrompt.classList.remove('hidden');
+      profileCard.classList.add('hidden');
+      orderSection.classList.add('hidden');
+    }
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', function() {
+    localStorage.removeItem('yp_user_info');
+    init();
+  });
+
+  init();
+})();
+  </script>
+</body>
+</html>
