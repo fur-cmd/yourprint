@@ -338,6 +338,8 @@
 
   document.getElementById('pageContent').classList.remove('hidden');
 
+  var mapsLink = '';
+
   // Auto-fill Data Diri dari Session Pelanggan
   try {
     var rawUser = localStorage.getItem('yp_user_info');
@@ -473,7 +475,6 @@
   updateSummary();
 
   // Maps button handler
-  var mapsLink = '';
   var mapsBtn = document.getElementById('mapsBtn');
   var mapsStatus = document.getElementById('mapsStatus');
   if (mapsBtn) {
@@ -638,11 +639,21 @@
   }
 
   function showToast(msg) {
-    var t = document.createElement('div');
+    var t = document.getElementById('toast') || function() {
+      var el = document.createElement('div');
+      el.id = 'toast';
+      el.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:#16233F;color:#F3F5F7;padding:.6rem 1.2rem;border-radius:.5rem;font-size:.85rem;z-index:999;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;white-space:nowrap;';
+      document.body.appendChild(el);
+      return el;
+    }();
     t.textContent = msg;
-    t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#16233F;color:#F3F5F7;padding:.6rem 1.2rem;border-radius:.5rem;font-size:.85rem;z-index:999;';
-    document.body.appendChild(t);
-    setTimeout(function() { t.remove(); }, 3000);
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    if (t._timer) clearTimeout(t._timer);
+    t._timer = setTimeout(function() {
+      t.style.opacity = '0';
+      t.style.transform = 'translateX(-50%) translateY(20px)';
+    }, 3000);
   }
 })();
 </script>

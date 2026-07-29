@@ -4,8 +4,6 @@
    katalog produk, dan keranjang belanja dinamis.
    ========================================================== */
 
-console.log('[YourPrint] 0) isi YOURPRINT_CONFIG yang terbaca browser:', window.YOURPRINT_CONFIG);
-
 // pdf.js butuh worker terpisah supaya parsing PDF tidak nge-block halaman.
 // Ini aman dipanggil di luar DOMContentLoaded karena cuma set konfigurasi.
 if (window.pdfjsLib) {

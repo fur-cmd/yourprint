@@ -329,7 +329,7 @@
 </div>
 
 <!-- TOAST -->
-<div id="toast"></div>
+<div id="toast" style="position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:#16233F;color:#F3F5F7;padding:.6rem 1.2rem;border-radius:.5rem;font-size:.85rem;z-index:999;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;white-space:nowrap;"></div>
 
 <!-- CUSTOMER MODAL -->
 <div id="customerOverlay" style="position:fixed;inset:0;background:rgba(22,35,63,.5);backdrop-filter:blur(4px);z-index:60;display:none;place-items:center;padding:1.25rem;">
@@ -536,11 +536,7 @@
     try { localStorage.setItem('yp_cart', JSON.stringify(cart)); } catch(e) {}
     showToast(currentProduct.name + ' x' + qty + ' ditambahkan ke keranjang');
 
-    var badge = document.getElementById('cartCountLocal');
-    if (badge) {
-      var total = cart.reduce(function(s, i) { return s + i.qty; }, 0);
-      badge.textContent = total;
-    }
+
   });
 
   /* ---- Buy Now (WhatsApp) ---- */
