@@ -172,6 +172,9 @@
     if (overlay) overlay.classList.add('hidden');
   }
 
+  window.openModal = openModal;
+  window.closeModals = closeModals;
+
   if (overlay) {
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay) closeModals();
