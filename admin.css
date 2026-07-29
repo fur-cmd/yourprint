@@ -161,3 +161,24 @@ table th {
 .promo-img-reset.show {
   display: flex;
 }
+
+/* Promo Hub — Selected card */
+.promo-card.is-selected {
+  border-color: #E4572E;
+  box-shadow: 0 0 0 2px rgba(228, 87, 46, 0.25);
+}
+
+/* Preview panel textarea */
+#previewCaption {
+  line-height: 1.65;
+}
+#previewCaption:focus {
+  outline: none;
+  border-color: #E4572E;
+  box-shadow: 0 0 0 2px rgba(228, 87, 46, 0.2);
+}
+
+/* Promo style buttons */
+.promo-style-btn.active {
+  cursor: default;
+}

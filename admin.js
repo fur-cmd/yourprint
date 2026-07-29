@@ -802,13 +802,116 @@
 
   /* ==================== Promo Hub ==================== */
 
+  var promoItems = [];
+  var activePromoStyle = 'default';
+  var selectedPromoIndex = -1;
+
+  function generatePromoText(item, style) {
+    var t = item.title || '';
+    var sub = item.subtitle || '';
+    var d = item.desc || '';
+    var label = item._label || '';
+    var waNum = cfg.WHATSAPP_NUMBER || '6285242410880';
+    var waLink = 'https://wa.me/' + waNum;
+
+    switch (style) {
+      case 'promo':
+        return '🔥 PROMO SPESIAL! 🔥\n\n' +
+          t + '\n' +
+          (sub ? '💵 ' + sub + '\n' : '') +
+          (d ? '\n' + d + '\n' : '') +
+          '\n⏰ Jangan sampai kehabisan! Order sekarang 👇\n' +
+          waLink;
+      case 'casual':
+        return 'Hai! Ada ' + t.toLowerCase() + (sub ? ' — ' + sub : '') + '.\n' +
+          (d ? '\n' + d + '\n' : '\n') +
+          'Bisa langsung chat aja yuk! 😊\n' +
+          waLink;
+      case 'professional':
+        return '[' + t + ']\n' +
+          (sub ? sub + '\n' : '') +
+          (d ? '\n' + d + '\n' : '\n') +
+          'Tersedia di YourPrint. Informasi & pemesanan:\n' +
+          waLink;
+      default:
+        return t + (sub ? '\n' + sub : '') +
+          (d ? '\n\n' + d : '') +
+          '\n\nPesan via WhatsApp:\n' +
+          waLink;
+    }
+  }
+
+  function renderPreview(item) {
+    var preview = $('promoPreview');
+    if (!preview || !item) { return; }
+
+    preview.classList.remove('hidden');
+
+    var thumb = preview.querySelector('#previewThumb div');
+    var imgUrl = fixGoogleDriveUrl(item.image);
+    if (imgUrl) {
+      thumb.innerHTML = '<img src="' + imgUrl + '" alt="" class="w-full h-full object-cover" onerror="this.style.display=\'none\';this.parentElement.textContent=\'' + (item.emoji || '📄') + '\'">';
+    } else {
+      thumb.textContent = item.emoji || '📄';
+    }
+
+    $('previewTitle').textContent = item.title || '';
+    $('previewMeta').textContent = (item._label || '') + (item.subtitle ? ' — ' + item.subtitle : '');
+
+    var caption = generatePromoText(item, activePromoStyle);
+    $('previewCaption').value = caption;
+    $('previewStyleIndicator').textContent = 'Gaya: ' + activePromoStyle.charAt(0).toUpperCase() + activePromoStyle.slice(1);
+  }
+
+  window.selectPromoItem = function (index) {
+    var item = promoItems[index];
+    if (!item) return;
+
+    selectedPromoIndex = index;
+
+    document.querySelectorAll('.promo-card').forEach(function (c) { c.classList.remove('is-selected'); });
+    var card = document.querySelector('.promo-card[data-index="' + index + '"]');
+    if (card) card.classList.add('is-selected');
+
+    renderPreview(item);
+  };
+
+  window.copyPromoText = function () {
+    var ta = $('previewCaption');
+    if (!ta || !ta.value) { showToast('⚠️ Tidak ada teks untuk disalin'); return; }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(ta.value.trim()).then(function () {
+        showToast('✓ Teks promosi disalin!');
+      }).catch(function () { fallbackCopy(ta.value); });
+    } else {
+      fallbackCopy(ta.value);
+    }
+  };
+
+  window.sharePromoWa = function () {
+    var ta = $('previewCaption');
+    if (!ta || !ta.value) { showToast('⚠️ Tidak ada teks untuk dibagikan'); return; }
+    var waNum = cfg.WHATSAPP_NUMBER || '6285242410880';
+    window.open('https://wa.me/' + waNum + '?text=' + encodeURIComponent(ta.value.trim()), '_blank', 'noopener');
+  };
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    showToast('✓ Teks promosi disalin!');
+  }
+
   function renderPromoHub(data) {
     var grid = $('promoGrid');
     if (!grid) return;
 
-    var items = [];
+    promoItems = [];
     (data.products || []).forEach(function (p) {
-      items.push({
+      promoItems.push({
         _type: 'product',
         _label: 'Produk ATK',
         title: p.name,
@@ -820,7 +923,7 @@
       });
     });
     (data.gallery || []).forEach(function (g) {
-      items.push({
+      promoItems.push({
         _type: 'gallery',
         _label: 'Buku Custom',
         title: g.title,
@@ -831,7 +934,7 @@
       });
     });
     (data.services || []).forEach(function (s) {
-      items.push({
+      promoItems.push({
         _type: 'service',
         _label: 'Layanan Cetak',
         title: s.service,
@@ -842,47 +945,65 @@
       });
     });
 
-    if (items.length === 0) {
+    if (promoItems.length === 0) {
       grid.innerHTML = '<div class="col-span-full p-8 text-center text-slate-soft bg-white rounded-xl border border-line">Belum ada data untuk dipromosikan.</div>';
+      $('promoPreview').classList.add('hidden');
       return;
     }
 
-    grid.innerHTML = items.map(function (item, i) {
+    grid.innerHTML = promoItems.map(function (item, i) {
       var imgUrl = fixGoogleDriveUrl(item.image);
       var imgHtml = imgUrl
         ? '<div class="promo-img-wrap"><img src="' + imgUrl + '" alt="' + item.title + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<div class=\\\\\'w-full h-full flex items-center justify-center text-4xl\\\\\'>' + (item.emoji || '📄') + '</div>\'"><div class="promo-img-overlay"><span>' + item._label + '</span></div></div>'
         : '<div class="promo-img-wrap"><div class="w-full h-full flex items-center justify-center text-4xl">' + (item.emoji || '📄') + '</div></div>';
-      return '<div class="bg-white rounded-xl border border-line p-4 promo-card" data-type="' + item._type + '">' +
+      return '<div class="bg-white rounded-xl border border-line p-4 promo-card' + (i === selectedPromoIndex ? ' is-selected' : '') + '" data-type="' + item._type + '" data-index="' + i + '">' +
         imgHtml +
         '<h3 class="font-display font-semibold text-sm mb-1">' + item.title + '</h3>' +
         (item.subtitle ? '<p class="text-xs text-stamp font-medium">' + item.subtitle + '</p>' : '') +
         (item.desc ? '<p class="text-xs text-slate-soft mt-1 line-clamp-2">' + item.desc + '</p>' : '') +
-        '<button class="mt-3 text-xs btn-primary py-1 px-3 rounded" onclick="copyPromo(this)">📋 Copy</button>' +
+        '<div class="flex gap-1.5 mt-3">' +
+        '<button class="flex-1 text-xs btn-primary py-1 px-2 rounded" onclick="selectPromoItem(' + i + ')">✏️ Buat Caption</button>' +
+        '</div>' +
         '</div>';
     }).join('');
+
+    if (selectedPromoIndex >= 0 && promoItems[selectedPromoIndex]) {
+      renderPreview(promoItems[selectedPromoIndex]);
+    }
   }
 
-  window.copyPromo = function (btn) {
-    var card = btn.closest('.promo-card');
-    if (!card) return;
-    var title = card.querySelector('h3') ? card.querySelector('h3').textContent : '';
-    var price = card.querySelector('.text-stamp') ? card.querySelector('.text-stamp').textContent : '';
-    var desc = card.querySelector('.line-clamp-2') ? card.querySelector('.line-clamp-2').textContent : '';
-    var text = title + '\n' + price + '\n' + desc;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text.trim()).then(function () {
-        showToast('✓ Teks promosi disalin');
-      });
+  /* Promo style selector */
+  document.addEventListener('click', function (e) {
+    var styleBtn = e.target.closest('.promo-style-btn');
+    if (!styleBtn) return;
+
+    document.querySelectorAll('.promo-style-btn').forEach(function (b) {
+      b.classList.remove('active');
+      b.classList.remove('bg-stamp', 'text-white');
+      b.classList.add('bg-white', 'border-line', 'text-slate-soft');
+    });
+    styleBtn.classList.add('active');
+    styleBtn.classList.add('bg-stamp', 'text-white');
+    styleBtn.classList.remove('bg-white', 'border-line', 'text-slate-soft');
+
+    activePromoStyle = styleBtn.dataset.style;
+
+    if (selectedPromoIndex >= 0 && promoItems[selectedPromoIndex]) {
+      renderPreview(promoItems[selectedPromoIndex]);
     } else {
-      var ta = document.createElement('textarea');
-      ta.value = text.trim();
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      ta.remove();
-      showToast('✓ Teks promosi disalin');
+      showToast('✓ Gaya diubah ke ' + styleBtn.textContent.trim());
     }
-  };
+  });
+
+  /* Preview panel events */
+  $('previewCopyBtn').addEventListener('click', copyPromoText);
+  $('previewShareBtn').addEventListener('click', sharePromoWa);
+
+  $('previewClose').addEventListener('click', function () {
+    $('promoPreview').classList.add('hidden');
+    document.querySelectorAll('.promo-card').forEach(function (c) { c.classList.remove('is-selected'); });
+    selectedPromoIndex = -1;
+  });
 
   /* Promo filter buttons */
   document.querySelectorAll('.promo-filter-btn').forEach(function (btn) {
