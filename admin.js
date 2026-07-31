@@ -230,6 +230,7 @@
       renderUndangan(data.undangan || []);
       renderDigital(data.digitalProduk || []);
       renderDigitalKategori(data.digitalKategori || []);
+      renderPengaturan(data.pengaturan || {});
       renderPromoHub(data);
     } catch (err) {
       console.error('loadData error:', err);
@@ -658,6 +659,33 @@
         '</div>';
     }, 'Belum ada kategori');
   }
+
+  function renderPengaturan(peng) {
+    var input = $('pengaturan-digital-link');
+    if (!input) return;
+    input.value = (peng && peng.digital_global_link) ? peng.digital_global_link : '';
+  }
+
+  window.saveDigitalGlobalLink = async function () {
+    var input = $('pengaturan-digital-link');
+    if (!input) return;
+    var value = input.value.trim();
+    if (!value) {
+      showToast('⚠️ Link belum diisi');
+      return;
+    }
+    try {
+      var res = await apiPost({ type: 'upsert-pengaturan', token: API_TOKEN, key: 'digital_global_link', value: value });
+      if (res.result === 'success') {
+        showToast('✓ Link global disimpan');
+        await loadData();
+      } else {
+        showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
+      }
+    } catch (err) {
+      showToast('⚠️ Gagal menyimpan');
+    }
+  };
 
   window.editDigitalKategori = function (index) {
     if (!allData || !allData.digitalKategori) return;

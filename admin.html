@@ -264,6 +264,16 @@
           <h1 class="font-display font-bold text-2xl">Market Digital</h1>
           <button class="btn-primary" onclick="resetDigitalForm(); openModal('modal-digital')">+ Tambah Produk</button>
         </div>
+        <div class="bg-white rounded-xl border border-line shadow-sm p-5 mb-4">
+          <div>
+            <h2 class="font-display font-semibold">Link Beli Global (Default)</h2>
+            <p class="text-xs text-slate-soft mt-1">Dipakai untuk semua produk digital yang <b>tidak punya link sendiri</b>. Jika link produk di-update di admin, link produk itulah yang dipakai.</p>
+          </div>
+          <div class="mt-3 flex flex-col sm:flex-row gap-2">
+            <input type="text" id="pengaturan-digital-link" class="input-field" placeholder="https://lynk.id/...">
+            <button class="btn-primary shrink-0" onclick="saveDigitalGlobalLink()">Simpan</button>
+          </div>
+        </div>
         <div class="bg-white rounded-xl border border-line shadow-sm">
           <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left text-sm" id="table-digital">

@@ -144,6 +144,15 @@ function seedInitialData() {
     sheetDigitalProduk.getRange(2, 1, data.length, data[0].length).setValues(data);
   }
 
+  // 11. Pengaturan global (key → value)
+  let sheetPengaturan = getOrCreateSheet("Pengaturan", ["key", "value"]);
+  if (sheetPengaturan.getLastRow() === 1) {
+    const settings = [
+      ["digital_global_link", "https://lynk.id/market.digital123"]
+    ];
+    sheetPengaturan.getRange(2, 1, settings.length, settings[0].length).setValues(settings);
+  }
+
   // Fix any column misalignment issues
   fixCetakSheet();
 }
@@ -239,7 +248,8 @@ function doGet(e) {
       testimonials: getSheetData("Testimoni"),
       banners: getSheetData("Banners"),
       digitalKategori: getSheetData("Market Digital Kategori"),
-      digitalProduk: getSheetData("Market Digital Produk")
+      digitalProduk: getSheetData("Market Digital Produk"),
+      pengaturan: getPengaturan()
     });
   }
   
@@ -260,7 +270,8 @@ function doGet(e) {
     return jsonResponse({
       result: "success",
       kategori: getSheetData("Market Digital Kategori"),
-      produk: getSheetData("Market Digital Produk")
+      produk: getSheetData("Market Digital Produk"),
+      pengaturan: getPengaturan()
     });
   }
 
@@ -375,6 +386,8 @@ function doPost(e) {
     if (data.type === "upsert-digital-produk") return handleUpsert(data, "Market Digital Produk", "id", ["id", "name", "category", "price", "oldPrice", "badge", "rating", "ratingCount", "cover", "emoji", "desc", "link", "image", "order"]);
     if (data.type === "delete-digital-produk") return handleDelete(data, "Market Digital Produk", "id");
 
+    if (data.type === "upsert-pengaturan") return handleUpsertSetting(data);
+
     if (data.type === "upsert-banner") return handleUpsert(data, "Banners", "id", ["id", "image", "link", "active"]);
     if (data.type === "delete-banner") return handleDelete(data, "Banners", "id");
 
@@ -474,6 +487,33 @@ function handleUpsert(data, sheetName, idCol, cols) {
     if (!data.item[idCol]) newRowData[idIndex] = "id_" + Date.now();
     sheet.appendRow(newRowData);
   }
+  return jsonResponse({ result: "success" });
+}
+
+function getPengaturan() {
+  const sheet = getOrCreateSheet("Pengaturan", ["key", "value"]);
+  if (sheet.getLastRow() === 1) {
+    sheet.appendRow(["digital_global_link", "https://lynk.id/market.digital123"]);
+  }
+  const rows = getSheetData("Pengaturan");
+  const out = {};
+  rows.forEach(r => {
+    if (r.key !== undefined && r.value !== undefined) out[r.key] = r.value;
+  });
+  return out;
+}
+
+function handleUpsertSetting(data) {
+  if (data.key === undefined) return jsonResponse({ result: "error", message: "key tidak valid" });
+  const sheet = getOrCreateSheet("Pengaturan", ["key", "value"]);
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(data.key)) {
+      sheet.getRange(i + 1, 2).setValue(data.value === undefined ? "" : data.value);
+      return jsonResponse({ result: "success" });
+    }
+  }
+  sheet.appendRow([data.key, data.value === undefined ? "" : data.value]);
   return jsonResponse({ result: "success" });
 }
 

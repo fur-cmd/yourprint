@@ -1,5 +1,5 @@
 window.YOURPRINT_CONFIG = {
-  GAS_URL: "https://script.google.com/macros/s/AKfycbyVDEcFN4niQZKIu1i2yUgFJO_pM6n0tlVMCFEV5TdH8C8DHyrcV6_6LbYUb4JKwHPU/exec",
+  GAS_URL: "https://script.google.com/macros/s/AKfycbyJ3ndEiOT1fH9QwuzOzfbNmmm0yl4nhQwprTSm-MCLFWKx45CqdOd_3J9yWm0XlhNZ/exec",
   WHATSAPP_NUMBER: "6285242410880",
   UNDANGAN_DIGITAL_URL: "https://undangan.yourprint.id",
   /* Halaman pembayaran Market Digital di Lynk.id.

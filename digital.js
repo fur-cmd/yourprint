@@ -274,12 +274,16 @@
     });
   }
 
+  var CACHE_TTL = 24 * 60 * 60 * 1000;
+
   function loadDigitalData(cb) {
     var finish = function () { if (typeof cb === 'function') cb(); };
 
-    // Fallback awal: cache localStorage → statis
+    // Fallback awal: cache localStorage (hanya jika masih segar) → statis
     var useCached = function () {
       try {
+        var ts = Number(localStorage.getItem('yp_digital_ts') || 0);
+        if (!ts || Date.now() - ts > CACHE_TTL) return false;
         var ck = JSON.parse(localStorage.getItem('yp_digital_kategori') || 'null');
         var pk = JSON.parse(localStorage.getItem('yp_digital_produk') || 'null');
         if (ck && pk && ck.length && pk.length) {
@@ -304,11 +308,15 @@
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data && data.result === 'success' && data.kategori && data.produk) {
+          if (data.pengaturan && data.pengaturan.digital_global_link) {
+            DIGITAL_LYNK_URL = data.pengaturan.digital_global_link;
+          }
           CATEGORIES = normalizeKategori(data.kategori);
           PRODUCTS = normalizeProduk(data.produk);
           try {
             localStorage.setItem('yp_digital_kategori', JSON.stringify(CATEGORIES));
             localStorage.setItem('yp_digital_produk', JSON.stringify(PRODUCTS));
+            localStorage.setItem('yp_digital_ts', String(Date.now()));
           } catch (e) {}
         } else {
           throw new Error('respon tidak valid');
