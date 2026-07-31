@@ -1214,5 +1214,304 @@ textarea:focus-visible {
   .order-progress__label { font-size: .6rem; }
 }
 
+/* ==========================================================
+   MARKET DIGITAL — Produk Digital (YourPrint)
+   Bagian baru yang modular untuk etalase produk digital.
+   Checkout sementara diarahkan ke Lynk.id (lihat config.js:
+   DIGITAL_LYNK_URL). Tidak memengaruhi fitur percetakan/ATK.
+   ========================================================== */
 
+/* ---------- Scroll reveal (hanya aktif jika JS jalan) ---------- */
+html.js-digital .reveal {
+  opacity: 0;
+  transform: translateY(16px);
+}
+html.js-digital .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.reveal {
+  transition: opacity .6s ease, transform .6s ease;
+}
+
+/* ---------- Chip subjudul di header section ---------- */
+.digital-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .74rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  padding: .4rem .85rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(var(--ink-rgb), .04);
+}
+
+/* ---------- Kartu kategori ---------- */
+.digital-cat-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1.1rem 1.1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .22s ease, box-shadow .22s ease, transform .22s ease;
+}
+.digital-cat-card:hover {
+  border-color: rgba(var(--stamp-rgb), .35);
+  box-shadow: var(--shadow-product-hover);
+  transform: translateY(-4px);
+}
+.digital-cat-card__icon {
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: .85rem;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, var(--ink), var(--ink-light));
+  border: 1px solid rgba(255,255,255,.18);
+  transition: transform .22s ease;
+}
+.digital-cat-card:hover .digital-cat-card__icon {
+  transform: scale(1.08) rotate(-3deg);
+}
+.digital-cat-card__icon--stamp {
+  background: linear-gradient(135deg, var(--stamp), var(--stamp-dark));
+}
+.digital-cat-card__icon--highlight {
+  background: linear-gradient(135deg, #FFD979, var(--highlight));
+  color: var(--ink);
+}
+.digital-cat-card__link {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .76rem;
+  font-weight: 600;
+  color: var(--stamp);
+  padding-top: .75rem;
+  transition: gap .18s ease;
+}
+.digital-cat-card:hover .digital-cat-card__link {
+  gap: .5rem;
+}
+
+/* ---------- Kartu produk digital ---------- */
+.digital-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow .22s ease, transform .22s ease, border-color .22s ease;
+}
+.digital-card:hover {
+  box-shadow: var(--shadow-product-hover);
+  transform: translateY(-4px);
+  border-color: rgba(var(--stamp-rgb), .3);
+}
+.digital-card__cover {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-size: 2.6rem;
+}
+.digital-card__cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.22) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform .6s ease;
+  pointer-events: none;
+}
+.digital-card:hover .digital-card__cover::after {
+  transform: translateX(100%);
+}
+.digital-card__cover-emoji {
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.18));
+  transition: transform .25s ease;
+}
+.digital-card:hover .digital-card__cover-emoji {
+  transform: scale(1.1);
+}
+.digital-card__badge {
+  position: absolute;
+  top: .6rem;
+  left: .6rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: .25rem .55rem;
+  border-radius: 9999px;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,.18);
+}
+.digital-card__badge--bestseller { background: var(--stamp); }
+.digital-card__badge--terbaru    { background: var(--ink); }
+.digital-card__badge--diskon     { background: var(--highlight); color: var(--ink); }
+.digital-card__body {
+  padding: .8rem .85rem .9rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.digital-card__cat {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--stamp);
+}
+.digital-card__name {
+  font-size: .82rem;
+  line-height: 1.35;
+  font-weight: 600;
+  margin-top: .25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.2em;
+}
+.digital-card__price-row {
+  display: flex;
+  align-items: baseline;
+  gap: .45rem;
+  margin-top: .4rem;
+}
+.digital-card__price {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--stamp);
+}
+.digital-card__price-old {
+  font-size: .7rem;
+  color: var(--slate-soft);
+  text-decoration: line-through;
+}
+.digital-card__rating {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: .45rem;
+  font-size: .72rem;
+  color: var(--slate);
+}
+.digital-card__stars {
+  color: var(--highlight);
+  font-size: .8rem;
+  letter-spacing: .05em;
+  line-height: 1;
+}
+.digital-card__stars-empty {
+  color: var(--line-darker);
+}
+.digital-card__buy {
+  margin-top: .75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  background: var(--stamp);
+  color: #fff;
+  font-weight: 600;
+  font-size: .8rem;
+  padding: .6rem .8rem;
+  border-radius: .55rem;
+  text-decoration: none;
+  box-shadow: var(--shadow-stamp-sm);
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.digital-card__buy:hover {
+  background: var(--stamp-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-stamp-lg);
+}
+.digital-card__buy:active {
+  transform: translateY(0);
+}
+
+/* ---------- Catatan pembayaran Lynk.id ---------- */
+.digital-note {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .72rem;
+  color: var(--slate-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  padding: .35rem .8rem;
+}
+
+/* ---------- Card Coming Soon (Undangan Digital) ---------- */
+.coming-soon-card {
+  position: relative;
+  background: #fff;
+  border: 2px dashed var(--line-darker);
+  border-radius: 1.1rem;
+  padding: 1.25rem;
+  overflow: hidden;
+  transition: border-color .22s ease, box-shadow .22s ease;
+}
+.coming-soon-card:hover {
+  border-color: var(--highlight);
+  box-shadow: var(--shadow-product-hover);
+}
+.coming-soon-card__icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: .9rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  background: linear-gradient(135deg, rgba(var(--highlight-rgb), .25), rgba(var(--highlight-rgb), .08));
+  border: 1px solid rgba(var(--highlight-rgb), .3);
+  flex-shrink: 0;
+}
+.coming-soon-card__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--slate-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  padding: .45rem 1rem;
+  cursor: default;
+  white-space: nowrap;
+}
+
+/* ---------- Responsive: kategori & produk ---------- */
+@media (max-width: 639px) {
+  .digital-cat-card { padding: .95rem; }
+  .digital-cat-card__icon { width: 2.5rem; height: 2.5rem; border-radius: .7rem; }
+  .digital-cat-card__link { font-size: .72rem; }
+}
 

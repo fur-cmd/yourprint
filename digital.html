@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Digital — Produk Digital Populer | YourPrint</title>
+<meta name="description" content="Market Digital oleh YourPrint — template Canva, ebook, prompt AI, administrasi sekolah, template Excel, dan bundle bisnis siap pakai. Pembayaran aman via Lynk.id.">
+<meta name="keywords" content="produk digital, template canva, ebook, prompt ai, administrasi sekolah, template excel, bundle bisnis, YourPrint, Manado">
+<meta name="author" content="YourPrint">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Market Digital — Produk Digital Populer | YourPrint">
+<meta property="og:description" content="Template Canva, ebook, prompt AI, administrasi sekolah, dan produk digital siap pakai — dikurasi oleh YourPrint.">
+<meta property="og:url" content="https://yourprint.id/digital.html">
+<meta property="og:site_name" content="YourPrint">
+<meta property="og:image" content="https://yourprint.id/images/logo/logo.png">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="images/logo/logo.png">
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: {
+            DEFAULT: '#16233F',
+            light: '#24365C',
+          },
+          paper: '#F3F5F7',
+          stamp: {
+            DEFAULT: '#E4572E',
+            dark: '#C6431E',
+          },
+          highlight: '#FFC53D',
+          slate: {
+            soft: '#5B6B7F',
+          },
+          line: '#D8DEE4',
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['"Inter"', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+      }
+    }
+  }
+</script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+
+<style>
+  /* Halaman katalog tanpa bottom nav → hilangkan padding bawah default */
+  body { padding-bottom: 0; }
+</style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+
+<!-- HEADER -->
+<header class="sticky top-0 z-50 bg-paper/90 backdrop-blur border-b border-line">
+  <div class="max-w-7xl mx-auto px-4 md:px-8 flex items-center h-14 md:h-16 gap-3">
+    <a href="index.html#digital" class="flex items-center gap-2 text-ink hover:text-stamp transition-colors group">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span class="text-sm font-medium hidden sm:inline">Kembali</span>
+    </a>
+    <h1 class="font-display font-bold text-base md:text-lg truncate">Market Digital</h1>
+    <span class="ml-auto text-xs font-mono text-slate-soft hidden sm:inline">oleh YourPrint</span>
+  </div>
+</header>
+
+<!-- HERO KATALOG -->
+<section class="relative overflow-hidden bg-gradient-to-br from-ink via-ink-light to-ink">
+  <div class="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-stamp/15 blur-3xl"></div>
+  <div class="absolute -right-16 bottom-0 w-64 h-64 rounded-full bg-highlight/10 blur-3xl"></div>
+
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-14 relative">
+    <span class="inline-flex items-center gap-2 bg-highlight/15 text-highlight border border-highlight/40 text-xs font-mono font-medium px-3 py-1 rounded-full mb-4">
+      💎 MARKET DIGITAL — OLEH YOURPRINT
+    </span>
+    <h1 class="font-display font-bold text-2xl md:text-4xl text-white leading-tight">
+      Produk Digital Siap Pakai
+    </h1>
+    <p class="text-paper/60 text-sm md:text-base mt-2 max-w-2xl">
+      Template, ebook, prompt AI, administrasi sekolah, dan bundle bisnis — seluruh produk dikurasi oleh YourPrint dan dapat diakses secara instan.
+    </p>
+    <div class="mt-4 flex flex-wrap items-center gap-2">
+      <span class="digital-note" style="background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.15); color: var(--paper);">
+        🔒 Pembayaran aman &amp; instan via Lynk.id — market.digital123
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- KATALOG -->
+<main class="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8">
+
+  <!-- Search -->
+  <div class="relative max-w-md mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute left-3.5 md:left-4 top-1/2 -translate-y-1/2 text-slate-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="digitalCatalogSearch" type="search" placeholder="Cari produk digital... misal: template, ebook, prompt"
+      class="w-full h-10 pl-9 md:pl-10 pr-9 rounded-full border border-line bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-stamp/40 focus:border-stamp">
+    <button id="digitalCatalogSearchClear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-soft hover:text-stamp" aria-label="Hapus pencarian">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <!-- Tabs kategori -->
+  <div id="digitalCatalogTabs" class="flex items-center gap-1.5 md:gap-2 overflow-x-auto quicknav-scroll mb-4"></div>
+
+  <!-- Count produk -->
+  <div class="flex items-center justify-between mb-4">
+    <p class="text-slate-soft text-xs md:text-sm">Menampilkan <span id="digitalCatalogCount" class="font-semibold text-ink">0</span> produk digital</p>
+  </div>
+
+  <!-- Grid produk -->
+  <div id="digitalCatalogGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 md:gap-3.5"></div>
+
+  <p id="digitalCatalogEmpty" class="hidden text-center text-slate-soft text-sm py-10">
+    Produk tidak ditemukan. Coba kata kunci lain, atau hubungi kami langsung lewat WhatsApp.
+  </p>
+
+  <!-- CTA kembali -->
+  <div class="mt-10 md:mt-12 text-center">
+    <a href="index.html#digital" class="cta-secondary text-sm">
+      ← Kembali ke Beranda
+    </a>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-ink text-paper/80">
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-paper/50">
+    <span>© 2026 YourPrint. Seluruh hak cipta dilindungi.</span>
+    <div class="flex items-center gap-4">
+      <a href="index.html#digital" class="hover:text-white transition-colors">Market Digital</a>
+      <a href="admin.html" class="hover:text-white transition-colors">Admin Login</a>
+    </div>
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script src="digital.js"></script>
+</body>
+</html>
