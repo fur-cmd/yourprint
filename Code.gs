@@ -111,7 +111,39 @@ function seedInitialData() {
   
   // 8. Pelanggan
   getOrCreateSheet("Pelanggan", ["id", "Nama", "No. WhatsApp", "Password", "Waktu Daftar"]);
-  
+
+  // 9. Market Digital — Kategori
+  let sheetDigitalKategori = getOrCreateSheet("Market Digital Kategori", ["id", "title", "desc", "icon", "iconClass", "order"]);
+  if (sheetDigitalKategori.getLastRow() === 1) {
+    const data = [
+      ["ebook", "Ebook", "Buku digital panduan & referensi siap baca kapan saja.", "ebook", "", 1],
+      ["template-canva", "Template Canva", "Desain siap edit untuk media sosial & keperluan bisnis.", "template", "digital-cat-card__icon--stamp", 2],
+      ["prompt-ai", "Prompt AI", "Prompt siap pakai untuk ChatGPT & berbagai tools AI.", "prompt", "digital-cat-card__icon--highlight", 3],
+      ["administrasi-sekolah", "Administrasi Sekolah", "Perangkat guru & admin sekolah yang lengkap dan rapi.", "admin", "", 4],
+      ["template-excel", "Template Excel", "Rumus & template otomatis untuk pekerjaan yang lebih rapi.", "excel", "digital-cat-card__icon--stamp", 5],
+      ["bundle-bisnis", "Bundle Bisnis", "Paket hemat lengkap untuk memulai dan mengelola bisnis.", "bundle", "digital-cat-card__icon--highlight", 6]
+    ];
+    sheetDigitalKategori.getRange(2, 1, data.length, data[0].length).setValues(data);
+  }
+
+  // 10. Market Digital — Produk
+  let sheetDigitalProduk = getOrCreateSheet("Market Digital Produk", ["id", "name", "category", "price", "oldPrice", "badge", "rating", "ratingCount", "cover", "emoji", "desc", "link", "image", "order"]);
+  if (sheetDigitalProduk.getLastRow() === 1) {
+    const data = [
+      ["dcv-ats", "Template CV ATS Modern — Desain ATS-Friendly", "template-canva", 29000, 45000, "Diskon", 4.9, 214, "linear-gradient(135deg, #1E3A8A, #4338CA)", "📄", "Template CV siap edit yang lolos screening ATS, cocok untuk semua profesi.", "", "", 1],
+      ["ebook-umkm", "Ebook Panduan Bisnis UMKM dari Nol", "ebook", 39000, "", "Bestseller", 4.8, 178, "linear-gradient(135deg, #B45309, #EA580C)", "📘", "Panduan lengkap memulai dan mengembangkan UMKM untuk pemula.", "", "", 2],
+      ["prompt-500", "Prompt AI ChatGPT 500+ Siap Pakai", "prompt-ai", 19000, 29000, "Diskon", 4.7, 321, "linear-gradient(135deg, #0F172A, #334155)", "✨", "Koleksi prompt terkurasi untuk kerja, belajar, dan bisnis.", "", "", 3],
+      ["adm-kelas", "Administrasi Kelas Lengkap SD/MI", "administrasi-sekolah", 49000, "", "Bestseller", 5.0, 96, "linear-gradient(135deg, #065F46, #059669)", "📚", "Perangkat administrasi wali kelas lengkap, tinggal print.", "", "", 4],
+      ["xls-rapor", "Template Rapor & Nilai Excel Otomatis", "template-excel", 25000, "", "Terbaru", 4.6, 143, "linear-gradient(135deg, #14532D, #16A34A)", "📊", "Rekap nilai & rapor otomatis dengan rumus siap pakai.", "", "", 5],
+      ["bundle-startup", "Bundle Bisnis Starter Pack", "bundle-bisnis", 79000, 119000, "Diskon", 4.9, 87, "linear-gradient(135deg, #7C2D12, #C2410C)", "💼", "Paket hemat: proposal, surat, SOP, dan tools bisnis dalam satu bundle.", "", "", 6],
+      ["tpl-proposal", "Template Proposal Bisnis Modern", "template-canva", 35000, "", "", 4.8, 64, "linear-gradient(135deg, #1E40AF, #6366F1)", "🗂️", "Proposal profesional siap edit untuk presentasi investor & klien.", "", "", 7],
+      ["ebook-copywriting", "Ebook Copywriting untuk Pemula", "ebook", 29000, "", "Terbaru", 4.7, 52, "linear-gradient(135deg, #9A3412, #F97316)", "✍️", "Teknik menulis konten pemasaran yang menarik dan mengubah pembaca.", "", "", 8],
+      ["prompt-bisnis", "Prompt AI Bisnis & Pemasaran", "prompt-ai", 24000, "", "", 4.6, 41, "linear-gradient(135deg, #1E293B, #475569)", "🧠", "Prompt khusus untuk riset pasar, konten, dan strategi pemasaran.", "", "", 9],
+      ["adm-merdeka", "Administrasi Guru Kurikulum Merdeka", "administrasi-sekolah", 59000, "", "Bestseller", 4.9, 73, "linear-gradient(135deg, #0F766E, #0D9488)", "📝", "Lengkap: modul ajar, ATP, CP, dan perangkat pembelajaran Merdeka.", "", "", 10]
+    ];
+    sheetDigitalProduk.getRange(2, 1, data.length, data[0].length).setValues(data);
+  }
+
   // Fix any column misalignment issues
   fixCetakSheet();
 }
@@ -205,7 +237,9 @@ function doGet(e) {
       ordersATK: getSheetData("Pesanan ATK"),
       ordersCetak: getSheetData("Pesanan Cetak"),
       testimonials: getSheetData("Testimoni"),
-      banners: getSheetData("Banners")
+      banners: getSheetData("Banners"),
+      digitalKategori: getSheetData("Market Digital Kategori"),
+      digitalProduk: getSheetData("Market Digital Produk")
     });
   }
   
@@ -220,6 +254,15 @@ function doGet(e) {
   if (action === "getOrdersCetak") return jsonResponse(getSheetData("Pesanan Cetak"));
   if (action === "getTestimonialsAdmin") return jsonResponse(getSheetData("Testimoni"));
   if (action === "getBannersAdmin") return jsonResponse(getSheetData("Banners"));
+
+  // Endpoint Market Digital — publik (dipakai oleh digital.js)
+  if (action === "getDigital") {
+    return jsonResponse({
+      result: "success",
+      kategori: getSheetData("Market Digital Kategori"),
+      produk: getSheetData("Market Digital Produk")
+    });
+  }
 
   // Endpoint Pelanggan — cari pesanan berdasarkan no. WhatsApp
   if (action === "getOrdersByPhone") {
@@ -325,6 +368,12 @@ function doPost(e) {
     
     if (data.type === "upsert-service") return handleUpsert(data, "Layanan Cetak", "id", ["id", "service", "priceBw", "priceColor", "description", "image", "fallbackGradient", "iconSvg"]);
     if (data.type === "delete-service") return handleDelete(data, "Layanan Cetak", "id");
+
+    if (data.type === "upsert-digital-kategori") return handleUpsert(data, "Market Digital Kategori", "id", ["id", "title", "desc", "icon", "iconClass", "order"]);
+    if (data.type === "delete-digital-kategori") return handleDelete(data, "Market Digital Kategori", "id");
+
+    if (data.type === "upsert-digital-produk") return handleUpsert(data, "Market Digital Produk", "id", ["id", "name", "category", "price", "oldPrice", "badge", "rating", "ratingCount", "cover", "emoji", "desc", "link", "image", "order"]);
+    if (data.type === "delete-digital-produk") return handleDelete(data, "Market Digital Produk", "id");
 
     if (data.type === "upsert-banner") return handleUpsert(data, "Banners", "id", ["id", "image", "link", "active"]);
     if (data.type === "delete-banner") return handleDelete(data, "Banners", "id");

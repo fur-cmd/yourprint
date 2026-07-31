@@ -1,10 +1,11 @@
 /* ==========================================================
    YourPrint — digital.js
    Market Digital (etalase produk digital oleh YourPrint).
-   Modul ini berdiri sendiri dan TIDAK mengubah script.js
-   (cart, upload, backend). Checkout untuk sementara diarahkan
-   ke halaman pembayaran Lynk.id.
+   Data kategori & produk kini dimuat dari backend (Google
+   Apps Script) via action `getDigital`, dengan cache
+   localStorage dan fallback ke data statis jika offline.
 
+   Checkout tetap diarahkan ke halaman pembayaran Lynk.id.
    GANTI URL PEMBAYARAN di config.js → DIGITAL_LYNK_URL.
    (Fallback di bawah hanya dipakai jika config.js tidak ada.)
    ========================================================== */
@@ -26,8 +27,10 @@
 
   /* ------------------------------------------------------
      DATA KATEGORI MARKET DIGITAL
+     STATIC_CATEGORIES dipakai sebagai cadangan (fallback)
+     jika backend tidak dapat dihubungi / offline.
   ------------------------------------------------------ */
-  var CATEGORIES = [
+  var STATIC_CATEGORIES = [
     {
       id: 'ebook',
       title: 'Ebook',
@@ -73,11 +76,11 @@
   ];
 
   /* ------------------------------------------------------
-     DATA PRODUK DIGITAL (placeholder — mudah diedit)
+     DATA PRODUK DIGITAL (fallback statis bila offline)
      field: id, name, category, price, oldPrice, badge,
             rating, ratingCount, cover (gradient), emoji, desc
   ------------------------------------------------------ */
-  var PRODUCTS = [
+  var STATIC_PRODUCTS = [
     {
       id: 'dcv-ats',
       name: 'Template CV ATS Modern — Desain ATS-Friendly',
@@ -210,6 +213,105 @@
     }
   ];
 
+  /* ------------------------------------------------------
+     DATA DINAMIS — dimuat dari backend (getDigital)
+     dengan cache localStorage + fallback ke STATIC_*
+  ------------------------------------------------------ */
+  var GAS_URL = '';
+  if (window.YOURPRINT_CONFIG && window.YOURPRINT_CONFIG.GAS_URL) {
+    GAS_URL = window.YOURPRINT_CONFIG.GAS_URL;
+  }
+
+  var CATEGORIES = [];
+  var PRODUCTS = [];
+
+  var ICON_PRESETS = {
+    ebook: '<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h6"/><path d="M8 11h8"/></svg>',
+    template: '<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>',
+    prompt: '<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 6.2L20 10.5l-5.6 2.3L12 19l-2.4-6.2L4 10.5l5.6-2.3L12 2Z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg>',
+    admin: '<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>',
+    excel: '<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>',
+    bundle: '<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><path d="M2 13h20"/></svg>',
+    other: '<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>'
+  };
+
+  function iconHTML(c) {
+    var svg = ICON_PRESETS[c.icon] || ICON_PRESETS.other;
+    return '<div class="digital-cat-card__icon ' + (c.iconClass || '') + '">' + svg + '</div>';
+  }
+
+  function sortByOrder(arr) {
+    return (arr || []).slice().sort(function (a, b) {
+      return (Number(a.order) || 0) - (Number(b.order) || 0);
+    });
+  }
+
+  function normalizeKategori(list) {
+    return (list || []).map(function (c) {
+      return { id: c.id, title: c.title, desc: c.desc, icon: c.icon, iconClass: c.iconClass, order: c.order };
+    });
+  }
+
+  function normalizeProduk(list) {
+    return (list || []).map(function (p) {
+      return {
+        id: p.id, name: p.name, category: p.category, price: p.price,
+        oldPrice: p.oldPrice, badge: p.badge, rating: p.rating,
+        ratingCount: p.ratingCount, cover: p.cover, emoji: p.emoji,
+        desc: p.desc, link: p.link, image: p.image, order: p.order
+      };
+    });
+  }
+
+  function loadDigitalData(cb) {
+    var finish = function () { if (typeof cb === 'function') cb(); };
+
+    // Fallback awal: cache localStorage → statis
+    var useCached = function () {
+      try {
+        var ck = JSON.parse(localStorage.getItem('yp_digital_kategori') || 'null');
+        var pk = JSON.parse(localStorage.getItem('yp_digital_produk') || 'null');
+        if (ck && pk && ck.length && pk.length) {
+          CATEGORIES = normalizeKategori(ck);
+          PRODUCTS = normalizeProduk(pk);
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    };
+
+    if (!GAS_URL) {
+      if (!useCached()) {
+        CATEGORIES = normalizeKategori(STATIC_CATEGORIES);
+        PRODUCTS = normalizeProduk(STATIC_PRODUCTS);
+      }
+      finish();
+      return;
+    }
+
+    fetch(GAS_URL + '?action=getDigital&t=' + Date.now())
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data && data.result === 'success' && data.kategori && data.produk) {
+          CATEGORIES = normalizeKategori(data.kategori);
+          PRODUCTS = normalizeProduk(data.produk);
+          try {
+            localStorage.setItem('yp_digital_kategori', JSON.stringify(CATEGORIES));
+            localStorage.setItem('yp_digital_produk', JSON.stringify(PRODUCTS));
+          } catch (e) {}
+        } else {
+          throw new Error('respon tidak valid');
+        }
+      })
+      .catch(function () {
+        if (!useCached()) {
+          CATEGORIES = normalizeKategori(STATIC_CATEGORIES);
+          PRODUCTS = normalizeProduk(STATIC_PRODUCTS);
+        }
+      })
+      .then(function () { finish(); });
+  }
+
   function getCategory(id) {
     return CATEGORIES.find(function (c) { return c.id === id; }) || null;
   }
@@ -249,11 +351,30 @@
   function productCardHTML(p) {
     var link = p.link || DIGITAL_LYNK_URL;
     var oldPrice = p.oldPrice ? '<span class="digital-card__price-old">' + formatRupiah(p.oldPrice) + '</span>' : '';
+
+    var coverMedia;
+    if (p.image) {
+      coverMedia = '<img src="' + p.image + '" alt="' + p.name + '" loading="lazy" class="digital-card__cover-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'block\';">' +
+        '<span class="digital-card__cover-emoji" style="display:none;">' + (p.emoji || '📦') + '</span>';
+    } else {
+      coverMedia = '<span class="digital-card__cover-emoji">' + (p.emoji || '📦') + '</span>';
+    }
+
+    var rating = Number(p.rating) || 0;
+    var ratingCount = Number(p.ratingCount) || 0;
+    var ratingHtml = '';
+    if (rating > 0) {
+      ratingHtml = '<div class="digital-card__rating">' +
+        ratingStars(rating) +
+        '<span>' + rating.toFixed(1) + ' (' + ratingCount + ')</span>' +
+        '</div>';
+    }
+
     return '' +
       '<div class="digital-card reveal">' +
-        '<div class="digital-card__cover" style="background:' + p.cover + '">' +
+        '<div class="digital-card__cover" style="background:' + (p.cover || 'linear-gradient(135deg, #334155, #0F172A)') + '">' +
           badgeHTML(p) +
-          '<span class="digital-card__cover-emoji">' + p.emoji + '</span>' +
+          coverMedia +
         '</div>' +
         '<div class="digital-card__body">' +
           '<span class="digital-card__cat">' + categoryTitle(p.category) + '</span>' +
@@ -262,10 +383,7 @@
             '<span class="digital-card__price">' + formatRupiah(p.price) + '</span>' +
             oldPrice +
           '</div>' +
-          '<div class="digital-card__rating">' +
-            ratingStars(p.rating) +
-            '<span>' + p.rating.toFixed(1) + ' (' + p.ratingCount + ')</span>' +
-          '</div>' +
+          ratingHtml +
           '<a href="' + link + '" target="_blank" rel="noopener" class="digital-card__buy">' +
             'Beli Sekarang' +
             '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>' +
@@ -280,10 +398,10 @@
   function renderLandingCategories() {
     var el = document.getElementById('digitalCategories');
     if (!el) return;
-    el.innerHTML = CATEGORIES.map(function (c) {
+    el.innerHTML = sortByOrder(CATEGORIES).map(function (c) {
       return '' +
         '<a href="digital.html?kategori=' + c.id + '" class="digital-cat-card reveal">' +
-          '<div class="digital-cat-card__icon ' + c.iconClass + '">' + c.icon + '</div>' +
+          iconHTML(c) +
           '<h3 class="font-display font-bold text-[0.95rem] mt-3">' + c.title + '</h3>' +
           '<p class="text-slate-soft text-xs mt-1 leading-relaxed">' + c.desc + '</p>' +
           '<span class="digital-cat-card__link">Lihat Produk' +
@@ -297,7 +415,8 @@
     var el = document.getElementById('digitalProducts');
     if (!el) return;
     var limit = 8;
-    el.innerHTML = PRODUCTS.slice(0, limit).map(productCardHTML).join('');
+    var sorted = sortByOrder(PRODUCTS);
+    el.innerHTML = sorted.slice(0, limit).map(productCardHTML).join('');
   }
 
   /* ------------------------------------------------------
@@ -311,7 +430,7 @@
   function renderCatalogTabs() {
     var el = document.getElementById('digitalCatalogTabs');
     if (!el) return;
-    var all = [{ id: 'semua', title: 'Semua' }].concat(CATEGORIES.map(function (c) {
+    var all = [{ id: 'semua', title: 'Semua' }].concat(sortByOrder(CATEGORIES).map(function (c) {
       return { id: c.id, title: c.title };
     }));
     el.innerHTML = all.map(function (c) {
@@ -327,7 +446,7 @@
     if (!el) return;
 
     var keyword = catalogState.keyword.trim().toLowerCase();
-    var list = PRODUCTS.filter(function (p) {
+    var list = sortByOrder(PRODUCTS).filter(function (p) {
       var matchCat = catalogState.cat === 'semua' || p.category === catalogState.cat;
       var matchKey = !keyword ||
         p.name.toLowerCase().indexOf(keyword) !== -1 ||
@@ -419,10 +538,12 @@
   document.documentElement.classList.add('js-digital');
 
   document.addEventListener('DOMContentLoaded', function () {
-    renderLandingCategories();
-    renderLandingProducts();
-    initCatalog();
-    initReveal();
+    loadDigitalData(function () {
+      renderLandingCategories();
+      renderLandingProducts();
+      initCatalog();
+      initReveal();
+    });
   });
 
 })();

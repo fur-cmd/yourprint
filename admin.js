@@ -69,6 +69,17 @@
     } catch (e) { return d; }
   }
 
+  /* Render daftar kartu (tampilan mobile menggantikan tabel) */
+  function renderCards(containerId, items, builder, emptyText) {
+    var el = $(containerId);
+    if (!el) return;
+    if (!items || items.length === 0) {
+      el.innerHTML = '<div class="data-card"><p class="text-sm text-slate-soft">' + (emptyText || 'Belum ada data') + '</p></div>';
+      return;
+    }
+    el.innerHTML = items.map(builder).join('');
+  }
+
   /* ==================== API ==================== */
 
   async function apiGet(action) {
@@ -139,6 +150,11 @@
     }
     var navBtn = document.querySelector('.nav-btn[data-tab="' + tabId + '"]');
     if (navBtn) navBtn.classList.add('active');
+    var sidebarNav = $('sidebarNav');
+    if (sidebarNav && window.innerWidth < 768 && !sidebarNav.classList.contains('hidden')) {
+      sidebarNav.classList.add('hidden');
+      sidebarNav.classList.remove('flex');
+    }
   }
 
   document.querySelectorAll('.nav-btn[data-tab]').forEach(function (btn) {
@@ -186,10 +202,12 @@
 
   /* ==================== Logout ==================== */
 
-  $('logoutBtn').addEventListener('click', function () {
+  window.doLogout = function () {
     sessionStorage.removeItem('yp_admin_token');
     window.location.replace('admin-login.html');
-  });
+  };
+
+  $('logoutBtn').addEventListener('click', doLogout);
 
   /* ==================== Load Data ==================== */
 
@@ -210,6 +228,8 @@
       renderTestimonials(data.testimonials || []);
       renderBanners(data.banners || []);
       renderUndangan(data.undangan || []);
+      renderDigital(data.digitalProduk || []);
+      renderDigitalKategori(data.digitalKategori || []);
       renderPromoHub(data);
     } catch (err) {
       console.error('loadData error:', err);
@@ -258,6 +278,7 @@
 
     if (recent.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-soft">Belum ada pesanan</td></tr>';
+      renderCards('cards-dashboard', [], null, 'Belum ada pesanan');
       return;
     }
 
@@ -273,6 +294,23 @@
         '<td class="p-4"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium ' + sc + '">' + status + '</span></td>' +
         '</tr>';
     }).join('');
+
+    renderCards('cards-dashboard', recent, function (o) {
+      var status = o.Status || 'Menunggu';
+      var sc = statusClassMap[status] || 'bg-gray-100 text-gray-600';
+      var typeClass = o._type === 'ATK' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700';
+      return '<div class="data-card">' +
+        '<div class="flex items-center justify-between gap-2 mb-2">' +
+        '<span class="font-mono text-xs">' + (o['Order ID'] || '-') + '</span>' +
+        '<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ' + sc + '">' + status + '</span>' +
+        '</div>' +
+        '<div class="grid grid-cols-2 gap-2">' +
+        '<div><p class="data-card__label">Waktu</p><p class="data-card__value">' + formatDate(o.Waktu) + '</p></div>' +
+        '<div><p class="data-card__label">Pelanggan</p><p class="data-card__value">' + (o['Nama Pemesan'] || '-') + '</p></div>' +
+        '</div>' +
+        '<div class="mt-2"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ' + typeClass + '">' + o._type + '</span></div>' +
+        '</div>';
+    }, 'Belum ada pesanan');
   }
 
   /* ==================== Products ==================== */
@@ -282,6 +320,7 @@
     if (!tbody) return;
     if (!products || products.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-soft">Belum ada produk</td></tr>';
+      renderCards('cards-products', [], null, 'Belum ada produk');
       return;
     }
     tbody.innerHTML = products.map(function (p, i) {
@@ -297,6 +336,27 @@
         '<button class="text-xs text-red-500 hover:underline" onclick="deleteProduct(' + i + ')">Hapus</button>' +
         '</td></tr>';
     }).join('');
+
+    renderCards('cards-products', products, function (p, i) {
+      var imgUrl = fixGoogleDriveUrl(p.image);
+      return '<div class="data-card">' +
+        '<div class="flex items-center gap-3">' +
+        '<span class="text-2xl">' + (p.emoji || '📄') + '</span>' +
+        '<div class="flex-1 min-w-0">' +
+        '<p class="font-medium text-sm truncate">' + (p.name || '-') + '</p>' +
+        '<p class="text-xs text-slate-soft">' + (p.category || '-') + '</p>' +
+        '</div>' +
+        (imgUrl ? '<img src="' + imgUrl + '" alt="" class="w-10 h-10 object-cover rounded" onerror="this.style.display=\'none\'">' : '') +
+        '</div>' +
+        '<div class="mt-3 grid grid-cols-2 gap-2">' +
+        '<div><p class="data-card__label">Harga</p><p class="data-card__value font-semibold">' + formatRupiah(p.price) + '</p></div>' +
+        '</div>' +
+        '<div class="data-card__actions">' +
+        '<button class="bg-ink/5 text-ink" onclick="editProduct(' + i + ')">Edit</button>' +
+        '<button class="bg-red-50 text-red-600" onclick="deleteProduct(' + i + ')">Hapus</button>' +
+        '</div>' +
+        '</div>';
+    }, 'Belum ada produk');
   }
 
   window.editProduct = function (index) {
@@ -372,6 +432,299 @@
     }
   });
 
+  /* ==================== Market Digital ==================== */
+
+  var DIGITAL_ICON_PRESETS = [
+    { key: 'ebook', label: '📘 Ebook' },
+    { key: 'template', label: '🎨 Template Canva' },
+    { key: 'prompt', label: '✨ Prompt AI' },
+    { key: 'admin', label: '📋 Administrasi' },
+    { key: 'excel', label: '📊 Template Excel' },
+    { key: 'bundle', label: '💼 Bundle Bisnis' },
+    { key: 'other', label: '📦 Lainnya' }
+  ];
+
+  function digitalCategoryTitle(id) {
+    var list = (allData && allData.digitalKategori) || [];
+    for (var i = 0; i < list.length; i++) {
+      if (String(list[i].id) === String(id)) return list[i].title || '-';
+    }
+    return id || '-';
+  }
+
+  function renderDigital(list) {
+    var tbody = document.querySelector('#table-digital tbody');
+    if (!tbody) return;
+    if (!list || list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-soft">Belum ada produk digital</td></tr>';
+      renderCards('cards-digital', [], null, 'Belum ada produk digital');
+      return;
+    }
+    var sorted = list.slice().sort(function (a, b) { return Number(a.order || 0) - Number(b.order || 0); });
+    tbody.innerHTML = sorted.map(function (p, i) {
+      var imgUrl = fixGoogleDriveUrl(p.image);
+      var coverHtml = imgUrl
+        ? '<img src="' + imgUrl + '" alt="" class="w-10 h-10 object-cover rounded-lg" onerror="this.style.display=\'none\'">'
+        : (p.cover ? '<span style="background:' + p.cover + '" class="grid place-items-center w-10 h-10 rounded-lg text-xl">' + (p.emoji || '📦') + '</span>' : (p.emoji || '📦'));
+      var badge = p.badge ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-highlight/15 text-highlight border border-highlight/40">' + p.badge + '</span>' : '-';
+      return '<tr>' +
+        '<td class="p-4 text-center">' + coverHtml + '</td>' +
+        '<td class="p-4 font-medium">' + (p.name || '-') + '</td>' +
+        '<td class="p-4 text-xs">' + digitalCategoryTitle(p.category) + '</td>' +
+        '<td class="p-4">' + formatRupiah(p.price) + '</td>' +
+        '<td class="p-4">' + badge + '</td>' +
+        '<td class="p-4 text-xs">' + (p.order || '-') + '</td>' +
+        '<td class="p-4 text-right">' +
+        '<button class="text-xs text-stamp hover:underline mr-2" onclick="editDigital(' + i + ')">Edit</button>' +
+        '<button class="text-xs text-red-500 hover:underline" onclick="deleteDigital(' + i + ')">Hapus</button>' +
+        '</td></tr>';
+    }).join('');
+
+    renderCards('cards-digital', sorted, function (p, i) {
+      var imgUrl = fixGoogleDriveUrl(p.image);
+      var coverHtml = imgUrl
+        ? '<img src="' + imgUrl + '" alt="" class="w-10 h-10 object-cover rounded-lg" onerror="this.style.display=\'none\'">'
+        : (p.cover ? '<span style="background:' + p.cover + '" class="grid place-items-center w-10 h-10 rounded-lg text-xl">' + (p.emoji || '📦') + '</span>' : '<span class="text-xl">' + (p.emoji || '📦') + '</span>');
+      var badge = p.badge ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-highlight/15 text-highlight border border-highlight/40">' + p.badge + '</span>' : '';
+      return '<div class="data-card">' +
+        '<div class="flex items-center gap-3">' +
+        coverHtml +
+        '<div class="flex-1 min-w-0">' +
+        '<p class="font-medium text-sm truncate">' + (p.name || '-') + '</p>' +
+        '<p class="text-xs text-slate-soft">' + digitalCategoryTitle(p.category) + '</p>' +
+        '</div>' +
+        '</div>' +
+        '<div class="mt-3 grid grid-cols-2 gap-2">' +
+        '<div><p class="data-card__label">Harga</p><p class="data-card__value font-semibold">' + formatRupiah(p.price) + '</p></div>' +
+        '<div><p class="data-card__label">Urutan</p><p class="data-card__value">' + (p.order || '-') + '</p></div>' +
+        '</div>' +
+        (badge ? '<div class="mt-2">' + badge + '</div>' : '') +
+        '<div class="data-card__actions">' +
+        '<button class="bg-ink/5 text-ink" onclick="editDigital(' + i + ')">Edit</button>' +
+        '<button class="bg-red-50 text-red-600" onclick="deleteDigital(' + i + ')">Hapus</button>' +
+        '</div>' +
+        '</div>';
+    }, 'Belum ada produk digital');
+  }
+
+  function fillDigitalCategorySelect() {
+    var sel = $('d-category');
+    if (!sel) return;
+    var list = (allData && allData.digitalKategori) || [];
+    if (!list.length) {
+      sel.innerHTML = '<option value="">— Belum ada kategori —</option>';
+      return;
+    }
+    var sorted = list.slice().sort(function (a, b) { return Number(a.order || 0) - Number(b.order || 0); });
+    sel.innerHTML = sorted.map(function (c) {
+      return '<option value="' + c.id + '">' + (c.title || c.id) + '</option>';
+    }).join('');
+  }
+
+  window.editDigital = function (index) {
+    if (!allData || !allData.digitalProduk) return;
+    var p = allData.digitalProduk[index];
+    fillDigitalCategorySelect();
+    $('d-id').value = p.id || '';
+    $('d-name').value = p.name || '';
+    $('d-price').value = p.price || '';
+    $('d-oldPrice').value = p.oldPrice || '';
+    $('d-category').value = p.category || '';
+    $('d-badge').value = p.badge || '';
+    $('d-rating').value = p.rating || '';
+    $('d-ratingCount').value = p.ratingCount || '';
+    $('d-cover').value = p.cover || '';
+    $('d-emoji').value = p.emoji || '';
+    $('d-description').value = p.desc || '';
+    $('d-link').value = p.link || '';
+    $('d-order').value = p.order || '';
+    $('d-image').value = p.image || '';
+    $('d-image-url').value = '';
+    $('d-image-file').value = '';
+    $('modal-digital-title').textContent = 'Edit Produk Digital';
+    openModal('modal-digital');
+  };
+
+  window.resetDigitalForm = function () {
+    $('form-digital').reset();
+    $('d-id').value = '';
+    $('d-image').value = '';
+    fillDigitalCategorySelect();
+    $('modal-digital-title').textContent = 'Tambah Produk Digital';
+  };
+
+  window.deleteDigital = async function (index) {
+    if (!allData || !allData.digitalProduk) return;
+    var p = allData.digitalProduk[index];
+    if (!confirm('Hapus produk digital "' + (p.name || '') + '"?')) return;
+    try {
+      var res = await apiPost({ type: 'delete-digital-produk', id: p.id, token: API_TOKEN });
+      if (res.result === 'success') {
+        showToast('✓ Produk digital dihapus');
+        await loadData();
+      } else {
+        showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
+      }
+    } catch (err) {
+      showToast('⚠️ Gagal menghapus');
+    }
+  };
+
+  $('form-digital').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var imgData = await collectImage('d');
+    var payload = {
+      type: 'upsert-digital-produk',
+      token: API_TOKEN,
+      item: {
+        id: $('d-id').value || ('dp-' + Date.now()),
+        name: $('d-name').value,
+        category: $('d-category').value,
+        price: Number($('d-price').value) || 0,
+        oldPrice: $('d-oldPrice').value ? Number($('d-oldPrice').value) : '',
+        badge: $('d-badge').value,
+        rating: $('d-rating').value ? Number($('d-rating').value) : '',
+        ratingCount: $('d-ratingCount').value ? Number($('d-ratingCount').value) : '',
+        cover: $('d-cover').value,
+        emoji: $('d-emoji').value,
+        desc: $('d-description').value,
+        link: $('d-link').value,
+        order: $('d-order').value ? Number($('d-order').value) : '',
+        image: imgData.image,
+        imageFile: imgData.imageFile
+      }
+    };
+    try {
+      var res = await apiPost(payload);
+      if (res.result === 'success') {
+        showToast('✓ Produk digital disimpan');
+        closeModals();
+        await loadData();
+      } else {
+        showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
+      }
+    } catch (err) {
+      showToast('⚠️ Gagal menyimpan');
+    }
+  });
+
+  /* ==================== Kategori Digital ==================== */
+
+  function fillDigitalIconSelect() {
+    var sel = $('dk-icon');
+    if (!sel) return;
+    sel.innerHTML = DIGITAL_ICON_PRESETS.map(function (p) {
+      return '<option value="' + p.key + '">' + p.label + '</option>';
+    }).join('');
+  }
+
+  function renderDigitalKategori(list) {
+    var tbody = document.querySelector('#table-digital-kategori tbody');
+    if (!tbody) return;
+    if (!list || list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-soft">Belum ada kategori</td></tr>';
+      renderCards('cards-digital-kategori', [], null, 'Belum ada kategori');
+      return;
+    }
+    var sorted = list.slice().sort(function (a, b) { return Number(a.order || 0) - Number(b.order || 0); });
+    tbody.innerHTML = sorted.map(function (c, i) {
+      return '<tr>' +
+        '<td class="p-4 text-xl text-center">' + (c.icon || '📦') + '</td>' +
+        '<td class="p-4 font-medium">' + (c.title || '-') + '</td>' +
+        '<td class="p-4 text-xs">' + (c.desc || '-') + '</td>' +
+        '<td class="p-4 text-xs">' + (c.order || '-') + '</td>' +
+        '<td class="p-4 text-right">' +
+        '<button class="text-xs text-stamp hover:underline mr-2" onclick="editDigitalKategori(' + i + ')">Edit</button>' +
+        '<button class="text-xs text-red-500 hover:underline" onclick="deleteDigitalKategori(' + i + ')">Hapus</button>' +
+        '</td></tr>';
+    }).join('');
+
+    renderCards('cards-digital-kategori', sorted, function (c, i) {
+      return '<div class="data-card">' +
+        '<div class="flex items-center gap-3">' +
+        '<span class="text-2xl">' + (c.icon || '📦') + '</span>' +
+        '<div class="flex-1 min-w-0">' +
+        '<p class="font-medium text-sm truncate">' + (c.title || '-') + '</p>' +
+        '<p class="text-xs text-slate-soft truncate">' + (c.desc || '-') + '</p>' +
+        '</div>' +
+        '</div>' +
+        '<div class="mt-3 grid grid-cols-2 gap-2">' +
+        '<div><p class="data-card__label">Urutan</p><p class="data-card__value">' + (c.order || '-') + '</p></div>' +
+        '</div>' +
+        '<div class="data-card__actions">' +
+        '<button class="bg-ink/5 text-ink" onclick="editDigitalKategori(' + i + ')">Edit</button>' +
+        '<button class="bg-red-50 text-red-600" onclick="deleteDigitalKategori(' + i + ')">Hapus</button>' +
+        '</div>' +
+        '</div>';
+    }, 'Belum ada kategori');
+  }
+
+  window.editDigitalKategori = function (index) {
+    if (!allData || !allData.digitalKategori) return;
+    var c = allData.digitalKategori[index];
+    fillDigitalIconSelect();
+    $('dk-id').value = c.id || '';
+    $('dk-title').value = c.title || '';
+    $('dk-desc').value = c.desc || '';
+    $('dk-icon').value = c.icon || 'other';
+    $('dk-iconClass').value = c.iconClass || '';
+    $('dk-order').value = c.order || '';
+    $('modal-digital-kategori-title').textContent = 'Edit Kategori Digital';
+    openModal('modal-digital-kategori');
+  };
+
+  window.resetDigitalKategoriForm = function () {
+    $('form-digital-kategori').reset();
+    $('dk-id').value = '';
+    fillDigitalIconSelect();
+    $('modal-digital-kategori-title').textContent = 'Tambah Kategori Digital';
+  };
+
+  window.deleteDigitalKategori = async function (index) {
+    if (!allData || !allData.digitalKategori) return;
+    var c = allData.digitalKategori[index];
+    if (!confirm('Hapus kategori "' + (c.title || '') + '"?')) return;
+    try {
+      var res = await apiPost({ type: 'delete-digital-kategori', id: c.id, token: API_TOKEN });
+      if (res.result === 'success') {
+        showToast('✓ Kategori dihapus');
+        await loadData();
+      } else {
+        showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
+      }
+    } catch (err) {
+      showToast('⚠️ Gagal menghapus');
+    }
+  };
+
+  $('form-digital-kategori').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var payload = {
+      type: 'upsert-digital-kategori',
+      token: API_TOKEN,
+      item: {
+        id: $('dk-id').value || ('dk-' + Date.now()),
+        title: $('dk-title').value,
+        desc: $('dk-desc').value,
+        icon: $('dk-icon').value,
+        iconClass: $('dk-iconClass').value,
+        order: $('dk-order').value ? Number($('dk-order').value) : ''
+      }
+    };
+    try {
+      var res = await apiPost(payload);
+      if (res.result === 'success') {
+        showToast('✓ Kategori disimpan');
+        closeModals();
+        await loadData();
+      } else {
+        showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
+      }
+    } catch (err) {
+      showToast('⚠️ Gagal menyimpan');
+    }
+  });
+
   /* ==================== Gallery ==================== */
 
   function renderGallery(gallery) {
@@ -379,6 +732,7 @@
     if (!tbody) return;
     if (!gallery || gallery.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-soft">Belum ada galeri</td></tr>';
+      renderCards('cards-gallery', [], null, 'Belum ada galeri');
       return;
     }
     tbody.innerHTML = gallery.map(function (g, i) {
@@ -392,6 +746,23 @@
         '<button class="text-xs text-red-500 hover:underline" onclick="deleteGallery(' + i + ')">Hapus</button>' +
         '</td></tr>';
     }).join('');
+
+    renderCards('cards-gallery', gallery, function (g, i) {
+      var imgUrl = fixGoogleDriveUrl(g.image);
+      return '<div class="data-card">' +
+        '<div class="flex items-center gap-3">' +
+        (imgUrl ? '<img src="' + imgUrl + '" alt="" class="w-10 h-10 object-cover rounded" onerror="this.style.display=\'none\'">' : '<span class="text-2xl">📘</span>') +
+        '<div class="flex-1 min-w-0">' +
+        '<p class="font-medium text-sm truncate">' + (g.title || '-') + '</p>' +
+        '<p class="text-xs text-slate-soft font-mono">' + (g.code || '-') + '</p>' +
+        '</div>' +
+        '</div>' +
+        '<div class="data-card__actions">' +
+        '<button class="bg-ink/5 text-ink" onclick="editGallery(' + i + ')">Edit</button>' +
+        '<button class="bg-red-50 text-red-600" onclick="deleteGallery(' + i + ')">Hapus</button>' +
+        '</div>' +
+        '</div>';
+    }, 'Belum ada galeri');
   }
 
   window.editGallery = function (index) {
@@ -471,6 +842,7 @@
     if (!tbody) return;
     if (!items || items.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-soft">Belum ada paket undangan</td></tr>';
+      renderCards('cards-undangan', [], null, 'Belum ada paket undangan');
       return;
     }
     tbody.innerHTML = items.map(function (item, i) {
@@ -488,6 +860,29 @@
         '<button class="text-xs text-red-500 hover:underline" onclick="deleteUndangan(' + i + ')">Hapus</button>' +
         '</td></tr>';
     }).join('');
+
+    renderCards('cards-undangan', items, function (item, i) {
+      var imgUrl = fixGoogleDriveUrl(item.image);
+      var typeLabel = item.type === 'digital' ? 'Digital' : 'Cetak';
+      var typeClass = item.type === 'digital' ? 'bg-highlight text-ink' : 'bg-stamp text-white';
+      return '<div class="data-card">' +
+        '<div class="flex items-center gap-3">' +
+        (imgUrl ? '<img src="' + imgUrl + '" alt="" class="w-10 h-10 object-cover rounded" onerror="this.style.display=\'none\'">' : '<span class="text-2xl">💌</span>') +
+        '<div class="flex-1 min-w-0">' +
+        '<p class="font-medium text-sm truncate">' + (item.name || '-') + '</p>' +
+        '<p class="text-xs text-slate-soft truncate">' + (item.description || '-') + '</p>' +
+        '</div>' +
+        '<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ' + typeClass + '">' + typeLabel + '</span>' +
+        '</div>' +
+        '<div class="mt-3 grid grid-cols-2 gap-2">' +
+        '<div><p class="data-card__label">Harga</p><p class="data-card__value font-semibold">' + formatRupiah(item.price) + '</p></div>' +
+        '</div>' +
+        '<div class="data-card__actions">' +
+        '<button class="bg-ink/5 text-ink" onclick="editUndangan(' + i + ')">Edit</button>' +
+        '<button class="bg-red-50 text-red-600" onclick="deleteUndangan(' + i + ')">Hapus</button>' +
+        '</div>' +
+        '</div>';
+    }, 'Belum ada paket undangan');
   }
 
   window.editUndangan = function (index) {
@@ -566,6 +961,7 @@
     if (!tbody) return;
     if (!services || services.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-soft">Belum ada layanan</td></tr>';
+      renderCards('cards-services', [], null, 'Belum ada layanan');
       return;
     }
     tbody.innerHTML = services.map(function (s, i) {
@@ -579,6 +975,19 @@
         '<button class="text-xs text-red-500 hover:underline" onclick="deleteService(' + i + ')">Hapus</button>' +
         '</td></tr>';
     }).join('');
+
+    renderCards('cards-services', services, function (s, i) {
+      var priceText = (s.priceBw ? formatRupiah(s.priceBw) : '-') + ' / ' + (s.priceColor ? formatRupiah(s.priceColor) : '-');
+      return '<div class="data-card">' +
+        '<p class="font-medium text-sm">' + (s.service || s.name || '-') + '</p>' +
+        '<p class="text-xs text-slate-soft mt-0.5 truncate">' + (s.description || '-') + '</p>' +
+        '<div class="mt-3"><p class="data-card__label">Harga BW / Warna</p><p class="data-card__value font-semibold">' + priceText + '</p></div>' +
+        '<div class="data-card__actions">' +
+        '<button class="bg-ink/5 text-ink" onclick="editService(' + i + ')">Edit</button>' +
+        '<button class="bg-red-50 text-red-600" onclick="deleteService(' + i + ')">Hapus</button>' +
+        '</div>' +
+        '</div>';
+    }, 'Belum ada layanan');
   }
 
   window.editService = function (index) {
@@ -661,6 +1070,7 @@
     if (!tbody) return;
     if (!orders || orders.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-soft">Belum ada pesanan ATK</td></tr>';
+      renderCards('cards-orders-atk', [], null, 'Belum ada pesanan ATK');
       return;
     }
     tbody.innerHTML = orders.map(function (o, i) {
@@ -680,6 +1090,30 @@
         '<select class="text-xs border border-line rounded px-1 py-0.5" onchange="updateOrderStatus(\'atk\',' + i + ',this.value)">' + options + '</select>' +
         '</td></tr>';
     }).join('');
+
+    renderCards('cards-orders-atk', orders, function (o, i) {
+      var status = o.Status || 'Menunggu';
+      var sc = statusClassMap[status] || 'bg-gray-100 text-gray-600';
+      var options = ['Menunggu', 'Dikonfirmasi', 'Diproses', 'Siap Diambil', 'Selesai', 'Dibatalkan'].map(function (s) {
+        return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + s + '</option>';
+      }).join('');
+      return '<div class="data-card">' +
+        '<div class="flex items-center justify-between gap-2 mb-2">' +
+        '<span class="font-mono text-xs">' + (o['Order ID'] || '-') + '</span>' +
+        '<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ' + sc + '">' + status + '</span>' +
+        '</div>' +
+        '<div class="grid grid-cols-2 gap-2">' +
+        '<div><p class="data-card__label">Waktu</p><p class="data-card__value">' + formatDate(o.Waktu) + '</p></div>' +
+        '<div><p class="data-card__label">Pelanggan</p><p class="data-card__value">' + (o['Nama Pemesan'] || '-') + '</p></div>' +
+        '<div><p class="data-card__label">WhatsApp</p><p class="data-card__value">' + (o['No. WhatsApp'] || '-') + '</p></div>' +
+        '<div><p class="data-card__label">Subtotal</p><p class="data-card__value font-semibold">' + formatRupiah(o.Subtotal) + '</p></div>' +
+        '</div>' +
+        '<div class="mt-2"><p class="data-card__label">Detail</p><p class="data-card__value whitespace-pre-line">' + (o['Detail Produk'] || '-') + '</p></div>' +
+        '<div class="mt-3"><label class="data-card__label block mb-1">Ubah Status</label>' +
+        '<select class="data-card__status-select" onchange="updateOrderStatus(\'atk\',' + i + ',this.value)">' + options + '</select>' +
+        '</div>' +
+        '</div>';
+    }, 'Belum ada pesanan ATK');
   }
 
   window.updateOrderStatus = async function (category, index, newStatus) {
@@ -712,6 +1146,7 @@
     if (!tbody) return;
     if (!orders || orders.length === 0) {
       tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-slate-soft">Belum ada pesanan cetak</td></tr>';
+      renderCards('cards-orders-cetak', [], null, 'Belum ada pesanan cetak');
       return;
     }
     tbody.innerHTML = orders.map(function (o, i) {
@@ -741,6 +1176,43 @@
         '<select class="text-xs border border-line rounded px-1 py-0.5" onchange="updateOrderStatus(\'cetak\',' + i + ',this.value)">' + options + '</select>' +
         '</td></tr>';
     }).join('');
+
+    renderCards('cards-orders-cetak', orders, function (o, i) {
+      var status = o.Status || 'Menunggu';
+      var sc = statusClassMap[status] || 'bg-gray-100 text-gray-600';
+      var options = ['Menunggu', 'Dikonfirmasi', 'Diproses', 'Siap Diambil', 'Selesai', 'Dibatalkan'].map(function (s) {
+        return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + s + '</option>';
+      }).join('');
+      var fileLink = o['Link File'] && o['Link File'] !== '-' ? '<a href="' + o['Link File'] + '" target="_blank" class="text-stamp underline">' + (o['Nama File'] || 'File') + '</a>' : (o['Nama File'] || '-');
+      var detailCetak = [
+        o['Jumlah Halaman'] ? o['Jumlah Halaman'] + ' hlm' : '',
+        o['Mode Warna'] || '',
+        o['Jumlah Salinan'] ? o['Jumlah Salinan'] + 'x' : '',
+        o['Laminasi'] && o['Laminasi'] !== 'Tidak ada' ? o['Laminasi'] : ''
+      ].filter(Boolean).join(', ') || '-';
+      return '<div class="data-card">' +
+        '<div class="flex items-center justify-between gap-2 mb-2">' +
+        '<span class="font-mono text-xs">' + (o['Order ID'] || '-') + '</span>' +
+        '<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ' + sc + '">' + status + '</span>' +
+        '</div>' +
+        '<div class="grid grid-cols-2 gap-2">' +
+        '<div><p class="data-card__label">Waktu</p><p class="data-card__value">' + formatDate(o.Waktu) + '</p></div>' +
+        '<div><p class="data-card__label">Pelanggan</p><p class="data-card__value">' + (o['Nama Pemesan'] || '-') + '</p></div>' +
+        '<div><p class="data-card__label">WhatsApp</p><p class="data-card__value">' + (o['No. WhatsApp'] || '-') + '</p></div>' +
+        '<div><p class="data-card__label">Layanan</p><p class="data-card__value">' + (o['Layanan'] || '-') + '</p></div>' +
+        '</div>' +
+        '<div class="mt-2 grid grid-cols-2 gap-2">' +
+        '<div><p class="data-card__label">Alamat</p><p class="data-card__value">' + (o['Alamat'] || '-') + '</p></div>' +
+        '<div><p class="data-card__label">Detail Cetak</p><p class="data-card__value">' + detailCetak + '</p></div>' +
+        '</div>' +
+        '<div class="mt-2"><p class="data-card__label">File</p><p class="data-card__value">' + fileLink + '</p></div>' +
+        '<div class="mt-2"><p class="data-card__label">Catatan</p><p class="data-card__value">' + (o['Catatan'] || '-') + '</p></div>' +
+        '<div class="mt-2"><p class="data-card__label">Total</p><p class="data-card__value font-semibold">' + formatRupiah(o['Total Harga'] || o['Estimasi Harga']) + '</p></div>' +
+        '<div class="mt-3"><label class="data-card__label block mb-1">Ubah Status</label>' +
+        '<select class="data-card__status-select" onchange="updateOrderStatus(\'cetak\',' + i + ',this.value)">' + options + '</select>' +
+        '</div>' +
+        '</div>';
+    }, 'Belum ada pesanan cetak');
   }
 
   /* ==================== Testimonials ==================== */
@@ -750,6 +1222,7 @@
     if (!tbody) return;
     if (!testimonials || testimonials.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-soft">Belum ada testimoni</td></tr>';
+      renderCards('cards-testimonials', [], null, 'Belum ada testimoni');
       return;
     }
     tbody.innerHTML = testimonials.map(function (t, i) {
@@ -772,6 +1245,32 @@
         '<button class="text-xs text-red-500 hover:underline" onclick="deleteTestimonial(' + i + ')">Hapus</button>' +
         '</td></tr>';
     }).join('');
+
+    renderCards('cards-testimonials', testimonials, function (t, i) {
+      var approved = t.approved === true || t.approved === 'TRUE' || t.approved === 'true';
+      var stars = '';
+      for (var s = 0; s < 5; s++) {
+        stars += s < Number(t.rating) ? '★' : '☆';
+      }
+      var statusBadge = approved
+        ? '<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">Disetujui</span>'
+        : '<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-700">Menunggu</span>';
+      return '<div class="data-card">' +
+        '<div class="flex items-center justify-between gap-2">' +
+        '<div class="min-w-0">' +
+        '<p class="font-medium text-sm truncate">' + (t.name || '-') + '</p>' +
+        '<p class="text-xs text-yellow-500 mt-0.5">' + stars + '</p>' +
+        '</div>' +
+        statusBadge +
+        '</div>' +
+        '<p class="data-card__value mt-2">' + (t.text || '-') + '</p>' +
+        '<div class="mt-2"><p class="data-card__label">Tanggal</p><p class="data-card__value">' + formatDateShort(t.date) + '</p></div>' +
+        '<div class="data-card__actions">' +
+        (approved ? '' : '<button class="bg-green-50 text-green-700" onclick="approveTestimonial(' + i + ')">Setujui</button>') +
+        '<button class="bg-red-50 text-red-600" onclick="deleteTestimonial(' + i + ')">Hapus</button>' +
+        '</div>' +
+        '</div>';
+    }, 'Belum ada testimoni');
   }
 
   window.approveTestimonial = async function (index) {
@@ -814,6 +1313,7 @@
     if (!tbody) return;
     if (!banners || banners.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-soft">Belum ada banner</td></tr>';
+      renderCards('cards-banners', [], null, 'Belum ada banner');
       return;
     }
     tbody.innerHTML = banners.map(function (b, i) {
@@ -831,6 +1331,27 @@
         '<button class="text-xs text-red-500 hover:underline" onclick="deleteBanner(' + i + ')">Hapus</button>' +
         '</td></tr>';
     }).join('');
+
+    renderCards('cards-banners', banners, function (b, i) {
+      var imgUrl = fixGoogleDriveUrl(b.image);
+      var active = b.active === true || b.active === 'TRUE' || b.active === 'true';
+      var statusBadge = active
+        ? '<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">Aktif</span>'
+        : '<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">Nonaktif</span>';
+      return '<div class="data-card">' +
+        '<div class="flex items-center gap-3">' +
+        (imgUrl ? '<img src="' + imgUrl + '" alt="" class="w-16 h-10 object-cover rounded" onerror="this.style.display=\'none\'">' : '<span class="text-2xl">🖼️</span>') +
+        '<div class="flex-1 min-w-0">' +
+        '<p class="text-xs text-slate-soft truncate">' + (b.link || '-') + '</p>' +
+        '<p class="mt-1">' + statusBadge + '</p>' +
+        '</div>' +
+        '</div>' +
+        '<div class="data-card__actions">' +
+        '<button class="bg-ink/5 text-ink" onclick="editBanner(' + i + ')">Edit</button>' +
+        '<button class="bg-red-50 text-red-600" onclick="deleteBanner(' + i + ')">Hapus</button>' +
+        '</div>' +
+        '</div>';
+    }, 'Belum ada banner');
   }
 
   window.editBanner = function (index) {
@@ -1053,6 +1574,18 @@
         desc: u.description || '',
         badge: u.type === 'digital' ? 'Digital' : 'Cetak',
         emoji: '💌'
+      });
+    });
+    (data.digitalProduk || []).forEach(function (p) {
+      promoItems.push({
+        _type: 'digital',
+        _label: 'Market Digital',
+        title: p.name,
+        image: p.image,
+        subtitle: formatRupiah(p.price),
+        desc: p.desc || '',
+        badge: digitalCategoryTitle(p.category) || '',
+        emoji: p.emoji || '📦'
       });
     });
 

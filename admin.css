@@ -182,3 +182,86 @@ table th {
 .promo-style-btn.active {
   cursor: default;
 }
+
+/* ==================== Mobile (< 768px) ==================== */
+
+@media (max-width: 767px) {
+  /* Cegah auto-zoom iOS Safari saat fokus input */
+  .input-field {
+    font-size: 16px;
+  }
+
+  /* Modal jadi bottom sheet: tinggi dibatasi + bisa scroll */
+  .modal-box {
+    max-height: 92dvh;
+    overflow-y: auto;
+    border-radius: 1rem 1rem 0 0;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-box .modal-close {
+    position: sticky;
+    top: 0.5rem;
+    float: right;
+    z-index: 5;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 9999px;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 1px 4px rgba(22, 35, 63, 0.15);
+  }
+
+  /* Kartu data mobile (table → card) */
+  .data-card {
+    background: #fff;
+    border: 1px solid #D8DEE4;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 1px 2px rgba(22, 35, 63, 0.04);
+  }
+  .data-card__label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #5B6B7F;
+  }
+  .data-card__value {
+    font-size: 0.8rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+  .data-card__actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    border-top: 1px solid #D8DEE4;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .data-card__actions button,
+  .data-card__actions select,
+  .data-card__actions a {
+    min-height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.5rem;
+    white-space: nowrap;
+  }
+  .data-card__status-select {
+    width: 100%;
+    min-height: 2.5rem;
+    border: 1px solid #D8DEE4;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    background: #F3F5F7;
+  }
+}
