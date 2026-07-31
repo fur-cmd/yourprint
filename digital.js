@@ -25,6 +25,17 @@
     return 'Rp' + Number(n).toLocaleString('id-ID');
   }
 
+  function fixGoogleDriveUrl(url) {
+    if (!url) return '';
+    if (url.indexOf('drive.google.com') !== -1 || url.indexOf('googleusercontent.com') !== -1) {
+      var matchD = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      var matchId = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      var fileId = matchD ? matchD[1] : (matchId ? matchId[1] : null);
+      if (fileId) return 'https://lh3.googleusercontent.com/d/' + fileId;
+    }
+    return url;
+  }
+
   /* ------------------------------------------------------
      DATA KATEGORI MARKET DIGITAL
      STATIC_CATEGORIES dipakai sebagai cadangan (fallback)
@@ -352,9 +363,10 @@
     var link = p.link || DIGITAL_LYNK_URL;
     var oldPrice = p.oldPrice ? '<span class="digital-card__price-old">' + formatRupiah(p.oldPrice) + '</span>' : '';
 
+    var imgUrl = fixGoogleDriveUrl(p.image);
     var coverMedia;
-    if (p.image) {
-      coverMedia = '<img src="' + p.image + '" alt="' + p.name + '" loading="lazy" class="digital-card__cover-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'block\';">' +
+    if (imgUrl) {
+      coverMedia = '<img src="' + imgUrl + '" alt="' + p.name + '" loading="lazy" class="digital-card__cover-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'block\';">' +
         '<span class="digital-card__cover-emoji" style="display:none;">' + (p.emoji || '📦') + '</span>';
     } else {
       coverMedia = '<span class="digital-card__cover-emoji">' + (p.emoji || '📦') + '</span>';
