@@ -693,6 +693,28 @@ textarea:focus-visible {
 }
 /* ---------- End Mobile Layanan Cetak ---------- */
 
+/* ---------- Mobile: Produk Digital Populer Horizontal Scroll ---------- */
+@media (max-width: 1023px) {
+  .digital-scroll {
+    display: flex;
+    gap: .75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: .5rem;
+    scrollbar-width: none;
+  }
+  .digital-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .digital-scroll .digital-card {
+    min-width: calc((100vw - 2.5rem) / 3);
+    max-width: calc((100vw - 2.5rem) / 3);
+    scroll-snap-align: start;
+  }
+}
+/* ---------- End Mobile Produk Digital Populer ---------- */
+
 /* ---------- Smart Print Calculator (estimasi halaman & harga PDF) ---------- */
 .print-estimate {
   margin-top: .9rem;
