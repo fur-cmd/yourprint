@@ -209,6 +209,7 @@
       renderOrdersCetak(data.ordersCetak || []);
       renderTestimonials(data.testimonials || []);
       renderBanners(data.banners || []);
+      renderUndangan(data.undangan || []);
       renderPromoHub(data);
     } catch (err) {
       console.error('loadData error:', err);
@@ -453,6 +454,101 @@
       var res = await apiPost(payload);
       if (res.result === 'success') {
         showToast('✓ Galeri disimpan');
+        closeModals();
+        await loadData();
+      } else {
+        showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
+      }
+    } catch (err) {
+      showToast('⚠️ Gagal menyimpan');
+    }
+  });
+
+  /* ==================== Undangan ==================== */
+
+  function renderUndangan(items) {
+    var tbody = document.querySelector('#table-undangan tbody');
+    if (!tbody) return;
+    if (!items || items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-soft">Belum ada paket undangan</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(function (item, i) {
+      var imgUrl = fixGoogleDriveUrl(item.image);
+      var typeLabel = item.type === 'digital' ? 'Digital' : 'Cetak';
+      var typeClass = item.type === 'digital' ? 'bg-highlight text-ink' : 'bg-stamp text-white';
+      return '<tr>' +
+        '<td class="p-4">' + (imgUrl ? '<img src="' + imgUrl + '" alt="" class="w-10 h-10 object-cover rounded" onerror="this.style.display=\'none\'">' : '<span class="text-2xl">💌</span>') + '</td>' +
+        '<td class="p-4 font-medium">' + (item.name || '-') + '</td>' +
+        '<td class="p-4">' + formatRupiah(item.price) + '</td>' +
+        '<td class="p-4"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium ' + typeClass + '">' + typeLabel + '</span></td>' +
+        '<td class="p-4 text-xs text-slate-soft max-w-xs truncate">' + (item.description || '-') + '</td>' +
+        '<td class="p-4 text-right">' +
+        '<button class="text-xs text-stamp hover:underline mr-2" onclick="editUndangan(' + i + ')">Edit</button>' +
+        '<button class="text-xs text-red-500 hover:underline" onclick="deleteUndangan(' + i + ')">Hapus</button>' +
+        '</td></tr>';
+    }).join('');
+  }
+
+  window.editUndangan = function (index) {
+    if (!allData || !allData.undangan) return;
+    var item = allData.undangan[index];
+    $('u-id').value = item.id || '';
+    $('u-name').value = item.name || '';
+    $('u-price').value = item.price || '';
+    $('u-type').value = item.type || 'cetak';
+    $('u-description').value = item.description || '';
+    $('u-image').value = item.image || '';
+    $('u-image-url').value = '';
+    $('u-image-file').value = '';
+    $('modal-undangan-title').textContent = 'Edit Paket Undangan';
+    openModal('modal-undangan');
+  };
+
+  window.resetUndanganForm = function () {
+    $('form-undangan').reset();
+    $('u-id').value = '';
+    $('u-image').value = '';
+    $('modal-undangan-title').textContent = 'Tambah Paket Undangan';
+  };
+
+  window.deleteUndangan = async function (index) {
+    if (!allData || !allData.undangan) return;
+    var item = allData.undangan[index];
+    if (!confirm('Hapus paket "' + (item.name || '') + '"?')) return;
+    try {
+      var res = await apiPost({ type: 'delete-undangan', id: item.id, token: API_TOKEN });
+      if (res.result === 'success') {
+        showToast('✓ Paket undangan dihapus');
+        await loadData();
+      } else {
+        showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
+      }
+    } catch (err) {
+      showToast('⚠️ Gagal menghapus');
+    }
+  };
+
+  $('form-undangan').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var imgData = await collectImage('u');
+    var payload = {
+      type: 'upsert-undangan',
+      token: API_TOKEN,
+      item: {
+        id: $('u-id').value || ('u-' + Date.now()),
+        name: $('u-name').value,
+        price: Number($('u-price').value),
+        type: $('u-type').value,
+        description: $('u-description').value,
+        image: imgData.image,
+        imageFile: imgData.imageFile
+      }
+    };
+    try {
+      var res = await apiPost(payload);
+      if (res.result === 'success') {
+        showToast('✓ Paket undangan disimpan');
         closeModals();
         await loadData();
       } else {
@@ -945,6 +1041,18 @@
         subtitle: (s.priceBw ? formatRupiah(s.priceBw) : '-') + ' / lembar',
         desc: s.description || '',
         badge: ''
+      });
+    });
+    (data.undangan || []).forEach(function (u) {
+      promoItems.push({
+        _type: 'undangan',
+        _label: 'Undangan',
+        title: u.name,
+        image: u.image,
+        subtitle: formatRupiah(u.price),
+        desc: u.description || '',
+        badge: u.type === 'digital' ? 'Digital' : 'Cetak',
+        emoji: '💌'
       });
     });
 
