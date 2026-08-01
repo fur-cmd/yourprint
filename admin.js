@@ -69,6 +69,15 @@
     } catch (e) { return d; }
   }
 
+  function formatPhoneDisplay(p) {
+    if (!p) return '-';
+    var digits = String(p).replace(/\D/g, '');
+    if (digits.length < 8) return p;
+    if (digits.indexOf('62') === 0) digits = '0' + digits.slice(2);
+    else if (digits.indexOf('8') === 0) digits = '0' + digits;
+    return digits;
+  }
+
   /* Render daftar kartu (tampilan mobile menggantikan tabel) */
   function renderCards(containerId, items, builder, emptyText) {
     var el = $(containerId);
@@ -225,7 +234,6 @@
       renderServices(data.services || []);
       renderOrdersATK(data.ordersATK || []);
       renderOrdersCetak(data.ordersCetak || []);
-      renderTestimonials(data.testimonials || []);
       renderBanners(data.banners || []);
       renderUndangan(data.undangan || []);
       renderDigital(data.digitalProduk || []);
@@ -1031,6 +1039,10 @@
     $('s-image-file').value = '';
     $('s-gradient').value = s.fallbackGradient || '';
     $('s-svg').value = s.iconSvg || '';
+    $('s-type').value = s.type || 'dokumen';
+    var sOpts = s.options || '';
+    if (typeof sOpts !== 'string') sOpts = JSON.stringify(sOpts);
+    $('s-options').value = sOpts;
     $('modal-service-title').textContent = 'Edit Layanan';
     openModal('modal-service');
   };
@@ -1039,6 +1051,8 @@
     $('form-service').reset();
     $('s-id').value = '';
     $('s-image').value = '';
+    $('s-type').value = 'dokumen';
+    $('s-options').value = '';
     $('modal-service-title').textContent = 'Tambah Layanan Cetak';
   };
 
@@ -1073,6 +1087,8 @@
         description: $('s-desc').value,
         fallbackGradient: $('s-gradient').value,
         iconSvg: $('s-svg').value,
+        type: $('s-type').value || 'dokumen',
+        options: $('s-options').value.trim(),
         image: imgData.image,
         imageFile: imgData.imageFile
       }
@@ -1110,7 +1126,7 @@
       return '<tr>' +
         '<td class="p-4 font-mono text-xs">' + (o['Order ID'] || '-') + '</td>' +
         '<td class="p-4 text-xs">' + formatDate(o.Waktu) + '</td>' +
-        '<td class="p-4 text-xs">' + (o['Nama Pemesan'] || '-') + '<br><span class="text-[10px] text-slate-soft">' + (o['No. WhatsApp'] || '') + '</span></td>' +
+        '<td class="p-4 text-xs">' + (o['Nama Pemesan'] || '-') + '<br><span class="text-[10px] text-slate-soft">' + formatPhoneDisplay(o['No. WhatsApp']) + '</span></td>' +
         '<td class="p-4 text-xs whitespace-pre-line max-w-xs">' + (o['Detail Produk'] || '-') + '</td>' +
         '<td class="p-4 text-xs font-semibold">' + formatRupiah(o.Subtotal) + '</td>' +
         '<td class="p-4"><span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium ' + sc + '">' + status + '</span></td>' +
@@ -1133,7 +1149,7 @@
         '<div class="grid grid-cols-2 gap-2">' +
         '<div><p class="data-card__label">Waktu</p><p class="data-card__value">' + formatDate(o.Waktu) + '</p></div>' +
         '<div><p class="data-card__label">Pelanggan</p><p class="data-card__value">' + (o['Nama Pemesan'] || '-') + '</p></div>' +
-        '<div><p class="data-card__label">WhatsApp</p><p class="data-card__value">' + (o['No. WhatsApp'] || '-') + '</p></div>' +
+        '<div><p class="data-card__label">WhatsApp</p><p class="data-card__value">' + formatPhoneDisplay(o['No. WhatsApp']) + '</p></div>' +
         '<div><p class="data-card__label">Subtotal</p><p class="data-card__value font-semibold">' + formatRupiah(o.Subtotal) + '</p></div>' +
         '</div>' +
         '<div class="mt-2"><p class="data-card__label">Detail</p><p class="data-card__value whitespace-pre-line">' + (o['Detail Produk'] || '-') + '</p></div>' +
@@ -1184,7 +1200,9 @@
         return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + s + '</option>';
       }).join('');
       var fileLink = o['Link File'] && o['Link File'] !== '-' ? '<a href="' + o['Link File'] + '" target="_blank" class="text-stamp underline text-xs">' + (o['Nama File'] || 'File') + '</a>' : (o['Nama File'] || '-');
+      var mapsLink = o['Link Maps'] && o['Link Maps'] !== '-' ? '<br><a href="' + o['Link Maps'] + '" target="_blank" class="text-blue-600 underline text-xs">📍 Buka Maps</a>' : '';
       var detailCetak = [
+        o['Detail Opsi'] && o['Detail Opsi'] !== '-' ? o['Detail Opsi'] : '',
         o['Jumlah Halaman'] ? o['Jumlah Halaman'] + ' hlm' : '',
         o['Mode Warna'] || '',
         o['Jumlah Salinan'] ? o['Jumlah Salinan'] + 'x' : '',
@@ -1193,8 +1211,8 @@
       return '<tr>' +
         '<td class="p-4 font-mono text-xs">' + (o['Order ID'] || '-') + '</td>' +
         '<td class="p-4 text-xs">' + formatDate(o.Waktu) + '</td>' +
-        '<td class="p-4 text-xs">' + (o['Nama Pemesan'] || '-') + '<br><span class="text-[10px] text-slate-soft">' + (o['No. WhatsApp'] || '') + '</span></td>' +
-        '<td class="p-4 text-xs max-w-xs">' + (o['Alamat'] || '-') + '</td>' +
+        '<td class="p-4 text-xs">' + (o['Nama Pemesan'] || '-') + '<br><span class="text-[10px] text-slate-soft">' + formatPhoneDisplay(o['No. WhatsApp']) + '</span></td>' +
+        '<td class="p-4 text-xs max-w-xs">' + (o['Alamat'] || '-') + mapsLink + '</td>' +
         '<td class="p-4 text-xs">' + (o['Layanan'] || '-') + '<br>' + fileLink + '</td>' +
         '<td class="p-4 text-xs">' + detailCetak + '</td>' +
         '<td class="p-4 text-xs max-w-xs truncate">' + (o['Catatan'] || '-') + '</td>' +
@@ -1212,7 +1230,9 @@
         return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + s + '</option>';
       }).join('');
       var fileLink = o['Link File'] && o['Link File'] !== '-' ? '<a href="' + o['Link File'] + '" target="_blank" class="text-stamp underline">' + (o['Nama File'] || 'File') + '</a>' : (o['Nama File'] || '-');
+      var mapsLink = o['Link Maps'] && o['Link Maps'] !== '-' ? '<a href="' + o['Link Maps'] + '" target="_blank" class="text-blue-600 underline" style="font-size:.75rem;">📍 Buka Maps</a>' : '-';
       var detailCetak = [
+        o['Detail Opsi'] && o['Detail Opsi'] !== '-' ? o['Detail Opsi'] : '',
         o['Jumlah Halaman'] ? o['Jumlah Halaman'] + ' hlm' : '',
         o['Mode Warna'] || '',
         o['Jumlah Salinan'] ? o['Jumlah Salinan'] + 'x' : '',
@@ -1226,11 +1246,12 @@
         '<div class="grid grid-cols-2 gap-2">' +
         '<div><p class="data-card__label">Waktu</p><p class="data-card__value">' + formatDate(o.Waktu) + '</p></div>' +
         '<div><p class="data-card__label">Pelanggan</p><p class="data-card__value">' + (o['Nama Pemesan'] || '-') + '</p></div>' +
-        '<div><p class="data-card__label">WhatsApp</p><p class="data-card__value">' + (o['No. WhatsApp'] || '-') + '</p></div>' +
+        '<div><p class="data-card__label">WhatsApp</p><p class="data-card__value">' + formatPhoneDisplay(o['No. WhatsApp']) + '</p></div>' +
         '<div><p class="data-card__label">Layanan</p><p class="data-card__value">' + (o['Layanan'] || '-') + '</p></div>' +
         '</div>' +
         '<div class="mt-2 grid grid-cols-2 gap-2">' +
         '<div><p class="data-card__label">Alamat</p><p class="data-card__value">' + (o['Alamat'] || '-') + '</p></div>' +
+        '<div><p class="data-card__label">Maps</p><p class="data-card__value">' + mapsLink + '</p></div>' +
         '<div><p class="data-card__label">Detail Cetak</p><p class="data-card__value">' + detailCetak + '</p></div>' +
         '</div>' +
         '<div class="mt-2"><p class="data-card__label">File</p><p class="data-card__value">' + fileLink + '</p></div>' +
@@ -1242,97 +1263,6 @@
         '</div>';
     }, 'Belum ada pesanan cetak');
   }
-
-  /* ==================== Testimonials ==================== */
-
-  function renderTestimonials(testimonials) {
-    var tbody = document.querySelector('#table-testimonials tbody');
-    if (!tbody) return;
-    if (!testimonials || testimonials.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-soft">Belum ada testimoni</td></tr>';
-      renderCards('cards-testimonials', [], null, 'Belum ada testimoni');
-      return;
-    }
-    tbody.innerHTML = testimonials.map(function (t, i) {
-      var approved = t.approved === true || t.approved === 'TRUE' || t.approved === 'true';
-      var stars = '';
-      for (var s = 0; s < 5; s++) {
-        stars += s < Number(t.rating) ? '★' : '☆';
-      }
-      var statusBadge = approved
-        ? '<span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Disetujui</span>'
-        : '<span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Menunggu</span>';
-      return '<tr>' +
-        '<td class="p-4 text-xs font-medium">' + (t.name || '-') + '</td>' +
-        '<td class="p-4 text-xs text-yellow-500">' + stars + '</td>' +
-        '<td class="p-4 text-xs max-w-xs truncate">' + (t.text || '-') + '</td>' +
-        '<td class="p-4 text-xs">' + formatDateShort(t.date) + '</td>' +
-        '<td class="p-4">' + statusBadge + '</td>' +
-        '<td class="p-4 text-right whitespace-nowrap">' +
-        (approved ? '' : '<button class="text-xs text-green-600 hover:underline mr-2" onclick="approveTestimonial(' + i + ')">Setujui</button>') +
-        '<button class="text-xs text-red-500 hover:underline" onclick="deleteTestimonial(' + i + ')">Hapus</button>' +
-        '</td></tr>';
-    }).join('');
-
-    renderCards('cards-testimonials', testimonials, function (t, i) {
-      var approved = t.approved === true || t.approved === 'TRUE' || t.approved === 'true';
-      var stars = '';
-      for (var s = 0; s < 5; s++) {
-        stars += s < Number(t.rating) ? '★' : '☆';
-      }
-      var statusBadge = approved
-        ? '<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">Disetujui</span>'
-        : '<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-700">Menunggu</span>';
-      return '<div class="data-card">' +
-        '<div class="flex items-center justify-between gap-2">' +
-        '<div class="min-w-0">' +
-        '<p class="font-medium text-sm truncate">' + (t.name || '-') + '</p>' +
-        '<p class="text-xs text-yellow-500 mt-0.5">' + stars + '</p>' +
-        '</div>' +
-        statusBadge +
-        '</div>' +
-        '<p class="data-card__value mt-2">' + (t.text || '-') + '</p>' +
-        '<div class="mt-2"><p class="data-card__label">Tanggal</p><p class="data-card__value">' + formatDateShort(t.date) + '</p></div>' +
-        '<div class="data-card__actions">' +
-        (approved ? '' : '<button class="bg-green-50 text-green-700" onclick="approveTestimonial(' + i + ')">Setujui</button>') +
-        '<button class="bg-red-50 text-red-600" onclick="deleteTestimonial(' + i + ')">Hapus</button>' +
-        '</div>' +
-        '</div>';
-    }, 'Belum ada testimoni');
-  }
-
-  window.approveTestimonial = async function (index) {
-    if (!allData || !allData.testimonials) return;
-    var t = allData.testimonials[index];
-    try {
-      var res = await apiPost({ type: 'approve-testimonial', token: API_TOKEN, rowIndex: t._rowIndex, approve: true });
-      if (res.result === 'success') {
-        showToast('✓ Testimoni disetujui');
-        await loadData();
-      } else {
-        showToast('⚠️ ' + (res.message || 'Gagal'));
-      }
-    } catch (err) {
-      showToast('⚠️ Gagal');
-    }
-  };
-
-  window.deleteTestimonial = async function (index) {
-    if (!allData || !allData.testimonials) return;
-    var t = allData.testimonials[index];
-    if (!confirm('Hapus testimoni dari "' + (t.name || '') + '"?')) return;
-    try {
-      var res = await apiPost({ type: 'delete-testimonial', id: t.id, token: API_TOKEN });
-      if (res.result === 'success') {
-        showToast('✓ Testimoni dihapus');
-        await loadData();
-      } else {
-        showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
-      }
-    } catch (err) {
-      showToast('⚠️ Gagal menghapus');
-    }
-  };
 
   /* ==================== Banners ==================== */
 

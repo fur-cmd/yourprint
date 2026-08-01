@@ -80,39 +80,30 @@ function seedInitialData() {
   }
 
   // 3. Layanan Cetak
-  let sheetServices = getOrCreateSheet("Layanan Cetak", ["id", "service", "priceBw", "priceColor", "description", "image", "fallbackGradient", "iconSvg"]);
+  let sheetServices = getOrCreateSheet("Layanan Cetak", ["id", "service", "priceBw", "priceColor", "description", "image", "fallbackGradient", "iconSvg", "type", "options"]);
   if (sheetServices.getLastRow() === 1) {
     const data = [
-      ["s1", "Cetak Dokumen", 500, 1500, "PDF, Word, Excel — hitam-putih atau warna, mulai Rp500/lembar.", "images/services/cetak-dokumen.jpg", "linear-gradient(135deg,#EAF1FB,#D6E4FA)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6M9 13h6M9 17h6\"/></svg>"],
-      ["s2", "Cetak Foto", 0, 0, "Kertas glossy/doff, ukuran 4R hingga A3, hasil tajam & tahan lama.", "images/services/cetak-foto.jpg", "linear-gradient(135deg,#FDEFE8,#FBDFCF)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"8.5\" cy=\"8.5\" r=\"1.5\"/><path d=\"m21 15-5-5L5 21\"/></svg>"],
-      ["s3", "Jasa Jilid", 0, 0, "Spiral, lakban, hardcover — rapikan dokumen & laporan Anda.", "images/services/jasa-jilid.jpg", "linear-gradient(135deg,#F1EEFB,#E2DBF7)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"/><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z\"/><path d=\"M8 7h8M8 11h8\"/></svg>"],
-      ["s4", "Cetak Banner", 0, 0, "Spanduk, X-banner, MMT — desain sendiri atau kami bantu buatkan.", "images/services/cetak-banner.jpg", "linear-gradient(135deg,#FEF6E0,#FCEBB8)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"1\"/><path d=\"M3 10h18M8 14h.01M12 14h4\"/></svg>"]
+      ["s1", "Cetak Dokumen", 500, 1500, "PDF, Word, Excel — hitam-putih atau warna, mulai Rp500/lembar.", "images/services/cetak-dokumen.jpg", "linear-gradient(135deg,#EAF1FB,#D6E4FA)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6M9 13h6M9 17h6\"/></svg>", "dokumen", ""],
+      ["s2", "Cetak Foto", 0, 0, "Kertas glossy/doff, ukuran pasfoto hingga 5R, hasil tajam & tahan lama.", "images/services/cetak-foto.jpg", "linear-gradient(135deg,#FDEFE8,#FBDFCF)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"8.5\" cy=\"8.5\" r=\"1.5\"/><path d=\"m21 15-5-5L5 21\"/></svg>", "foto", '{"sizes":[{"size":"2x3 cm","price":1000,"desc":"Pasfoto dokumen resmi (KTP, ijazah, paspor)."},{"size":"3x4 cm","price":1500,"desc":"Pasfoto dokumen resmi (KTP, ijazah, paspor)."},{"size":"4x6 cm","price":2500,"desc":"Pasfoto ukuran paling besar untuk administrasi resmi."},{"size":"2R (6 x 9 cm)","price":3000,"desc":"Ukuran paling populer untuk disimpan di dompet."},{"size":"3R (8,9 x 12,7 cm)","price":4000,"desc":"Standar minimal untuk album foto keluarga."},{"size":"4R (10,2 x 15,2 cm)","price":5000,"desc":"Paling favorit untuk momen sehari-hari, liburan & acara kasual."},{"size":"5R (12,7 x 17,8 cm)","price":8000,"desc":"Pilihan untuk hasil foto lebih besar dan detail."}]}'],
+      ["s3", "Jasa Jilid", 0, 0, "Spiral, lakban, hardcover — rapikan dokumen & laporan Anda.", "images/services/jasa-jilid.jpg", "linear-gradient(135deg,#F1EEFB,#E2DBF7)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"/><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z\"/><path d=\"M8 7h8M8 11h8\"/></svg>", "custom", ""],
+      ["s4", "Cetak Banner", 0, 0, "Spanduk, X-banner, MMT — desain sendiri atau kami bantu buatkan.", "images/services/cetak-banner.jpg", "linear-gradient(135deg,#FEF6E0,#FCEBB8)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"1\"/><path d=\"M3 10h18M8 14h.01M12 14h4\"/></svg>", "custom", ""],
+      ["s5", "Cetak Stiker", 0, 0, "Stiker vinyl/transparan/putih — custom ukuran, tahan air & awet.", "images/services/cetak-stiker.jpg", "linear-gradient(135deg,#E8F6EE,#D3F0DF)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 2l2.4 4.9L20 8l-4 3.9.9 5.6L12 14.7 7.1 17.5 8 11.9 4 8l5.6-1.1z\"/></svg>", "stiker", '{"sizes":[{"size":"A6","price":5000},{"size":"A5","price":8000},{"size":"A4","price":12000},{"size":"A3","price":20000}],"materials":[{"name":"Vinyl","price":0},{"name":"Transparan","price":3000},{"name":"Putih Glossy","price":2000}]}'],
+      ["s6", "Cetak Custom", 0, 0, "Cetak apa aja — mug, kaos, pin, dan lainnya. Harga menyesuaikan kebutuhan.", "images/services/cetak-custom.jpg", "linear-gradient(135deg,#F1EEFB,#E2DBF7)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l1.9 5.7a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z\"/></svg>", "custom", ""]
     ];
     sheetServices.getRange(2, 1, data.length, data[0].length).setValues(data);
   }
 
   // 4 & 5. Pesanan (Order ID sebagai kolom pertama)
   getOrCreateSheet("Pesanan ATK", ["Order ID", "Waktu", "Nama Pemesan", "No. WhatsApp", "Detail Produk", "Subtotal", "Status"]);
-  getOrCreateSheet("Pesanan Cetak", ["Order ID", "Waktu", "Nama Pemesan", "No. WhatsApp", "Alamat", "Link Maps", "Metode Bayar", "Layanan", "Nama File", "Link File", "Jumlah Halaman", "Mode Warna", "Estimasi Harga", "Jumlah Salinan", "Laminasi", "Catatan", "Total Harga", "Status"]);
+  getOrCreateSheet("Pesanan Cetak", ["Order ID", "Waktu", "Nama Pemesan", "No. WhatsApp", "Alamat", "Link Maps", "Metode Bayar", "Layanan", "Nama File", "Link File", "Jumlah Halaman", "Mode Warna", "Estimasi Harga", "Jumlah Salinan", "Laminasi", "Catatan", "Total Harga", "Status", "Detail Opsi"]);
 
-  // 6. Testimoni
-  let sheetTestimonials = getOrCreateSheet("Testimoni", ["id", "name", "rating", "text", "date", "approved"]);
-  if (sheetTestimonials.getLastRow() === 1) {
-    const data = [
-      ["t1", "Ibu Sarah", 5, "Buku TPQ-nya sangat berkualitas! Anak-anak senang sekali. Terima kasih YourPrint!", "2026-06-15", true],
-      ["t2", "Pak Hendra", 5, "Cetak dokumen cepat dan rapi. Harga juga terjangkau. Recommended!", "2026-07-01", true],
-      ["t3", "Dewi", 4, "Banner acara kantor hasilnya bagus. Pelayanan ramah.", "2026-07-10", true]
-    ];
-    sheetTestimonials.getRange(2, 1, data.length, data[0].length).setValues(data);
-  }
-
-  // 7. Banners
+  // 6. Banners
   getOrCreateSheet("Banners", ["id", "image", "link", "active"]);
   
-  // 8. Pelanggan
+  // 7. Pelanggan
   getOrCreateSheet("Pelanggan", ["id", "Nama", "No. WhatsApp", "Password", "Waktu Daftar"]);
 
-  // 9. Market Digital — Kategori
+  // 8. Market Digital — Kategori
   let sheetDigitalKategori = getOrCreateSheet("Market Digital Kategori", ["id", "title", "desc", "icon", "iconClass", "order"]);
   if (sheetDigitalKategori.getLastRow() === 1) {
     const data = [
@@ -126,7 +117,7 @@ function seedInitialData() {
     sheetDigitalKategori.getRange(2, 1, data.length, data[0].length).setValues(data);
   }
 
-  // 10. Market Digital — Produk
+  // 9. Market Digital — Produk
   let sheetDigitalProduk = getOrCreateSheet("Market Digital Produk", ["id", "name", "category", "price", "oldPrice", "badge", "rating", "ratingCount", "cover", "emoji", "desc", "link", "image", "order"]);
   if (sheetDigitalProduk.getLastRow() === 1) {
     const data = [
@@ -144,7 +135,7 @@ function seedInitialData() {
     sheetDigitalProduk.getRange(2, 1, data.length, data[0].length).setValues(data);
   }
 
-  // 11. Pengaturan global (key → value)
+  // 10. Pengaturan global (key → value)
   let sheetPengaturan = getOrCreateSheet("Pengaturan", ["key", "value"]);
   if (sheetPengaturan.getLastRow() === 1) {
     const settings = [
@@ -215,7 +206,7 @@ function fixCetakSheet() {
     "Alamat", "Link Maps", "Metode Bayar",
     "Layanan", "Nama File", "Link File",
     "Jumlah Halaman", "Mode Warna", "Estimasi Harga", "Jumlah Salinan",
-    "Laminasi", "Catatan", "Total Harga", "Status"
+    "Laminasi", "Catatan", "Total Harga", "Status", "Detail Opsi"
   ];
   getOrCreateSheet("Pesanan Cetak", CORRECT_HEADERS);
 }
@@ -232,7 +223,6 @@ function doGet(e) {
       products: getSheetData("Produk ATK"),
       gallery: getSheetData("Galeri Buku"),
       services: getSheetData("Layanan Cetak"),
-      testimonials: getApprovedTestimonials(),
       banners: getSheetData("Banners").filter(b => b.active === true || b.active === "TRUE" || b.active === "true")
     });
   }
@@ -245,7 +235,6 @@ function doGet(e) {
       services: getSheetData("Layanan Cetak"),
       ordersATK: getSheetData("Pesanan ATK"),
       ordersCetak: getSheetData("Pesanan Cetak"),
-      testimonials: getSheetData("Testimoni"),
       banners: getSheetData("Banners"),
       digitalKategori: getSheetData("Market Digital Kategori"),
       digitalProduk: getSheetData("Market Digital Produk"),
@@ -256,13 +245,11 @@ function doGet(e) {
   if (action === "getProducts") return jsonResponse(getSheetData("Produk ATK"));
   if (action === "getGallery") return jsonResponse(getSheetData("Galeri Buku"));
   if (action === "getServices") return jsonResponse(getSheetData("Layanan Cetak"));
-  if (action === "getTestimonials") return jsonResponse(getApprovedTestimonials());
   if (action === "getBanners") return jsonResponse(getSheetData("Banners").filter(b => b.active === true || b.active === "TRUE" || b.active === "true"));
 
   // Endpoint Admin
   if (action === "getOrdersATK") return jsonResponse(getSheetData("Pesanan ATK"));
   if (action === "getOrdersCetak") return jsonResponse(getSheetData("Pesanan Cetak"));
-  if (action === "getTestimonialsAdmin") return jsonResponse(getSheetData("Testimoni"));
   if (action === "getBannersAdmin") return jsonResponse(getSheetData("Banners"));
 
   // Endpoint Market Digital — publik (dipakai oleh digital.js)
@@ -277,16 +264,16 @@ function doGet(e) {
 
   // Endpoint Pelanggan — cari pesanan berdasarkan no. WhatsApp
   if (action === "getOrdersByPhone") {
-    const phone = (e.parameter.phone || "").replace(/\D/g, "");
+    const phone = normalizePhone(e.parameter.phone);
     if (!phone || phone.length < 8) {
       return jsonResponse({ result: "error", message: "Nomor WhatsApp tidak valid" });
     }
     const atk = getSheetData("Pesanan ATK").filter(o => {
-      const stored = String(o["No. WhatsApp"] || "").replace(/\D/g, "");
+      const stored = normalizePhone(o["No. WhatsApp"]);
       return stored === phone || stored.endsWith(phone.slice(-9)) || phone.endsWith(stored.slice(-9));
     });
     const cetak = getSheetData("Pesanan Cetak").filter(o => {
-      const stored = String(o["No. WhatsApp"] || "").replace(/\D/g, "");
+      const stored = normalizePhone(o["No. WhatsApp"]);
       return stored === phone || stored.endsWith(phone.slice(-9)) || phone.endsWith(stored.slice(-9));
     });
     const orders = [
@@ -322,13 +309,13 @@ function doPost(e) {
       if (!data.name || !data.phone || !data.password) {
         return jsonResponse({ result: "error", message: "Data tidak lengkap" });
       }
-      const phoneClean = data.phone.replace(/\D/g, "");
+      const phoneClean = normalizePhone(data.phone);
       const sheet = getOrCreateSheet("Pelanggan", ["id", "Nama", "No. WhatsApp", "Password", "Waktu Daftar"]);
       const rows = sheet.getDataRange().getValues();
       
       // Check if already registered
       for (let i = 1; i < rows.length; i++) {
-        if (String(rows[i][2]).replace(/\D/g, "") === phoneClean) {
+        if (normalizePhone(rows[i][2]) === phoneClean) {
           return jsonResponse({ result: "error", message: "Nomor WhatsApp sudah terdaftar. Silakan login." });
         }
       }
@@ -343,12 +330,12 @@ function doPost(e) {
       if (!data.phone || !data.password) {
         return jsonResponse({ result: "error", message: "Data tidak lengkap" });
       }
-      const phoneClean = data.phone.replace(/\D/g, "");
+      const phoneClean = normalizePhone(data.phone);
       const sheet = getOrCreateSheet("Pelanggan", ["id", "Nama", "No. WhatsApp", "Password", "Waktu Daftar"]);
       const rows = sheet.getDataRange().getValues();
       
       for (let i = 1; i < rows.length; i++) {
-        if (String(rows[i][2]).replace(/\D/g, "") === phoneClean && String(rows[i][3]) === String(data.password)) {
+        if (normalizePhone(rows[i][2]) === phoneClean && String(rows[i][3]) === String(data.password)) {
           var expiry = Date.now() + (7 * 24 * 60 * 60 * 1000); // 7 days
           return jsonResponse({ result: "success", token: rows[i][0], expiry: expiry, name: rows[i][1], phone: phoneClean });
         }
@@ -377,7 +364,7 @@ function doPost(e) {
     if (data.type === "upsert-gallery") return handleUpsert(data, "Galeri Buku", "code", ["code", "title", "image", "description", "priceA4", "priceA5", "priceB5"]);
     if (data.type === "delete-gallery") return handleDelete(data, "Galeri Buku", "code");
     
-    if (data.type === "upsert-service") return handleUpsert(data, "Layanan Cetak", "id", ["id", "service", "priceBw", "priceColor", "description", "image", "fallbackGradient", "iconSvg"]);
+    if (data.type === "upsert-service") return handleUpsert(data, "Layanan Cetak", "id", ["id", "service", "priceBw", "priceColor", "description", "image", "fallbackGradient", "iconSvg", "type", "options"]);
     if (data.type === "delete-service") return handleDelete(data, "Layanan Cetak", "id");
 
     if (data.type === "upsert-digital-kategori") return handleUpsert(data, "Market Digital Kategori", "id", ["id", "title", "desc", "icon", "iconClass", "order"]);
@@ -393,10 +380,6 @@ function doPost(e) {
 
     if (data.type === "update-status") return handleUpdateStatus(data);
     if (data.type === "clear-all-data") return handleClearAllData(data);
-
-    if (data.type === "upsert-testimonial") return handleUpsert(data, "Testimoni", "id", ["id", "name", "rating", "text", "date", "approved"]);
-    if (data.type === "delete-testimonial") return handleDelete(data, "Testimoni", "id");
-    if (data.type === "approve-testimonial") return handleApproveTestimonial(data);
 
     return jsonResponse({ result: "error", message: "Tipe data tidak dikenali." });
 
@@ -416,7 +399,7 @@ function saveOrder(data) {
 }
 
 function savePrintJob(data) {
-  const sheet = getOrCreateSheet("Pesanan Cetak", ["Order ID", "Waktu", "Nama Pemesan", "No. WhatsApp", "Alamat", "Link Maps", "Metode Bayar", "Layanan", "Nama File", "Link File", "Jumlah Halaman", "Mode Warna", "Estimasi Harga", "Jumlah Salinan", "Laminasi", "Catatan", "Total Harga", "Status"]);
+  const sheet = getOrCreateSheet("Pesanan Cetak", ["Order ID", "Waktu", "Nama Pemesan", "No. WhatsApp", "Alamat", "Link Maps", "Metode Bayar", "Layanan", "Nama File", "Link File", "Jumlah Halaman", "Mode Warna", "Estimasi Harga", "Jumlah Salinan", "Laminasi", "Catatan", "Total Harga", "Status", "Detail Opsi"]);
   const orderId = generateOrderId("cetak");
   let fileUrl = "-";
   if (data.fileData) {
@@ -431,6 +414,7 @@ function savePrintJob(data) {
   var lamLabel = "Tidak ada";
   if (data.lamination === "glossy") lamLabel = "Glossy";
   else if (data.lamination === "doff") lamLabel = "Doff";
+  var detailOption = data.detailOption || "-";
   sheet.appendRow([
     orderId,
     new Date(data.timestamp || Date.now()),
@@ -449,7 +433,8 @@ function savePrintJob(data) {
     lamLabel,
     data.notes || "-",
     data.totalPrice ? Number(data.totalPrice) : "-",
-    "Menunggu"
+    "Menunggu",
+    detailOption
   ]);
   return orderId;
 }
@@ -588,26 +573,15 @@ function handleClearAllData(data) {
   return jsonResponse({ result: "success", message: "Semua data pesanan dihapus" });
 }
 
-function getApprovedTestimonials() {
-  const all = getSheetData("Testimoni");
-  return all.filter(t => t.approved === true || t.approved === "TRUE" || t.approved === "true");
-}
-
-function handleApproveTestimonial(data) {
-  const sheet = getOrCreateSheet("Testimoni", []);
-  const rows = sheet.getDataRange().getValues();
-  const rowIndex = data.rowIndex + 2;
-  const headers = rows[0];
-  const approvedIndex = headers.indexOf("approved") + 1;
-
-  if (rowIndex <= sheet.getLastRow()) {
-    sheet.getRange(rowIndex, approvedIndex).setValue(data.approve ? true : false);
-    return jsonResponse({ result: "success" });
-  }
-  return jsonResponse({ result: "error", message: "Invalid row index" });
-}
-
 /* ================= UTILS ================= */
+
+function normalizePhone(raw) {
+  let p = String(raw || "").replace(/\D/g, "");
+  if (p.length < 8) return p;
+  if (p.startsWith("62")) return "0" + p.slice(2);
+  if (p.startsWith("8")) return "0" + p;
+  return p;
+}
 
 function getSheetData(sheetName) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);

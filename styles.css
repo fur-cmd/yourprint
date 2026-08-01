@@ -45,7 +45,6 @@
   --shadow-card: 0 12px 30px -8px rgba(22, 35, 63, .18);
   --shadow-card-hover: 0 14px 30px -12px rgba(22, 35, 63, .18);
   --shadow-product-hover: 0 10px 22px -12px rgba(22, 35, 63, .2);
-  --shadow-testimonial-hover: 0 14px 26px -14px rgba(22, 35, 63, .22);
   --shadow-order-hover: 0 4px 14px rgba(22, 35, 63, .08);
   --shadow-add-cart: 0 3px 10px rgba(22, 35, 63, .35);
   --shadow-toast: 0 10px 26px -8px rgba(22, 35, 63, .4);
@@ -1019,39 +1018,6 @@ textarea:focus-visible {
 /* ---------- Small screens tweaks ---------- */
 @media (max-width: 640px) {
   .doc-card { display: none; }
-}
-
-/* ---------- Testimonial cards ---------- */
-.testimonial-card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  transition: box-shadow .2s ease, transform .2s ease;
-}
-.testimonial-card:hover {
-  box-shadow: var(--shadow-testimonial-hover);
-  transform: translateY(-2px);
-}
-.testimonial-card__stars {
-  color: var(--highlight);
-  font-size: .85rem;
-  margin-bottom: .5rem;
-}
-.testimonial-card__text {
-  font-size: .88rem;
-  line-height: 1.55;
-  color: var(--ink);
-  flex: 1;
-}
-.testimonial-card__author {
-  font-family: "Space Grotesk", sans-serif;
-  font-weight: 600;
-  font-size: .82rem;
-  color: var(--slate);
-  margin-top: .75rem;
 }
 
 /* ======================== ORDER TRACKING ======================== */

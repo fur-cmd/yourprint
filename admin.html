@@ -95,8 +95,6 @@
         <button class="nav-btn" data-tab="tab-orders-atk">🛍️ Pesanan ATK</button>
         <button class="nav-btn" data-tab="tab-orders-cetak">📄 Pesanan Cetak</button>
         <div class="h-px bg-white/10 my-2"></div>
-        <button class="nav-btn" data-tab="tab-testimonials">💬 Testimoni</button>
-        <div class="h-px bg-white/10 my-2 md:hidden"></div>
         <button class="nav-btn md:hidden" onclick="doLogout()">🚪 Logout</button>
       </nav>
 
@@ -461,7 +459,7 @@
                   <th class="p-4 font-medium">Order ID</th>
                   <th class="p-4 font-medium">Waktu</th>
                   <th class="p-4 font-medium">Pelanggan</th>
-                  <th class="p-4 font-medium">Alamat</th>
+                  <th class="p-4 font-medium">Alamat / Maps</th>
                   <th class="p-4 font-medium">Layanan & File</th>
                   <th class="p-4 font-medium">Detail Cetak</th>
                   <th class="p-4 font-medium">Catatan</th>
@@ -476,35 +474,6 @@
             </table>
           </div>
           <div class="md:hidden p-3 space-y-3" id="cards-orders-cetak">
-            <div class="data-card"><p class="text-sm text-slate-soft">Loading data...</p></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB: TESTIMONIALS -->
-      <section id="tab-testimonials" class="tab-content hidden">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <h1 class="font-display font-bold text-2xl">Testimoni Pelanggan</h1>
-        </div>
-        <div class="bg-white rounded-xl border border-line shadow-sm">
-          <div class="hidden md:block overflow-x-auto">
-            <table class="w-full text-left text-sm" id="table-testimonials">
-              <thead class="bg-paper border-b border-line text-slate-soft">
-                <tr>
-                  <th class="p-4 font-medium">Nama</th>
-                  <th class="p-4 font-medium">Rating</th>
-                  <th class="p-4 font-medium">Ulasan</th>
-                  <th class="p-4 font-medium">Tanggal</th>
-                  <th class="p-4 font-medium">Status</th>
-                  <th class="p-4 font-medium text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-line align-top">
-                <tr><td colspan="6" class="p-8 text-center text-slate-soft">Loading data...</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="md:hidden p-3 space-y-3" id="cards-testimonials">
             <div class="data-card"><p class="text-sm text-slate-soft">Loading data...</p></div>
           </div>
         </div>
@@ -722,6 +691,17 @@
             <input type="number" id="s-bw" class="input-field"></div>
           <div><label class="block text-xs font-medium mb-1">Harga Warna</label>
             <input type="number" id="s-color" class="input-field"></div>
+        </div>
+        <div><label class="block text-xs font-medium mb-1">Tipe Layanan</label>
+          <select id="s-type" class="input-field">
+            <option value="dokumen">Dokumen — harga per lembar (PDF/Word/Excel)</option>
+            <option value="foto">Foto — pilih ukuran (JPG/PNG)</option>
+            <option value="stiker">Stiker — ukuran + bahan (PNG/JPG)</option>
+            <option value="custom">Custom — harga menyesuaikan</option>
+          </select>
+        </div>
+        <div><label class="block text-xs font-medium mb-1">Options Ukuran &amp; Harga (JSON, opsional)</label>
+          <textarea id="s-options" rows="4" class="input-field font-mono text-xs" placeholder='{"sizes":[{"size":"4R","price":3000}],"materials":[{"name":"Vinyl","price":0}]}'></textarea>
         </div>
         <div><label class="block text-xs font-medium mb-1">Deskripsi Singkat</label>
           <input type="text" id="s-desc" class="input-field"></div>

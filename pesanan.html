@@ -68,15 +68,17 @@
 
   .radio-group { display: flex; flex-direction: column; gap: .5rem; }
   .radio-card {
-    display: flex; align-items: center; gap: .65rem;
+    display: flex; align-items: flex-start; gap: .65rem;
     background: #fff; border: 1.5px solid var(--line); border-radius: .6rem;
     padding: .65rem .85rem; cursor: pointer; transition: all .15s ease;
   }
   .radio-card:hover { border-color: rgba(var(--ink-rgb), 0.19); }
   .radio-card.selected { border-color: var(--stamp); background: rgba(var(--stamp-rgb), 0.03); }
-  .radio-card input[type="radio"] { accent-color: var(--stamp); width: 1rem; height: 1rem; }
+  .radio-card input[type="radio"] { accent-color: var(--stamp); width: 1rem; height: 1rem; margin-top: .1rem; }
+  .radio-card .radio-body { display: flex; flex-direction: column; flex: 1; min-width: 0; }
   .radio-card .radio-text { font-size: .85rem; font-weight: 500; }
-  .radio-card .radio-price { font-size: .75rem; color: var(--slate); margin-left: auto; }
+  .radio-card .radio-desc { font-size: .72rem; color: var(--slate); line-height: 1.4; margin-top: .15rem; }
+  .radio-card .radio-price { font-size: .75rem; color: var(--slate); margin-left: auto; white-space: nowrap; }
 
   .qty-control {
     display: flex; align-items: center; gap: 0;
@@ -179,7 +181,7 @@
       <span class="detail-label">File</span>
       <span class="detail-value" id="dFile">—</span>
     </div>
-    <div class="detail-row">
+    <div class="detail-row" id="pageRow">
       <span class="detail-label">Halaman</span>
       <span class="detail-value" id="dPages">—</span>
       <div id="pageInputWrap" style="display:none;margin-top:.35rem;">
@@ -236,7 +238,7 @@
     <h2>⚙️ Opsi Cetak</h2>
 
     <!-- Mode Cetak -->
-    <div class="option-group">
+    <div class="option-group" id="optMode">
       <span class="option-label">Mode Cetak</span>
       <div class="radio-group">
         <label class="radio-card selected" id="radioBw">
@@ -252,6 +254,18 @@
       </div>
     </div>
 
+    <!-- Ukuran (foto & stiker) -->
+    <div class="option-group" id="optSize" style="display:none;">
+      <span class="option-label">Pilih Ukuran</span>
+      <div class="radio-group" id="sizeOptions"></div>
+    </div>
+
+    <!-- Bahan (stiker) -->
+    <div class="option-group" id="optMaterial" style="display:none;">
+      <span class="option-label">Pilih Bahan</span>
+      <div class="radio-group" id="materialOptions"></div>
+    </div>
+
     <!-- Jumlah Salinan -->
     <div class="option-group">
       <span class="option-label">Jumlah Salinan</span>
@@ -263,7 +277,7 @@
     </div>
 
     <!-- Laminasi -->
-    <div class="option-group">
+    <div class="option-group" id="optLam">
       <span class="option-label">Laminasi</span>
       <div class="radio-group">
         <label class="radio-card selected" id="radioLamNone">
@@ -301,6 +315,10 @@
     <div class="summary-row">
       <span>Cetak</span>
       <span id="summaryPrintPrice">—</span>
+    </div>
+    <div class="summary-row" id="summaryMaterialRow" style="display:none;">
+      <span>Bahan</span>
+      <span id="summaryMaterialPrice">—</span>
     </div>
     <div class="summary-row">
       <span>Laminasi</span>
@@ -378,10 +396,60 @@
   } catch(e) {}
 
   var serviceName = order.service || 'Cetak Dokumen';
+  var serviceType = order.serviceType || 'dokumen';
+  var options = order.options || null;
+  var isDokumen = serviceType === 'dokumen';
+  var isFoto = serviceType === 'foto';
+  var isStiker = serviceType === 'stiker';
+  var isCustom = serviceType === 'custom' || (!isDokumen && !isFoto && !isStiker);
+
   var pageCount = parseInt(order.pageCount) || 0;
-  
-  // Bug Fix: Cegah harga Rp 0 jika file gagal dibaca
-  if (pageCount <= 0) {
+
+  function setVisible(el, show) {
+    if (el) el.style.display = show ? '' : 'none';
+  }
+
+  // Toggle grup form sesuai tipe layanan
+  setVisible(document.getElementById('pageRow'), isDokumen);
+  setVisible(document.getElementById('optMode'), isDokumen);
+  setVisible(document.getElementById('optSize'), (isFoto || isStiker) && options && options.sizes && options.sizes.length > 0);
+  setVisible(document.getElementById('optMaterial'), isStiker && options && options.materials && options.materials.length > 0);
+  setVisible(document.getElementById('optLam'), isDokumen || isFoto);
+
+  // Isi opsi Ukuran (foto/stiker)
+  var sizeOptionsEl = document.getElementById('sizeOptions');
+  if (sizeOptionsEl && options && options.sizes && options.sizes.length > 0) {
+    sizeOptionsEl.innerHTML = options.sizes.map(function(sz, i) {
+      var selected = i === 0 ? ' selected' : '';
+      var checked = i === 0 ? ' checked' : '';
+      return '<label class="radio-card' + selected + '">' +
+        '<input type="radio" name="sizeOption" value="' + sz.size + '" data-price="' + sz.price + '"' + checked + '>' +
+        '<span class="radio-body">' +
+        '<span class="radio-text">' + sz.size + '</span>' +
+        (sz.desc ? '<span class="radio-desc">' + sz.desc + '</span>' : '') +
+        '</span>' +
+        '<span class="radio-price">' + formatRupiah(sz.price) + '/lbr</span>' +
+        '</label>';
+    }).join('');
+  }
+
+  // Isi opsi Bahan (stiker)
+  var materialOptionsEl = document.getElementById('materialOptions');
+  if (materialOptionsEl && options && options.materials && options.materials.length > 0) {
+    materialOptionsEl.innerHTML = options.materials.map(function(m, i) {
+      var selected = i === 0 ? ' selected' : '';
+      var checked = i === 0 ? ' checked' : '';
+      var priceText = Number(m.price) > 0 ? '+ ' + formatRupiah(m.price) + '/lbr' : 'Included';
+      return '<label class="radio-card' + selected + '">' +
+        '<input type="radio" name="materialOption" value="' + m.name + '" data-price="' + m.price + '"' + checked + '>' +
+        '<span class="radio-text">' + m.name + '</span>' +
+        '<span class="radio-price">' + priceText + '</span>' +
+        '</label>';
+    }).join('');
+  }
+
+  // Bug Fix: Cegah harga Rp 0 jika file gagal dibaca (hanya untuk dokumen)
+  if (isDokumen && pageCount <= 0) {
     var pageInputWrap = document.getElementById('pageInputWrap');
     var pageManualInput = document.getElementById('pageManualInput');
     var pageManualBtn = document.getElementById('pageManualBtn');
@@ -403,6 +471,9 @@
       if (e.key === 'Enter') pageManualBtn.click();
     });
   }
+
+  if (!isDokumen && pageCount <= 0) pageCount = 1;
+
   var fileName = order.fileName || 'file';
   var priceBw = parseInt(order.priceBw) || 500;
   var priceColor = parseInt(order.priceColor) || 1000;
@@ -410,7 +481,9 @@
 
   document.getElementById('dService').textContent = serviceName;
   document.getElementById('dFile').textContent = fileName;
-  document.getElementById('dPages').textContent = pageCount ? pageCount + ' halaman' : 'Tidak terbaca';
+  document.getElementById('dPages').textContent = isDokumen
+    ? (pageCount ? pageCount + ' halaman' : 'Tidak terbaca')
+    : '1 lembar';
   document.getElementById('priceBwLabel').textContent = 'Rp' + priceBw.toLocaleString('id-ID') + '/lbr';
   document.getElementById('priceColorLabel').textContent = 'Rp' + priceColor.toLocaleString('id-ID') + '/lbr';
 
@@ -455,19 +528,69 @@
 
   function updateSummary() {
     var qty = parseInt(qtyInput.value) || 1;
+    var materialSummaryRow = document.getElementById('summaryMaterialRow');
+
+    if (isCustom) {
+      document.getElementById('summaryPages').textContent = 'Harga menyesuaikan kebutuhan';
+      document.getElementById('summaryPagesCalc').textContent = '';
+      document.getElementById('summaryPrintPrice').textContent = '—';
+      document.getElementById('summaryLamPrice').textContent = '—';
+      document.getElementById('summaryTotal').textContent = 'Menyesuaikan';
+      if (materialSummaryRow) materialSummaryRow.style.display = 'none';
+      return;
+    }
+
+    var sizeRate = 0, sizeLabel = '';
+    if ((isFoto || isStiker) && options && options.sizes && options.sizes.length > 0) {
+      var sizeSel = getSelectedRadio('sizeOption');
+      var sizeOpt = null;
+      for (var i = 0; i < options.sizes.length; i++) {
+        if (String(options.sizes[i].size) === sizeSel) { sizeOpt = options.sizes[i]; break; }
+      }
+      if (!sizeOpt) sizeOpt = options.sizes[0];
+      sizeRate = Number(sizeOpt.price) || 0;
+      sizeLabel = sizeOpt.size || '';
+    }
+
+    var materialRate = 0, materialLabel = '';
+    if (isStiker && options && options.materials && options.materials.length > 0) {
+      var matSel = getSelectedRadio('materialOption');
+      var matOpt = null;
+      for (var j = 0; j < options.materials.length; j++) {
+        if (String(options.materials[j].name) === matSel) { matOpt = options.materials[j]; break; }
+      }
+      if (!matOpt) matOpt = options.materials[0];
+      materialRate = Number(matOpt.price) || 0;
+      materialLabel = matOpt.name || '';
+    }
+
     var mode = getSelectedRadio('colorMode');
     var lam = getSelectedRadio('lamination');
     var rate = mode === 'color' ? priceColor : priceBw;
     var lamRate = lam === 'none' ? 0 : lamPrice;
 
-    var totalSheets = pageCount * qty;
-    var printCost = totalSheets * rate;
-    var lamCost = totalSheets * lamRate;
-    var total = printCost + lamCost;
+    var totalSheets = (isDokumen ? pageCount : 1) * qty;
+    var printCost = isDokumen ? totalSheets * rate : totalSheets * sizeRate;
+    var materialCost = totalSheets * materialRate;
+    var lamCost = (isDokumen || isFoto) ? totalSheets * lamRate : 0;
+    var total = printCost + materialCost + lamCost;
 
-    document.getElementById('summaryPages').textContent = pageCount + ' lbr × ' + qty + ' sal = ' + totalSheets + ' lbr';
+    if (isDokumen) {
+      document.getElementById('summaryPages').textContent = pageCount + ' lbr × ' + qty + ' sal = ' + totalSheets + ' lbr';
+    } else {
+      var detail = sizeLabel + (materialLabel ? ', ' + materialLabel : '');
+      document.getElementById('summaryPages').textContent = (detail || '1 lembar') + ' × ' + qty + ' lbr';
+    }
     document.getElementById('summaryPagesCalc').textContent = '';
     document.getElementById('summaryPrintPrice').textContent = formatRupiah(printCost);
+    if (materialSummaryRow) {
+      if (isStiker && materialRate > 0) {
+        materialSummaryRow.style.display = '';
+        document.getElementById('summaryMaterialPrice').textContent = formatRupiah(materialCost);
+      } else {
+        materialSummaryRow.style.display = 'none';
+      }
+    }
     document.getElementById('summaryLamPrice').textContent = lamRate > 0 ? formatRupiah(lamCost) : '—';
     document.getElementById('summaryTotal').textContent = formatRupiah(total);
   }
@@ -538,18 +661,65 @@
     }
 
     var qty = parseInt(qtyInput.value) || 1;
-    var mode = getSelectedRadio('colorMode');
-    var lam = getSelectedRadio('lamination');
     var notes = document.getElementById('notesInput').value.trim();
+
+    var sizeRate = 0, sizeLabel = '';
+    if ((isFoto || isStiker) && options && options.sizes && options.sizes.length > 0) {
+      var sizeSel = getSelectedRadio('sizeOption');
+      for (var si = 0; si < options.sizes.length; si++) {
+        if (String(options.sizes[si].size) === sizeSel) {
+          sizeLabel = options.sizes[si].size;
+          sizeRate = Number(options.sizes[si].price) || 0;
+          break;
+        }
+      }
+      if (!sizeLabel && options.sizes[0]) {
+        sizeLabel = options.sizes[0].size;
+        sizeRate = Number(options.sizes[0].price) || 0;
+      }
+    }
+
+    var materialRate = 0, materialLabel = '';
+    if (isStiker && options && options.materials && options.materials.length > 0) {
+      var matSel = getSelectedRadio('materialOption');
+      for (var mi = 0; mi < options.materials.length; mi++) {
+        if (String(options.materials[mi].name) === matSel) {
+          materialLabel = options.materials[mi].name;
+          materialRate = Number(options.materials[mi].price) || 0;
+          break;
+        }
+      }
+      if (!materialLabel && options.materials[0]) {
+        materialLabel = options.materials[0].name;
+        materialRate = Number(options.materials[0].price) || 0;
+      }
+    }
+
+    var mode = isDokumen ? getSelectedRadio('colorMode') : 'color';
+    var lam = getSelectedRadio('lamination');
+    var lamRate = (lam === 'none' || isCustom || isStiker) ? 0 : lamPrice;
     var rate = mode === 'color' ? priceColor : priceBw;
-    var lamRate = lam === 'none' ? 0 : lamPrice;
-    var totalSheets = pageCount * qty;
-    var printCost = totalSheets * rate;
-    var lamCost = totalSheets * lamRate;
-    var total = printCost + lamCost;
+
+    var totalSheets = (isDokumen ? pageCount : 1) * qty;
+    var printCost, materialCost, total;
+    if (isCustom) {
+      printCost = 0; materialCost = 0; total = 0;
+    } else if (isDokumen) {
+      printCost = totalSheets * rate;
+      materialCost = 0;
+      total = printCost + totalSheets * lamRate;
+    } else {
+      printCost = totalSheets * sizeRate;
+      materialCost = totalSheets * materialRate;
+      total = printCost + materialCost + (isFoto ? totalSheets * lamRate : 0);
+    }
 
     var modeLabel = mode === 'color' ? 'Warna' : 'Hitam Putih';
     var lamLabel = lam === 'none' ? 'Tidak ada' : (lam === 'glossy' ? 'Glossy' : 'Doff');
+
+    var detailOption = '-';
+    if (isFoto && sizeLabel) detailOption = 'Ukuran: ' + sizeLabel;
+    else if (isStiker) detailOption = 'Ukuran: ' + sizeLabel + (materialLabel ? ', Bahan: ' + materialLabel : '');
 
     var submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
@@ -570,11 +740,12 @@
       fileName: fileName,
       fileType: order.fileType || 'application/pdf',
       fileData: order.fileData || null,
-      pageCount: pageCount,
-      colorMode: mode,
-      estimatedPrice: printCost,
+      pageCount: isDokumen ? pageCount : 1,
+      colorMode: isDokumen ? mode : (isCustom ? '' : 'color'),
+      estimatedPrice: isCustom ? 0 : total,
       quantity: qty,
-      lamination: lam,
+      lamination: (isCustom || isStiker) ? 'none' : lam,
+      detailOption: detailOption,
       notes: notes || '-',
       totalPrice: total
     };
@@ -582,11 +753,14 @@
     var msg = 'Halo YourPrint, saya ingin memesan cetak:\n\n';
     msg += ' Detail Pesanan:\n';
     msg += '• Layanan: ' + serviceName + '\n';
-    msg += '• File: ' + fileName + ' (' + pageCount + ' halaman)\n';
-    msg += '• Mode: ' + modeLabel + '\n\n';
-    msg += ' Opsi:\n';
-    msg += '• Jumlah salinan: ' + qty + '\n';
-    msg += '• Laminasi: ' + lamLabel + '\n';
+    msg += '• File: ' + fileName + (isDokumen ? ' (' + pageCount + ' halaman)' : '') + '\n';
+    if (isFoto || isStiker) msg += '• Detail: ' + detailOption + '\n';
+    if (isDokumen) msg += '• Mode: ' + modeLabel + '\n';
+    if (!isCustom) {
+      msg += '\n Opsi:\n';
+      msg += '• Jumlah: ' + qty + (isDokumen ? ' salinan' : ' lembar') + '\n';
+      if (isDokumen) msg += '• Laminasi: ' + lamLabel + '\n';
+    }
     if (notes) msg += '• Catatan: ' + notes + '\n';
     msg += '\n Data Diri:\n';
     msg += '• Nama: ' + name + '\n';
@@ -594,10 +768,20 @@
     if (mapsLink) msg += '• Lokasi: ' + mapsLink + '\n';
     msg += '• Pembayaran: ' + paymentMethod + '\n';
     msg += '\n Estimasi Harga:\n';
-    msg += '• Cetak: ' + totalSheets + ' lbr × ' + formatRupiah(rate) + ' = ' + formatRupiah(printCost) + '\n';
-    if (lamRate > 0) msg += '• Laminasi: ' + formatRupiah(lamCost) + '\n';
-    msg += '• Total: ' + formatRupiah(total) + '\n\n';
-    msg += 'Mohon konfirmasi, terima kasih!';
+    if (isCustom) {
+      msg += '• Harga: Menyesuaikan kebutuhan (akan dikonfirmasi admin)\n';
+    } else if (isDokumen) {
+      msg += '• Cetak: ' + totalSheets + ' lbr × ' + formatRupiah(rate) + ' = ' + formatRupiah(printCost) + '\n';
+      if (lamRate > 0) msg += '• Laminasi: ' + formatRupiah(totalSheets * lamRate) + '\n';
+      msg += '• Total: ' + formatRupiah(total) + '\n';
+    } else {
+      msg += '• ' + detailOption + ' × ' + qty + ' lbr\n';
+      msg += '• Cetak: ' + formatRupiah(printCost) + '\n';
+      if (materialCost > 0) msg += '• Bahan: ' + formatRupiah(materialCost) + '\n';
+      if (isFoto && lamRate > 0) msg += '• Laminasi: ' + formatRupiah(totalSheets * lamRate) + '\n';
+      msg += '• Total: ' + formatRupiah(total) + '\n';
+    }
+    msg += '\nMohon konfirmasi, terima kasih!';
 
     // Save address for next time
     try {

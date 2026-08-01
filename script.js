@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let products = [];
   let bookGallery = [];
   let printServices = [];
-  let testimonials = [];
   let banners = [];
   let fetchFailed = false;
 
@@ -69,24 +68,21 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!url) throw new Error("GAS_URL not set");
 
       const cacheBuster = `&t=${Date.now()}`;
-      const [pRes, gRes, sRes, tRes, bRes] = await Promise.all([
+      const [pRes, gRes, sRes, bRes] = await Promise.all([
         fetch(`${url}?action=getProducts${cacheBuster}`).then(res => res.json()),
         fetch(`${url}?action=getGallery${cacheBuster}`).then(res => res.json()),
         fetch(`${url}?action=getServices${cacheBuster}`).then(res => res.json()),
-        fetch(`${url}?action=getTestimonials${cacheBuster}`).then(res => res.json()),
         fetch(`${url}?action=getBanners${cacheBuster}`).then(res => res.json())
       ]);
 
       products = pRes;
       bookGallery = gRes;
       printServices = sRes;
-      testimonials = tRes;
       banners = Array.isArray(bRes) ? bRes : [];
 
       setCachedData('yp_products', products);
       setCachedData('yp_gallery', bookGallery);
       setCachedData('yp_services', printServices);
-      setCachedData('yp_testimonials', testimonials);
       setCachedData('yp_banners', banners);
 
     } catch (err) {
@@ -94,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
       products = getCachedData('yp_products') || [];
       bookGallery = getCachedData('yp_gallery') || [];
       printServices = getCachedData('yp_services') || [];
-      testimonials = getCachedData('yp_testimonials') || [];
       banners = getCachedData('yp_banners') || [];
       if (products.length === 0 && bookGallery.length === 0 && printServices.length === 0) {
         fetchFailed = true;
@@ -105,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderGalleryData();
     renderServicesData();
     renderProducts();
-    renderTestimonials();
   }
 
   /* ------------------------------------------------------
@@ -220,6 +214,54 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  const SERVICE_TYPES = {
+    dokumen: {
+      accept: '.pdf,.doc,.docx,.xls,.xlsx',
+      mimes: [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ],
+      fileLabel: 'file PDF/Word/Excel',
+      parsePages: true
+    },
+    foto: {
+      accept: 'image/jpeg,image/png,image/webp',
+      mimes: ['image/jpeg', 'image/png', 'image/webp'],
+      fileLabel: 'foto JPG/PNG/WEBP',
+      parsePages: false
+    },
+    stiker: {
+      accept: 'image/png,image/jpeg,image/webp',
+      mimes: ['image/png', 'image/jpeg', 'image/webp'],
+      fileLabel: 'file PNG/JPG (disarankan PNG untuk transparan)',
+      parsePages: false
+    },
+    custom: {
+      accept: '.pdf,.doc,.docx,.xls,.xlsx,image/*',
+      mimes: [],
+      fileLabel: 'file apa saja',
+      parsePages: false
+    }
+  };
+
+  function getServiceTypeConfig(type) {
+    return SERVICE_TYPES[type] || SERVICE_TYPES.dokumen;
+  }
+
+  function parseServiceOptions(raw) {
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.sizes)) return parsed;
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   function initPrintCards() {
     document.querySelectorAll('.print-card').forEach(card => {
       const fileInput = card.querySelector('.file-input');
@@ -227,6 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const fileLabel = card.querySelector('.file-label');
       const submitBtn = card.querySelector('.print-card__btn');
       const serviceName = card.dataset.service;
+      const serviceType = card.dataset.type || 'dokumen';
+      const typeConf = getServiceTypeConfig(serviceType);
+      const options = parseServiceOptions(card.dataset.options);
 
       // --- Smart Print Calculator (opsional, hanya aktif kalau markup-nya ada) ---
       const estimateBox = card.querySelector('.print-estimate');
@@ -274,34 +319,52 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
           }
 
+          const isAllowed = typeConf.mimes.length === 0 || typeConf.mimes.indexOf(file.type) !== -1;
+          if (!isAllowed) {
+            showToast(`Upload ${typeConf.fileLabel} untuk melanjutkan.`);
+            fileInput.value = '';
+            fileLabel.textContent = 'Pilih file untuk diunggah';
+            uploadZone.classList.remove('has-file');
+            return;
+          }
+
           fileLabel.textContent = `✓ ${file.name}`;
           uploadZone.classList.add('has-file');
 
-          if (file.type === 'application/pdf') {
-            showToast('Membaca jumlah halaman...');
-            try {
-              const [pages, base64] = await Promise.all([
-                readPdfPageCount(file),
-                fileToBase64(file)
-              ]);
-              const pageCount = pages || 0;
-              sessionStorage.setItem('yp_order', JSON.stringify({
-                service: serviceName,
-                pageCount: pageCount,
-                fileName: file.name,
-                fileType: file.type,
-                fileData: base64,
-                priceBw: priceBw,
-                priceColor: priceColor
-              }));
-              window.location.href = 'pesanan.html';
-            } catch (err) {
-              showToast('Gagal membaca file PDF. Coba file lain.');
-              fileLabel.textContent = 'Pilih file untuk diunggah';
-              uploadZone.classList.remove('has-file');
+          try {
+            let pageCount = 0;
+            let fileData = null;
+
+            if (typeConf.parsePages) {
+              showToast('Membaca jumlah halaman...');
+              let pages = null;
+              try {
+                if (file.type === 'application/pdf') {
+                  pages = await readPdfPageCount(file);
+                }
+              } catch (e) {
+                pages = null;
+              }
+              fileData = await fileToBase64(file);
+              pageCount = pages || 0;
+            } else {
+              fileData = await fileToBase64(file);
             }
-          } else {
-            showToast('Upload file PDF untuk melanjutkan ke halaman pesanan.');
+
+            sessionStorage.setItem('yp_order', JSON.stringify({
+              service: serviceName,
+              serviceType: serviceType,
+              options: options,
+              pageCount: pageCount,
+              fileName: file.name,
+              fileType: file.type,
+              fileData: fileData,
+              priceBw: priceBw,
+              priceColor: priceColor
+            }));
+            window.location.href = 'pesanan.html';
+          } catch (err) {
+            showToast('Gagal membaca file. Coba file lain.');
             fileLabel.textContent = 'Pilih file untuk diunggah';
             uploadZone.classList.remove('has-file');
           }
@@ -314,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
       submitBtn.addEventListener('click', () => {
-        showToast('Upload file PDF untuk melanjutkan ke halaman pesanan.');
+        showToast(`Upload ${typeConf.fileLabel} untuk melanjutkan ke halaman pesanan.`);
       });
     });
   }
@@ -410,8 +473,10 @@ document.addEventListener('DOMContentLoaded', () => {
     printServicesEl.innerHTML = printServices.map(s => {
       const hasCalc = parseInt(s.priceBw) > 0 || parseInt(s.priceColor) > 0;
       const imgUrl = fixGoogleDriveUrl(s.image);
+      const typeConf = getServiceTypeConfig(s.type);
+      const rawOptions = typeof s.options === 'string' ? s.options : (s.options ? JSON.stringify(s.options) : '');
       return `
-      <div class="print-card" data-service="${s.service}" data-price-bw="${s.priceBw}" data-price-color="${s.priceColor}">
+      <div class="print-card" data-service="${s.service}" data-price-bw="${s.priceBw}" data-price-color="${s.priceColor}" data-type="${s.type || 'dokumen'}" data-options="${rawOptions.replace(/"/g, '&quot;')}">
         <div class="print-card__media">
           <img src="${imgUrl}" alt="${s.service}" loading="lazy"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
@@ -422,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <h3 class="font-display font-semibold text-lg mt-4">${s.service}</h3>
         <p class="text-slate-soft text-sm mt-1.5">${s.description}</p>
         <label class="upload-zone">
-          <input type="file" class="hidden file-input" ${hasCalc ? 'accept=".pdf,.doc,.docx,.xls,.xlsx"' : ''}>
+          <input type="file" class="hidden file-input" accept="${typeConf.accept}">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0-12 4 4m-4-4-4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           <span class="file-label">Pilih file untuk diunggah</span>
         </label>
@@ -588,35 +653,6 @@ document.addEventListener('DOMContentLoaded', () => {
       var produkSection = document.getElementById('produk');
       if (produkSection) produkSection.scrollIntoView({ behavior: 'smooth' });
     });
-  }
-
-
-  /* ------------------------------------------------------
-     TESTIMONI PELANGGAN
-  ------------------------------------------------------ */
-  const testimonialGrid = document.getElementById('testimonialGrid');
-
-  function renderTestimonials() {
-    if (!testimonialGrid) return;
-    if (testimonials.length === 0) {
-      if (fetchFailed) {
-        renderErrorState(testimonialGrid, 'Gagal memuat testimoni.');
-        return;
-      }
-      testimonialGrid.innerHTML = '<p class="text-sm text-slate-soft">Belum ada testimoni.</p>';
-      return;
-    }
-
-    testimonialGrid.innerHTML = testimonials.map(t => {
-      const stars = '★'.repeat(Number(t.rating) || 5) + '☆'.repeat(5 - (Number(t.rating) || 5));
-      return `
-        <div class="testimonial-card">
-          <div class="testimonial-card__stars">${stars}</div>
-          <p class="testimonial-card__text">"${t.text}"</p>
-          <p class="testimonial-card__author">— ${t.name}</p>
-        </div>
-      `;
-    }).join('');
   }
 
 
@@ -1038,7 +1074,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const badgeCls = 'status-badge status-badge--' + statusClass;
       const detail = o._type === 'ATK'
         ? (o['Detail Produk'] || '-')
-        : `${o.Layanan || '-'}${o['Nama File'] && o['Nama File'] !== '-' ? '\nFile: ' + o['Nama File'] : ''}`;
+        : `${o.Layanan || '-'}${o['Detail Opsi'] && o['Detail Opsi'] !== '-' ? '\nOpsi: ' + o['Detail Opsi'] : ''}${o['Nama File'] && o['Nama File'] !== '-' ? '\nFile: ' + o['Nama File'] : ''}`;
       const harga = o._type === 'ATK'
         ? Number(o.Subtotal) || 0
         : Number(o['Total Harga']) || Number(o['Estimasi Harga']) || 0;
