@@ -1309,7 +1309,7 @@ html.js-digital .reveal.is-visible {
 }
 .digital-card__cover {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   display: grid;
   place-items: center;
