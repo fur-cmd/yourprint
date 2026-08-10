@@ -461,6 +461,110 @@
     return id || '-';
   }
 
+  function escapeAttr(str) {
+    return String(str === undefined || str === null ? '' : str).replace(/'/g, "\\'");
+  }
+
+  function findDigitalById(id) {
+    if (!allData || !allData.digitalProduk) return null;
+    for (var i = 0; i < allData.digitalProduk.length; i++) {
+      if (String(allData.digitalProduk[i].id) === String(id)) return allData.digitalProduk[i];
+    }
+    return null;
+  }
+
+  function findDigitalKategoriById(id) {
+    if (!allData || !allData.digitalKategori) return null;
+    for (var i = 0; i < allData.digitalKategori.length; i++) {
+      if (String(allData.digitalKategori[i].id) === String(id)) return allData.digitalKategori[i];
+    }
+    return null;
+  }
+
+  function sortedDigital() {
+    return (allData && allData.digitalProduk ? allData.digitalProduk : []).slice().sort(function (a, b) {
+      return Number(a.order || 0) - Number(b.order || 0);
+    });
+  }
+
+  function sortedDigitalKategori() {
+    return (allData && allData.digitalKategori ? allData.digitalKategori : []).slice().sort(function (a, b) {
+      return Number(a.order || 0) - Number(b.order || 0);
+    });
+  }
+
+  function orderControls(index, total, fn, id) {
+    var up = index === 0
+      ? '<button type="button" class="order-btn" disabled>↑</button>'
+      : '<button type="button" class="order-btn" onclick="' + fn + '(\'' + id + '\',-1)">↑</button>';
+    var down = index === total - 1
+      ? '<button type="button" class="order-btn" disabled>↓</button>'
+      : '<button type="button" class="order-btn" onclick="' + fn + '(\'' + id + '\',1)">↓</button>';
+    return '<span class="inline-flex items-center gap-0.5 align-middle">' + up + down + '</span>';
+  }
+
+  async function reorderDigitalItems(ids, kind) {
+    return apiPost({
+      type: kind === 'kategori' ? 'reorder-digital-kategori' : 'reorder-digital-produk',
+      token: API_TOKEN,
+      ids: ids
+    });
+  }
+
+  window.moveDigital = async function (id, dir) {
+    var sorted = sortedDigital();
+    if (sorted.length < 2) return;
+    var idx = -1;
+    for (var i = 0; i < sorted.length; i++) {
+      if (String(sorted[i].id) === String(id)) { idx = i; break; }
+    }
+    if (idx === -1) return;
+    var target = idx + dir;
+    if (target < 0 || target >= sorted.length) return;
+    var ids = sorted.map(function (p) { return p.id; });
+    var tmp = ids[idx];
+    ids[idx] = ids[target];
+    ids[target] = tmp;
+    try {
+      var res = await reorderDigitalItems(ids, 'produk');
+      if (res.result === 'success') {
+        showToast('✓ Urutan diperbarui');
+        await loadData();
+      } else {
+        showToast('⚠️ ' + (res.message || 'Gagal mengubah urutan'));
+      }
+    } catch (err) {
+      showToast('⚠️ Gagal mengubah urutan');
+    }
+  };
+
+  window.moveDigitalKategori = async function (id, dir) {
+    var sorted = sortedDigitalKategori();
+    if (sorted.length < 2) return;
+    var idx = -1;
+    for (var i = 0; i < sorted.length; i++) {
+      if (String(sorted[i].id) === String(id)) { idx = i; break; }
+    }
+    if (idx === -1) return;
+    var target = idx + dir;
+    if (target < 0 || target >= sorted.length) return;
+    var ids = sorted.map(function (c) { return c.id; });
+    var tmp = ids[idx];
+    ids[idx] = ids[target];
+    ids[target] = tmp;
+    try {
+      var res = await reorderDigitalItems(ids, 'kategori');
+      if (res.result === 'success') {
+        showToast('✓ Urutan diperbarui');
+        await loadData();
+      } else {
+        showToast('⚠️ ' + (res.message || 'Gagal mengubah urutan'));
+      }
+    } catch (err) {
+      showToast('⚠️ Gagal mengubah urutan');
+    }
+  };
+
   function renderDigital(list) {
     var tbody = document.querySelector('#table-digital tbody');
     if (!tbody) return;
@@ -476,16 +580,17 @@
         ? '<img src="' + imgUrl + '" alt="" class="w-10 h-10 object-cover rounded-lg" onerror="this.style.display=\'none\'">'
         : (p.cover ? '<span style="background:' + p.cover + '" class="grid place-items-center w-10 h-10 rounded-lg text-xl">' + (p.emoji || '📦') + '</span>' : (p.emoji || '📦'));
       var badge = p.badge ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-highlight/15 text-highlight border border-highlight/40">' + p.badge + '</span>' : '-';
+      var sid = escapeAttr(p.id);
       return '<tr>' +
         '<td class="p-4 text-center">' + coverHtml + '</td>' +
         '<td class="p-4 font-medium">' + (p.name || '-') + '</td>' +
         '<td class="p-4 text-xs">' + digitalCategoryTitle(p.category) + '</td>' +
         '<td class="p-4">' + formatRupiah(p.price) + '</td>' +
         '<td class="p-4">' + badge + '</td>' +
-        '<td class="p-4 text-xs">' + (p.order || '-') + '</td>' +
+        '<td class="p-4 text-xs whitespace-nowrap">' + orderControls(i, sorted.length, 'moveDigital', sid) + '<span class="ml-1 font-mono">' + (p.order || '-') + '</span></td>' +
         '<td class="p-4 text-right">' +
-        '<button class="text-xs text-stamp hover:underline mr-2" onclick="editDigital(' + i + ')">Edit</button>' +
-        '<button class="text-xs text-red-500 hover:underline" onclick="deleteDigital(' + i + ')">Hapus</button>' +
+        '<button class="text-xs text-stamp hover:underline mr-2" onclick="editDigital(\'' + sid + '\')">Edit</button>' +
+        '<button class="text-xs text-red-500 hover:underline" onclick="deleteDigital(\'' + sid + '\')">Hapus</button>' +
         '</td></tr>';
     }).join('');
 
@@ -495,6 +600,7 @@
         ? '<img src="' + imgUrl + '" alt="" class="w-10 h-10 object-cover rounded-lg" onerror="this.style.display=\'none\'">'
         : (p.cover ? '<span style="background:' + p.cover + '" class="grid place-items-center w-10 h-10 rounded-lg text-xl">' + (p.emoji || '📦') + '</span>' : '<span class="text-xl">' + (p.emoji || '📦') + '</span>');
       var badge = p.badge ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-highlight/15 text-highlight border border-highlight/40">' + p.badge + '</span>' : '';
+      var sid = escapeAttr(p.id);
       return '<div class="data-card">' +
         '<div class="flex items-center gap-3">' +
         coverHtml +
@@ -505,12 +611,12 @@
         '</div>' +
         '<div class="mt-3 grid grid-cols-2 gap-2">' +
         '<div><p class="data-card__label">Harga</p><p class="data-card__value font-semibold">' + formatRupiah(p.price) + '</p></div>' +
-        '<div><p class="data-card__label">Urutan</p><p class="data-card__value">' + (p.order || '-') + '</p></div>' +
+        '<div><p class="data-card__label">Urutan</p><p class="data-card__value">' + orderControls(i, sorted.length, 'moveDigital', sid) + ' <span class="font-mono">' + (p.order || '-') + '</span></p></div>' +
         '</div>' +
         (badge ? '<div class="mt-2">' + badge + '</div>' : '') +
         '<div class="data-card__actions">' +
-        '<button class="bg-ink/5 text-ink" onclick="editDigital(' + i + ')">Edit</button>' +
-        '<button class="bg-red-50 text-red-600" onclick="deleteDigital(' + i + ')">Hapus</button>' +
+        '<button class="bg-ink/5 text-ink" onclick="editDigital(\'' + sid + '\')">Edit</button>' +
+        '<button class="bg-red-50 text-red-600" onclick="deleteDigital(\'' + sid + '\')">Hapus</button>' +
         '</div>' +
         '</div>';
     }, 'Belum ada produk digital');
@@ -530,9 +636,12 @@
     }).join('');
   }
 
-  window.editDigital = function (index) {
-    if (!allData || !allData.digitalProduk) return;
-    var p = allData.digitalProduk[index];
+  window.editDigital = function (id) {
+    var p = findDigitalById(id);
+    if (!p) {
+      showToast('⚠️ Produk tidak ditemukan');
+      return;
+    }
     fillDigitalCategorySelect();
     $('d-id').value = p.id || '';
     $('d-name').value = p.name || '';
@@ -562,9 +671,12 @@
     $('modal-digital-title').textContent = 'Tambah Produk Digital';
   };
 
-  window.deleteDigital = async function (index) {
-    if (!allData || !allData.digitalProduk) return;
-    var p = allData.digitalProduk[index];
+  window.deleteDigital = async function (id) {
+    var p = findDigitalById(id);
+    if (!p) {
+      showToast('⚠️ Produk tidak ditemukan');
+      return;
+    }
     if (!confirm('Hapus produk digital "' + (p.name || '') + '"?')) return;
     try {
       var res = await apiPost({ type: 'delete-digital-produk', id: p.id, token: API_TOKEN });
@@ -637,18 +749,20 @@
     }
     var sorted = list.slice().sort(function (a, b) { return Number(a.order || 0) - Number(b.order || 0); });
     tbody.innerHTML = sorted.map(function (c, i) {
+      var sid = escapeAttr(c.id);
       return '<tr>' +
         '<td class="p-4 text-xl text-center">' + (c.icon || '📦') + '</td>' +
         '<td class="p-4 font-medium">' + (c.title || '-') + '</td>' +
         '<td class="p-4 text-xs">' + (c.desc || '-') + '</td>' +
-        '<td class="p-4 text-xs">' + (c.order || '-') + '</td>' +
+        '<td class="p-4 text-xs whitespace-nowrap">' + orderControls(i, sorted.length, 'moveDigitalKategori', sid) + '<span class="ml-1 font-mono">' + (c.order || '-') + '</span></td>' +
         '<td class="p-4 text-right">' +
-        '<button class="text-xs text-stamp hover:underline mr-2" onclick="editDigitalKategori(' + i + ')">Edit</button>' +
-        '<button class="text-xs text-red-500 hover:underline" onclick="deleteDigitalKategori(' + i + ')">Hapus</button>' +
+        '<button class="text-xs text-stamp hover:underline mr-2" onclick="editDigitalKategori(\'' + sid + '\')">Edit</button>' +
+        '<button class="text-xs text-red-500 hover:underline" onclick="deleteDigitalKategori(\'' + sid + '\')">Hapus</button>' +
         '</td></tr>';
     }).join('');
 
     renderCards('cards-digital-kategori', sorted, function (c, i) {
+      var sid = escapeAttr(c.id);
       return '<div class="data-card">' +
         '<div class="flex items-center gap-3">' +
         '<span class="text-2xl">' + (c.icon || '📦') + '</span>' +
@@ -658,11 +772,11 @@
         '</div>' +
         '</div>' +
         '<div class="mt-3 grid grid-cols-2 gap-2">' +
-        '<div><p class="data-card__label">Urutan</p><p class="data-card__value">' + (c.order || '-') + '</p></div>' +
+        '<div><p class="data-card__label">Urutan</p><p class="data-card__value">' + orderControls(i, sorted.length, 'moveDigitalKategori', sid) + ' <span class="font-mono">' + (c.order || '-') + '</span></p></div>' +
         '</div>' +
         '<div class="data-card__actions">' +
-        '<button class="bg-ink/5 text-ink" onclick="editDigitalKategori(' + i + ')">Edit</button>' +
-        '<button class="bg-red-50 text-red-600" onclick="deleteDigitalKategori(' + i + ')">Hapus</button>' +
+        '<button class="bg-ink/5 text-ink" onclick="editDigitalKategori(\'' + sid + '\')">Edit</button>' +
+        '<button class="bg-red-50 text-red-600" onclick="deleteDigitalKategori(\'' + sid + '\')">Hapus</button>' +
         '</div>' +
         '</div>';
     }, 'Belum ada kategori');
@@ -695,14 +809,22 @@
     }
   };
 
-  window.editDigitalKategori = function (index) {
-    if (!allData || !allData.digitalKategori) return;
-    var c = allData.digitalKategori[index];
+  window.editDigitalKategori = function (id) {
+    var c = findDigitalKategoriById(id);
+    if (!c) {
+      showToast('⚠️ Kategori tidak ditemukan');
+      return;
+    }
     fillDigitalIconSelect();
     $('dk-id').value = c.id || '';
     $('dk-title').value = c.title || '';
     $('dk-desc').value = c.desc || '';
-    $('dk-icon').value = c.icon || 'other';
+    var iconKey = c.icon || '';
+    var iconFound = false;
+    for (var pi = 0; pi < DIGITAL_ICON_PRESETS.length; pi++) {
+      if (DIGITAL_ICON_PRESETS[pi].key === iconKey) { iconFound = true; break; }
+    }
+    $('dk-icon').value = iconFound ? iconKey : 'other';
     $('dk-iconClass').value = c.iconClass || '';
     $('dk-order').value = c.order || '';
     $('modal-digital-kategori-title').textContent = 'Edit Kategori Digital';
@@ -716,10 +838,20 @@
     $('modal-digital-kategori-title').textContent = 'Tambah Kategori Digital';
   };
 
-  window.deleteDigitalKategori = async function (index) {
-    if (!allData || !allData.digitalKategori) return;
-    var c = allData.digitalKategori[index];
-    if (!confirm('Hapus kategori "' + (c.title || '') + '"?')) return;
+  window.deleteDigitalKategori = async function (id) {
+    var c = findDigitalKategoriById(id);
+    if (!c) {
+      showToast('⚠️ Kategori tidak ditemukan');
+      return;
+    }
+    var usedCount = 0;
+    if (allData && allData.digitalProduk) {
+      for (var i = 0; i < allData.digitalProduk.length; i++) {
+        if (String(allData.digitalProduk[i].category) === String(c.id)) usedCount++;
+      }
+    }
+    var msg = 'Hapus kategori "' + (c.title || '') + '"?' + (usedCount > 0 ? '\n\n⚠️ Kategori ini masih dipakai oleh ' + usedCount + ' produk digital. Produk tersebut akan tetap tampil tanpa kategori valid.' : '');
+    if (!confirm(msg)) return;
     try {
       var res = await apiPost({ type: 'delete-digital-kategori', id: c.id, token: API_TOKEN });
       if (res.result === 'success') {

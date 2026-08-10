@@ -373,6 +373,9 @@ function doPost(e) {
     if (data.type === "upsert-digital-produk") return handleUpsert(data, "Market Digital Produk", "id", ["id", "name", "category", "price", "oldPrice", "badge", "rating", "ratingCount", "cover", "emoji", "desc", "link", "image", "order"]);
     if (data.type === "delete-digital-produk") return handleDelete(data, "Market Digital Produk", "id");
 
+    if (data.type === "reorder-digital-produk") return handleReorder(data, "Market Digital Produk");
+    if (data.type === "reorder-digital-kategori") return handleReorder(data, "Market Digital Kategori");
+
     if (data.type === "upsert-pengaturan") return handleUpsertSetting(data);
 
     if (data.type === "upsert-banner") return handleUpsert(data, "Banners", "id", ["id", "image", "link", "active"]);
@@ -515,6 +518,27 @@ function handleDelete(data, sheetName, idCol) {
     }
   }
   return jsonResponse({ result: "error", message: "Item not found" });
+}
+
+function handleReorder(data, sheetName) {
+  const sheet = getOrCreateSheet(sheetName, []);
+  const rows = sheet.getDataRange().getValues();
+  const headers = rows[0];
+  const idIndex = headers.indexOf("id");
+  const orderIndex = headers.indexOf("order");
+  if (idIndex === -1 || orderIndex === -1) {
+    return jsonResponse({ result: "error", message: "Kolom id/order tidak ditemukan" });
+  }
+  const ids = data.ids || [];
+  const rowIndexById = {};
+  for (let i = 1; i < rows.length; i++) {
+    rowIndexById[String(rows[i][idIndex])] = i + 1;
+  }
+  for (let j = 0; j < ids.length; j++) {
+    const r = rowIndexById[String(ids[j])];
+    if (r) sheet.getRange(r, orderIndex + 1).setValue(j + 1);
+  }
+  return jsonResponse({ result: "success" });
 }
 
 function handleUpdateStatus(data) {

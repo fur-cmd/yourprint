@@ -433,7 +433,7 @@ textarea:focus-visible {
 .book-card__thumb {
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 297 / 210;
   overflow: hidden;
   background: linear-gradient(135deg, var(--ink-light), var(--ink));
 }
@@ -960,6 +960,7 @@ textarea:focus-visible {
   font-size: .9rem;
   line-height: 1.7;
   color: var(--slate);
+  white-space: pre-wrap;
 }
 .detail-divider {
   border-top: 1px dashed var(--line-darker);

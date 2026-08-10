@@ -54,6 +54,30 @@
   background: #F3F5F7;
 }
 
+.order-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid #D8DEE4;
+  border-radius: 0.375rem;
+  background: #fff;
+  color: #16233F;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.order-btn:hover:not(:disabled) {
+  background: #F3F5F7;
+  color: #E4572E;
+}
+.order-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .nav-btn {
   display: block;
   width: 100%;
