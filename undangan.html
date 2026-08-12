@@ -342,6 +342,39 @@
 
   var allUndangan = [];
 
+  function dataTTL() {
+    var cfg = window.YOURPRINT_CONFIG || {};
+    return (Number(cfg.DATA_TTL_MINUTES) || 30) * 60 * 1000;
+  }
+
+  function undanganCacheFresh() {
+    try {
+      var ts = Number(localStorage.getItem('yp_undangan_ts') || 0);
+      return !!ts && (Date.now() - ts) < dataTTL();
+    } catch (e) { return false; }
+  }
+
+  function loadUndanganFromCache() {
+    try {
+      var raw = localStorage.getItem('yp_undangan');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          allUndangan = parsed;
+          return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  function saveUndanganCache(data) {
+    try {
+      localStorage.setItem('yp_undangan', JSON.stringify(data));
+      localStorage.setItem('yp_undangan_ts', String(Date.now()));
+    } catch (e) {}
+  }
+
   function formatRupiah(n) { return 'Rp' + Number(n).toLocaleString('id-ID'); }
 
   function fixGoogleDriveUrl(url) {
@@ -409,16 +442,26 @@
 
   // Init
   async function init() {
+    // Cache masih segar → langsung tampil tanpa fetch ulang
+    if (undanganCacheFresh() && loadUndanganFromCache()) {
+      applyFilter('all');
+      document.querySelectorAll('.skeleton-card').forEach(function(s) { s.remove(); });
+      return;
+    }
+
+    loadUndanganFromCache();
+
     try {
       if (GAS_URL && GAS_URL.indexOf('PASTE_URL') === -1) {
         var res = await fetch(GAS_URL + '?action=getUndangan&t=' + Date.now());
         var data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           allUndangan = data;
+          saveUndanganCache(data);
         }
       }
     } catch(e) {
-      // Fallback: use hardcoded sample data
+      // Fallback: pakai cache lama / data statis di bawah
     }
 
     if (allUndangan.length === 0) {

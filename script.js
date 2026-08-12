@@ -4,10 +4,31 @@
    katalog produk, dan keranjang belanja dinamis.
    ========================================================== */
 
-// pdf.js butuh worker terpisah supaya parsing PDF tidak nge-block halaman.
-// Ini aman dipanggil di luar DOMContentLoaded karena cuma set konfigurasi.
-if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// pdf.js dimuat LAZY — hanya saat user memilih file PDF (agar beban awal
+// halaman tidak membawa ±1,5 MB library). Worker di-set setelah library siap.
+const PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let pdfScriptPromise = null;
+
+function loadPdfLibrary() {
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+    return Promise.resolve();
+  }
+  if (pdfScriptPromise) return pdfScriptPromise;
+  pdfScriptPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = PDFJS_URL;
+    s.async = true;
+    s.onload = () => {
+      if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+      resolve();
+    };
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return pdfScriptPromise;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -47,6 +68,18 @@ document.addEventListener('DOMContentLoaded', () => {
   let banners = [];
   let fetchFailed = false;
 
+  function getDataTTL() {
+    const cfg = window.YOURPRINT_CONFIG || {};
+    return (Number(cfg.DATA_TTL_MINUTES) || 30) * 60 * 1000;
+  }
+
+  function isCacheFresh(key) {
+    try {
+      const ts = Number(localStorage.getItem(key + '_ts') || 0);
+      return !!ts && (Date.now() - ts) < getDataTTL();
+    } catch (e) { return false; }
+  }
+
   function getCachedData(key) {
     try {
       const cached = localStorage.getItem(key);
@@ -58,11 +91,47 @@ document.addEventListener('DOMContentLoaded', () => {
   function setCachedData(key, data) {
     try {
       localStorage.setItem(key, JSON.stringify(data));
+      localStorage.setItem(key + '_ts', String(Date.now()));
     } catch(e) {}
+  }
+
+  const DYNAMIC_CACHE_KEYS = ['yp_products', 'yp_gallery', 'yp_services', 'yp_banners'];
+
+  function loadAllFromCache() {
+    products = getCachedData('yp_products') || [];
+    bookGallery = getCachedData('yp_gallery') || [];
+    printServices = getCachedData('yp_services') || [];
+    banners = getCachedData('yp_banners') || [];
+    fetchFailed = false;
+  }
+
+  function renderAllData() {
+    renderBanners();
+    renderGalleryData();
+    renderServicesData();
+    renderProducts();
+  }
+
+  function cacheIsEmpty() {
+    return products.length === 0 && bookGallery.length === 0 &&
+           printServices.length === 0 && banners.length === 0;
   }
 
   async function fetchDynamicData() {
     fetchFailed = false;
+    loadAllFromCache();
+
+    // Cache masih segar → langsung tampil, TANPA fetch ke backend.
+    // Ini yang membuat halaman beranda tidak reload/refetch saat kembali.
+    if (DYNAMIC_CACHE_KEYS.every(isCacheFresh)) {
+      renderAllData();
+      return;
+    }
+
+    // Basi / belum ada cache: tampilkan cache lama dulu agar tidak blank,
+    // lalu refresh dari backend di latar belakang.
+    if (!cacheIsEmpty()) renderAllData();
+
     try {
       const url = window.YOURPRINT_CONFIG.GAS_URL;
       if (!url) throw new Error("GAS_URL not set");
@@ -87,19 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       console.warn("Fetch failed, using cache...", err);
-      products = getCachedData('yp_products') || [];
-      bookGallery = getCachedData('yp_gallery') || [];
-      printServices = getCachedData('yp_services') || [];
-      banners = getCachedData('yp_banners') || [];
-      if (products.length === 0 && bookGallery.length === 0 && printServices.length === 0) {
+      loadAllFromCache();
+      if (cacheIsEmpty()) {
         fetchFailed = true;
       }
     }
 
-    renderBanners();
-    renderGalleryData();
-    renderServicesData();
-    renderProducts();
+    renderAllData();
   }
 
   /* ------------------------------------------------------
@@ -298,7 +361,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       async function readPdfPageCount(file) {
-        if (!window.pdfjsLib) return null; // pdf.js gagal dimuat (mis. offline) — kalkulator dilewati
+        try {
+          await loadPdfLibrary(); // lazy-load pdf.js hanya saat benar-benar dipakai
+        } catch (e) { return null; } // pdf.js gagal dimuat — kalkulator dilewati
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         return pdf.numPages;

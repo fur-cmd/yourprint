@@ -275,6 +275,9 @@
   }
 
   var CACHE_TTL = 24 * 60 * 60 * 1000;
+  if (window.YOURPRINT_CONFIG && Number(window.YOURPRINT_CONFIG.DATA_TTL_MINUTES) > 0) {
+    CACHE_TTL = Number(window.YOURPRINT_CONFIG.DATA_TTL_MINUTES) * 60 * 1000;
+  }
 
   function loadDigitalData(cb) {
     var finish = function () { if (typeof cb === 'function') cb(); };
@@ -300,6 +303,12 @@
         CATEGORIES = normalizeKategori(STATIC_CATEGORIES);
         PRODUCTS = normalizeProduk(STATIC_PRODUCTS);
       }
+      finish();
+      return;
+    }
+
+    // Cache masih segar → langsung tampil, TANPA fetch ke backend.
+    if (useCached()) {
       finish();
       return;
     }

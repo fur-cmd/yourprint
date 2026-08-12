@@ -415,7 +415,19 @@
   }
 
   function setCachedData(key, data) {
-    try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
+    try { localStorage.setItem(key, JSON.stringify(data)); localStorage.setItem(key + '_ts', String(Date.now())); } catch(e) {}
+  }
+
+  function getDataTTL() {
+    var cfg = window.YOURPRINT_CONFIG || {};
+    return (Number(cfg.DATA_TTL_MINUTES) || 30) * 60 * 1000;
+  }
+
+  function isCacheFresh(key) {
+    try {
+      var ts = Number(localStorage.getItem(key + '_ts') || 0);
+      return !!ts && (Date.now() - ts) < getDataTTL();
+    } catch(e) { return false; }
   }
 
   function showToast(msg) {
@@ -674,6 +686,12 @@
       allProducts = cached;
     }
 
+    // Cache masih segar → langsung tampil, TANPA fetch ulang ke backend.
+    if (allProducts.length > 0 && isCacheFresh('yp_products')) {
+      renderDetail();
+      return;
+    }
+
     try {
       var cfg = window.YOURPRINT_CONFIG || {};
       if (cfg.GAS_URL && cfg.GAS_URL.indexOf('PASTE_URL') === -1) {
@@ -691,6 +709,10 @@
       }
     }
 
+    renderDetail();
+  }
+
+  function renderDetail() {
     var product = allProducts.find(function(p) { return String(p.id) === String(productId); });
     if (!product) {
       showEmpty();

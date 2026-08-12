@@ -292,43 +292,70 @@
       }
     } catch (e) {}
 
-    // 2) Try localStorage cache (yp_gallery from index.html)
+    var didRender = false;
+
+    // 2) Try localStorage cache (yp_gallery dari index.html / script.js)
+    function galleryTTL() {
+      var cfg = window.YOURPRINT_CONFIG || {};
+      return (Number(cfg.DATA_TTL_MINUTES) || 30) * 60 * 1000;
+    }
+
+    function galleryCacheFresh() {
+      try {
+        var ts = Number(localStorage.getItem('yp_gallery_ts') || 0);
+        return !!ts && (Date.now() - ts) < galleryTTL();
+      } catch (e) { return false; }
+    }
+
+    function fetchFromBackend() {
+      if (!window.YOURPRINT_CONFIG || !window.YOURPRINT_CONFIG.GAS_URL) {
+        loadingState.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      var cacheBuster = '&t=' + Date.now();
+      var url = window.YOURPRINT_CONFIG.GAS_URL.trim() + '?action=getGallery' + cacheBuster;
+      fetch(url)
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          var items = Array.isArray(data) ? data : (data.data || data.result || []);
+          try {
+            localStorage.setItem('yp_gallery', JSON.stringify(items));
+            localStorage.setItem('yp_gallery_ts', String(Date.now()));
+          } catch (e) {}
+
+          var found = items.find(function (b) { return String(b.code) === String(code); });
+          if (found) {
+            renderBook(found);
+            didRender = true;
+          } else if (!didRender) {
+            loadingState.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+          }
+        })
+        .catch(function () {
+          if (!didRender) {
+            loadingState.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+          }
+        });
+    }
+
     try {
       var gallery = JSON.parse(localStorage.getItem('yp_gallery') || '[]');
       var book = gallery.find(function (b) { return String(b.code) === String(code); });
       if (book) {
         renderBook(book);
+        didRender = true;
+        // Tampil instan dari cache; segarkan di latar belakang jika basi.
+        if (!galleryCacheFresh()) fetchFromBackend();
         return;
       }
     } catch (e) {}
 
     // 3) Fetch from backend
-    if (!window.YOURPRINT_CONFIG || !window.YOURPRINT_CONFIG.GAS_URL) {
-      loadingState.classList.add('hidden');
-      emptyState.classList.remove('hidden');
-      return;
-    }
-
-    var cacheBuster = '&t=' + Date.now();
-    var url = window.YOURPRINT_CONFIG.GAS_URL.trim() + '?action=getGallery' + cacheBuster;
-    fetch(url)
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        var items = Array.isArray(data) ? data : (data.data || data.result || []);
-        localStorage.setItem('yp_gallery', JSON.stringify(items));
-
-        var found = items.find(function (b) { return String(b.code) === String(code); });
-        if (found) {
-          renderBook(found);
-        } else {
-          loadingState.classList.add('hidden');
-          emptyState.classList.remove('hidden');
-        }
-      })
-      .catch(function () {
-        loadingState.classList.add('hidden');
-        emptyState.classList.remove('hidden');
-      });
+    fetchFromBackend();
   }
 
   init();
