@@ -322,6 +322,7 @@ function doPost(e) {
       
       const userId = "u-" + Date.now();
       sheet.appendRow([userId, data.name, phoneClean, data.password, new Date()]);
+      evictSheetCache("Pelanggan");
       var expiry = Date.now() + (7 * 24 * 60 * 60 * 1000); // 7 days
       return jsonResponse({ result: "success", token: userId, expiry: expiry, name: data.name, phone: phoneClean });
     }
@@ -398,6 +399,7 @@ function saveOrder(data) {
   const orderId = generateOrderId("atk");
   const itemsText = (data.items || []).map(i => `${i.name} x${i.qty} (Rp${(i.qty * i.price).toLocaleString("id-ID")})`).join("\n");
   sheet.appendRow([orderId, new Date(data.timestamp || Date.now()), data.customerName || "-", data.customerPhone || "-", itemsText, data.subtotal || 0, "Menunggu"]);
+  evictSheetCache("Pesanan ATK");
   return orderId;
 }
 
@@ -439,6 +441,7 @@ function savePrintJob(data) {
     "Menunggu",
     detailOption
   ]);
+  evictSheetCache("Pesanan Cetak");
   return orderId;
 }
 
@@ -475,6 +478,7 @@ function handleUpsert(data, sheetName, idCol, cols) {
     if (!data.item[idCol]) newRowData[idIndex] = "id_" + Date.now();
     sheet.appendRow(newRowData);
   }
+  evictSheetCache(sheetName);
   return jsonResponse({ result: "success" });
 }
 
@@ -482,6 +486,7 @@ function getPengaturan() {
   const sheet = getOrCreateSheet("Pengaturan", ["key", "value"]);
   if (sheet.getLastRow() === 1) {
     sheet.appendRow(["digital_global_link", "https://lynk.id/market.digital123"]);
+    evictSheetCache("Pengaturan");
   }
   const rows = getSheetData("Pengaturan");
   const out = {};
@@ -498,10 +503,12 @@ function handleUpsertSetting(data) {
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][0]) === String(data.key)) {
       sheet.getRange(i + 1, 2).setValue(data.value === undefined ? "" : data.value);
+      evictSheetCache("Pengaturan");
       return jsonResponse({ result: "success" });
     }
   }
   sheet.appendRow([data.key, data.value === undefined ? "" : data.value]);
+  evictSheetCache("Pengaturan");
   return jsonResponse({ result: "success" });
 }
 
@@ -514,6 +521,7 @@ function handleDelete(data, sheetName, idCol) {
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][idIndex]) === String(data.id)) {
       sheet.deleteRow(i + 1);
+      evictSheetCache(sheetName);
       return jsonResponse({ result: "success" });
     }
   }
@@ -538,6 +546,7 @@ function handleReorder(data, sheetName) {
     const r = rowIndexById[String(ids[j])];
     if (r) sheet.getRange(r, orderIndex + 1).setValue(j + 1);
   }
+  evictSheetCache(sheetName);
   return jsonResponse({ result: "success" });
 }
 
@@ -571,6 +580,7 @@ function handleUpdateStatus(data) {
   
   if (rowIndex >= 2 && rowIndex <= sheet.getLastRow()) {
     sheet.getRange(rowIndex, statusIndex).setValue(data.newStatus);
+    evictSheetCache(sheetName);
 
     return jsonResponse({ result: "success", newStatus: data.newStatus });
   }
@@ -594,6 +604,7 @@ function handleClearAllData(data) {
     return jsonResponse({ result: "error", message: "Unauthorized" });
   }
   clearAllData();
+  evictSheetCache();
   return jsonResponse({ result: "success", message: "Semua data pesanan dihapus" });
 }
 
@@ -610,6 +621,15 @@ function normalizePhone(raw) {
 function getSheetData(sheetName) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   if (!sheet) return [];
+
+  // Cache 60 dtk per-sheet → getAllDataAdmin (baca 8 sheet) jadi instan saat cache panas.
+  const cache = CacheService.getScriptCache();
+  const key = "yp_sheet_" + sheetName;
+  try {
+    const hit = cache.get(key);
+    if (hit) return JSON.parse(hit);
+  } catch (e) {}
+
   const rows = sheet.getDataRange().getValues();
   if (rows.length < 2) return [];
   const headers = rows[0];
@@ -621,7 +641,29 @@ function getSheetData(sheetName) {
     }
     data.push(obj);
   }
+
+  // Simpan cache hanya jika muat (limit GAS ~100KB/key).
+  try {
+    const json = JSON.stringify(data);
+    if (json.length <= 80000) {
+      cache.put(key, json, 60);
+    }
+  } catch (e) {}
+
   return data;
+}
+
+// Hapus cache sheet setelah ada data yang diubah agar perubahan langsung terbaca.
+// Bisa menyasar satu sheet (lebih efisien) atau semua bila sheetName kosong.
+function evictSheetCache(sheetName) {
+  try {
+    const cache = CacheService.getScriptCache();
+    if (sheetName) {
+      cache.remove("yp_sheet_" + sheetName);
+    } else {
+      cache.removeAll();
+    }
+  } catch (e) {}
 }
 
 function getOrCreateSheet(name, headerRow) {

@@ -91,19 +91,131 @@
 
   /* ==================== API ==================== */
 
+  async function apiFetchWithRetry(url, options, retries) {
+    for (var attempt = 0; attempt <= retries; attempt++) {
+      var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = null;
+      var opts = options || {};
+      if (controller) {
+        opts.signal = controller.signal;
+        timer = setTimeout(function () { controller.abort(); }, 25000);
+      }
+      try {
+        var res = await fetch(url, opts);
+        if (timer) clearTimeout(timer);
+        return await res.json();
+      } catch (err) {
+        if (timer) clearTimeout(timer);
+        if (attempt < retries) {
+          await new Promise(function (r) { setTimeout(r, 800 * (attempt + 1)); });
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+
   async function apiGet(action) {
     var url = GAS_URL + '?action=' + encodeURIComponent(action) + '&t=' + Date.now();
-    var res = await fetch(url);
-    return res.json();
+    return apiFetchWithRetry(url, null, 2);
   }
 
   async function apiPost(payload) {
-    var res = await fetch(GAS_URL, {
+    return apiFetchWithRetry(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
-    });
-    return res.json();
+    }, 2);
+  }
+
+  /* ==================== Loading indicator ==================== */
+
+  var loadingEl = null;
+
+  function showLoading() {
+    if (!loadingEl) {
+      loadingEl = document.createElement('div');
+      loadingEl.id = 'adminLoadingOverlay';
+      loadingEl.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.35);';
+      loadingEl.innerHTML = '<div style="background:#fff;border-radius:12px;padding:18px 24px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);font-size:14px;font-weight:600;color:#16233F;">' +
+        '<span style="width:18px;height:18px;border:3px solid #D8DEE4;border-top-color:#E4572E;border-radius:50%;display:inline-block;animation:ypAdminSpin 0.8s linear infinite;"></span>' +
+        'Memuat data...</div>';
+      var styleEl = document.createElement('style');
+      styleEl.id = 'ypAdminSpinStyle';
+      styleEl.textContent = '@keyframes ypAdminSpin { to { transform: rotate(360deg); } }';
+      document.head.appendChild(styleEl);
+      document.body.appendChild(loadingEl);
+    }
+    loadingEl.style.display = 'flex';
+    document.querySelectorAll('[data-refresh-btn]').forEach(function (b) { b.disabled = true; });
+  }
+
+  function hideLoading() {
+    if (loadingEl) loadingEl.style.display = 'none';
+    document.querySelectorAll('[data-refresh-btn]').forEach(function (b) { b.disabled = false; });
+  }
+
+  /* ==================== Cache klien (sessionStorage, TTL 60 dtk) ==================== */
+
+  var ADMIN_CACHE_KEY = 'yp_admin_all';
+  var ADMIN_TTL = 60 * 1000;
+
+  function getAdminCache() {
+    try {
+      var raw = sessionStorage.getItem(ADMIN_CACHE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return null;
+  }
+
+  function setAdminCache(data) {
+    try {
+      sessionStorage.setItem(ADMIN_CACHE_KEY, JSON.stringify(data));
+      sessionStorage.setItem(ADMIN_CACHE_KEY + '_ts', String(Date.now()));
+    } catch (e) {}
+  }
+
+  function isAdminCacheFresh() {
+    try {
+      var ts = Number(sessionStorage.getItem(ADMIN_CACHE_KEY + '_ts') || 0);
+      return !!ts && (Date.now() - ts) < ADMIN_TTL;
+    } catch (e) { return false; }
+  }
+
+  var bgRefreshTimer = null;
+  function backgroundRefresh() {
+    if (bgRefreshTimer) clearTimeout(bgRefreshTimer);
+    bgRefreshTimer = setTimeout(function () {
+      loadData({ force: true, silent: true });
+    }, 3000);
+  }
+
+  function renderAllViews() {
+    if (!allData) return;
+    renderDashboard(allData);
+    renderProducts(allData.products || []);
+    renderGallery(allData.gallery || []);
+    renderServices(allData.services || []);
+    renderOrdersATK(allData.ordersATK || []);
+    renderOrdersCetak(allData.ordersCetak || []);
+    renderBanners(allData.banners || []);
+    renderUndangan(allData.undangan || []);
+    renderDigital(allData.digitalProduk || []);
+    renderDigitalKategori(allData.digitalKategori || []);
+    renderPengaturan(allData.pengaturan || {});
+    renderPromoHub(allData);
+  }
+
+  // Update data lokal + render ulang (nol request) lalu sinkron di background.
+  function syncAfterMutation(updateFn) {
+    if (!allData) {
+      loadData({ force: true });
+      return;
+    }
+    if (typeof updateFn === 'function') updateFn();
+    renderAllViews();
+    setAdminCache(allData);
+    backgroundRefresh();
   }
 
   function readFileAsBase64(file) {
@@ -220,29 +332,51 @@
 
   /* ==================== Load Data ==================== */
 
-  async function loadData() {
+  async function loadData(opts) {
+    opts = opts || {};
+    var force = !!opts.force;
+    var silent = !!opts.silent;
+
+    // Cache masih segar → tampilkan instan, lalu refresh di background.
+    if (!force && isAdminCacheFresh()) {
+      var cached = getAdminCache();
+      if (cached && cached.result === 'success') {
+        allData = cached;
+        renderAllViews();
+        backgroundRefresh();
+        return;
+      }
+    }
+
+    if (!silent) showLoading();
     try {
       var data = await apiGet('getAllDataAdmin');
       if (data.result !== 'success') {
-        showToast('⚠️ Gagal memuat data');
+        var fallback = getAdminCache();
+        if (fallback && fallback.result === 'success') {
+          allData = fallback;
+          renderAllViews();
+          if (!silent) showToast('⚠️ Data gagal diperbarui — menampilkan data tersimpan');
+        } else if (!silent) {
+          showToast('⚠️ Gagal memuat data');
+        }
         return;
       }
       allData = data;
-      renderDashboard(data);
-      renderProducts(data.products || []);
-      renderGallery(data.gallery || []);
-      renderServices(data.services || []);
-      renderOrdersATK(data.ordersATK || []);
-      renderOrdersCetak(data.ordersCetak || []);
-      renderBanners(data.banners || []);
-      renderUndangan(data.undangan || []);
-      renderDigital(data.digitalProduk || []);
-      renderDigitalKategori(data.digitalKategori || []);
-      renderPengaturan(data.pengaturan || {});
-      renderPromoHub(data);
+      setAdminCache(data);
+      renderAllViews();
     } catch (err) {
       console.error('loadData error:', err);
-      showToast('⚠️ Gagal terhubung ke server');
+      var fb = getAdminCache();
+      if (fb && fb.result === 'success') {
+        allData = fb;
+        renderAllViews();
+        if (!silent) showToast('⚠️ Gagal terhubung ke server — menampilkan data tersimpan');
+      } else if (!silent) {
+        showToast('⚠️ Gagal terhubung ke server');
+      }
+    } finally {
+      if (!silent) hideLoading();
     }
   }
 
@@ -400,7 +534,9 @@
       var res = await apiPost({ type: 'delete-product', id: p.id, token: API_TOKEN });
       if (res.result === 'success') {
         showToast('✓ Produk dihapus');
-        await loadData();
+        syncAfterMutation(function () {
+          allData.products.splice(index, 1);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
       }
@@ -432,7 +568,15 @@
       if (res.result === 'success') {
         showToast('✓ Produk disimpan');
         closeModals();
-        await loadData();
+        syncAfterMutation(function () {
+          var item = payload.item;
+          var arr = allData.products || (allData.products = []);
+          var found = false;
+          for (var i = 0; i < arr.length; i++) {
+            if (String(arr[i].id) === String(item.id)) { arr[i] = item; found = true; break; }
+          }
+          if (!found) arr.push(item);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
       }
@@ -529,7 +673,11 @@
       var res = await reorderDigitalItems(ids, 'produk');
       if (res.result === 'success') {
         showToast('✓ Urutan diperbarui');
-        await loadData();
+        syncAfterMutation(function () {
+          var byId = {};
+          (allData.digitalProduk || []).forEach(function (p) { byId[p.id] = p; });
+          allData.digitalProduk = ids.map(function (id) { return byId[id]; }).filter(Boolean);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal mengubah urutan'));
       }
@@ -556,7 +704,11 @@
       var res = await reorderDigitalItems(ids, 'kategori');
       if (res.result === 'success') {
         showToast('✓ Urutan diperbarui');
-        await loadData();
+        syncAfterMutation(function () {
+          var byId = {};
+          (allData.digitalKategori || []).forEach(function (c) { byId[c.id] = c; });
+          allData.digitalKategori = ids.map(function (id) { return byId[id]; }).filter(Boolean);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal mengubah urutan'));
       }
@@ -682,7 +834,9 @@
       var res = await apiPost({ type: 'delete-digital-produk', id: p.id, token: API_TOKEN });
       if (res.result === 'success') {
         showToast('✓ Produk digital dihapus');
-        await loadData();
+        syncAfterMutation(function () {
+          allData.digitalProduk = (allData.digitalProduk || []).filter(function (x) { return String(x.id) !== String(id); });
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
       }
@@ -720,7 +874,15 @@
       if (res.result === 'success') {
         showToast('✓ Produk digital disimpan');
         closeModals();
-        await loadData();
+        syncAfterMutation(function () {
+          var item = payload.item;
+          var arr = allData.digitalProduk || (allData.digitalProduk = []);
+          var found = false;
+          for (var i = 0; i < arr.length; i++) {
+            if (String(arr[i].id) === String(item.id)) { arr[i] = item; found = true; break; }
+          }
+          if (!found) arr.push(item);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
       }
@@ -800,7 +962,10 @@
       var res = await apiPost({ type: 'upsert-pengaturan', token: API_TOKEN, key: 'digital_global_link', value: value });
       if (res.result === 'success') {
         showToast('✓ Link global disimpan');
-        await loadData();
+        syncAfterMutation(function () {
+          if (!allData.pengaturan) allData.pengaturan = {};
+          allData.pengaturan.digital_global_link = value;
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
       }
@@ -856,7 +1021,9 @@
       var res = await apiPost({ type: 'delete-digital-kategori', id: c.id, token: API_TOKEN });
       if (res.result === 'success') {
         showToast('✓ Kategori dihapus');
-        await loadData();
+        syncAfterMutation(function () {
+          allData.digitalKategori = (allData.digitalKategori || []).filter(function (x) { return String(x.id) !== String(c.id); });
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
       }
@@ -884,7 +1051,15 @@
       if (res.result === 'success') {
         showToast('✓ Kategori disimpan');
         closeModals();
-        await loadData();
+        syncAfterMutation(function () {
+          var item = payload.item;
+          var arr = allData.digitalKategori || (allData.digitalKategori = []);
+          var found = false;
+          for (var i = 0; i < arr.length; i++) {
+            if (String(arr[i].id) === String(item.id)) { arr[i] = item; found = true; break; }
+          }
+          if (!found) arr.push(item);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
       }
@@ -963,7 +1138,9 @@
       var res = await apiPost({ type: 'delete-gallery', id: g.code, token: API_TOKEN });
       if (res.result === 'success') {
         showToast('✓ Galeri dihapus');
-        await loadData();
+        syncAfterMutation(function () {
+          allData.gallery.splice(index, 1);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
       }
@@ -994,7 +1171,15 @@
       if (res.result === 'success') {
         showToast('✓ Galeri disimpan');
         closeModals();
-        await loadData();
+        syncAfterMutation(function () {
+          var item = payload.item;
+          var arr = allData.gallery || (allData.gallery = []);
+          var found = false;
+          for (var i = 0; i < arr.length; i++) {
+            if (String(arr[i].code) === String(item.code)) { arr[i] = item; found = true; break; }
+          }
+          if (!found) arr.push(item);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
       }
@@ -1083,7 +1268,9 @@
       var res = await apiPost({ type: 'delete-undangan', id: item.id, token: API_TOKEN });
       if (res.result === 'success') {
         showToast('✓ Paket undangan dihapus');
-        await loadData();
+        syncAfterMutation(function () {
+          if (allData.undangan) allData.undangan.splice(index, 1);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
       }
@@ -1113,7 +1300,15 @@
       if (res.result === 'success') {
         showToast('✓ Paket undangan disimpan');
         closeModals();
-        await loadData();
+        syncAfterMutation(function () {
+          var item = payload.item;
+          var arr = allData.undangan || (allData.undangan = []);
+          var found = false;
+          for (var i = 0; i < arr.length; i++) {
+            if (String(arr[i].id) === String(item.id)) { arr[i] = item; found = true; break; }
+          }
+          if (!found) arr.push(item);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
       }
@@ -1196,7 +1391,9 @@
       var res = await apiPost({ type: 'delete-service', id: s.id, token: API_TOKEN });
       if (res.result === 'success') {
         showToast('✓ Layanan dihapus');
-        await loadData();
+        syncAfterMutation(function () {
+          allData.services.splice(index, 1);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
       }
@@ -1230,7 +1427,15 @@
       if (res.result === 'success') {
         showToast('✓ Layanan disimpan');
         closeModals();
-        await loadData();
+        syncAfterMutation(function () {
+          var item = payload.item;
+          var arr = allData.services || (allData.services = []);
+          var found = false;
+          for (var i = 0; i < arr.length; i++) {
+            if (String(arr[i].id) === String(item.id)) { arr[i] = item; found = true; break; }
+          }
+          if (!found) arr.push(item);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
       }
@@ -1306,7 +1511,10 @@
       });
       if (res.result === 'success') {
         showToast('✓ Status diubah ke ' + newStatus);
-        await loadData();
+        syncAfterMutation(function () {
+          var orders = category === 'atk' ? allData.ordersATK : allData.ordersCetak;
+          if (orders && orders[index]) orders[index].Status = newStatus;
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal update status'));
       }
@@ -1473,7 +1681,9 @@
       var res = await apiPost({ type: 'delete-banner', id: b.id, token: API_TOKEN });
       if (res.result === 'success') {
         showToast('✓ Banner dihapus');
-        await loadData();
+        syncAfterMutation(function () {
+          allData.banners.splice(index, 1);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menghapus'));
       }
@@ -1501,7 +1711,15 @@
       if (res.result === 'success') {
         showToast('✓ Banner disimpan');
         closeModals();
-        await loadData();
+        syncAfterMutation(function () {
+          var item = payload.item;
+          var arr = allData.banners || (allData.banners = []);
+          var found = false;
+          for (var i = 0; i < arr.length; i++) {
+            if (String(arr[i].id) === String(item.id)) { arr[i] = item; found = true; break; }
+          }
+          if (!found) arr.push(item);
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
       }
@@ -1771,7 +1989,10 @@
       var res = await apiPost({ type: 'clear-all-data', token: API_TOKEN });
       if (res.result === 'success') {
         showToast('✓ Semua data pesanan dihapus');
-        await loadData();
+        syncAfterMutation(function () {
+          allData.ordersATK = [];
+          allData.ordersCetak = [];
+        });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal'));
       }
