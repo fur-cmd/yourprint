@@ -135,6 +135,46 @@ body {
   color: var(--stamp);
 }
 
+/* ---------- Tombol WhatsApp melayang (beranda) ---------- */
+.wa-float {
+  position: fixed;
+  right: .9rem;
+  bottom: calc(.75rem + var(--bottom-nav-height)); /* di atas bottom nav mobile */
+  z-index: 45; /* di bawah cart drawer/overlay (z-50), di atas konten */
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  background: #25D366;
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: .6rem .95rem;
+  border-radius: 9999px;
+  box-shadow: 0 6px 16px -4px rgba(37, 211, 102, .55);
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.wa-float svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+}
+.wa-float:hover {
+  background: #1FB857;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -6px rgba(37, 211, 102, .65);
+}
+@media (min-width: 768px) {
+  .wa-float {
+    right: 1.5rem;
+    bottom: 1.5rem;
+    font-size: .875rem;
+    gap: .55rem;
+    padding: .7rem 1.2rem;
+  }
+  .wa-float svg { width: 1.35rem; height: 1.35rem; }
+}
+
 /* ---------- Nav links ---------- */
 .nav-link {
   color: var(--ink);
