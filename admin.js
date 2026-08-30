@@ -946,8 +946,9 @@
 
   function renderPengaturan(peng) {
     var input = $('pengaturan-digital-link');
-    if (!input) return;
-    input.value = (peng && peng.digital_global_link) ? peng.digital_global_link : '';
+    if (input) input.value = (peng && peng.digital_global_link) ? peng.digital_global_link : '';
+    var email = $('pengaturan-email');
+    if (email) email.value = (peng && peng.admin_email) ? peng.admin_email : '';
   }
 
   window.saveDigitalGlobalLink = async function () {
@@ -965,6 +966,26 @@
         syncAfterMutation(function () {
           if (!allData.pengaturan) allData.pengaturan = {};
           allData.pengaturan.digital_global_link = value;
+        });
+      } else {
+        showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));
+      }
+    } catch (err) {
+      showToast('⚠️ Gagal menyimpan');
+    }
+  };
+
+  window.saveNotifyEmail = async function () {
+    var email = $('pengaturan-email');
+    if (!email) return;
+    var value = email.value.trim();
+    try {
+      var res = await apiPost({ type: 'upsert-pengaturan', token: API_TOKEN, key: 'admin_email', value: value });
+      if (res.result === 'success') {
+        showToast('✓ Email notifikasi disimpan');
+        syncAfterMutation(function () {
+          if (!allData.pengaturan) allData.pengaturan = {};
+          allData.pengaturan.admin_email = value;
         });
       } else {
         showToast('⚠️ ' + (res.message || 'Gagal menyimpan'));

@@ -139,7 +139,8 @@ function seedInitialData() {
   let sheetPengaturan = getOrCreateSheet("Pengaturan", ["key", "value"]);
   if (sheetPengaturan.getLastRow() === 1) {
     const settings = [
-      ["digital_global_link", "https://lynk.id/market.digital123"]
+      ["digital_global_link", "https://lynk.id/market.digital123"],
+      ["admin_email", ""]
     ];
     sheetPengaturan.getRange(2, 1, settings.length, settings[0].length).setValues(settings);
   }
@@ -392,6 +393,113 @@ function doPost(e) {
   }
 }
 
+/* ================= EMAIL NOTIFIKASI PESANAN ================= */
+
+function getNotifyEmail() {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Pengaturan");
+    if (sheet && sheet.getLastRow() > 1) {
+      const rows = sheet.getDataRange().getValues();
+      for (let i = 1; i < rows.length; i++) {
+        if (String(rows[i][0]) === "admin_email" && String(rows[i][1] || "").trim()) {
+          return String(rows[i][1]).trim();
+        }
+      }
+    }
+  } catch (e) {}
+  try {
+    return Session.getEffectiveUser().getEmail();
+  } catch (e) {
+    return "";
+  }
+}
+
+function escText(value) {
+  return String(value === undefined || value === null ? "" : value)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function fmtRupiah(n) {
+  const v = Number(n);
+  return isNaN(v) ? "-" : ("Rp" + v.toLocaleString("id-ID"));
+}
+
+function notifRow(label, value) {
+  return "<tr><td style='padding:6px 10px;font-weight:600;color:#64748B;white-space:nowrap;vertical-align:top;border-bottom:1px solid #EEF1F5'>" + label + "</td>" +
+    "<td style='padding:6px 10px;color:#0F172A;vertical-align:top;border-bottom:1px solid #EEF1F5;white-space:pre-wrap;word-break:break-word'>" + value + "</td></tr>";
+}
+
+function notifHeader(title) {
+  return "<div style='background:#F8FAFC;padding:20px;font-family:Arial,Helvetica,sans-serif;color:#0F172A'>" +
+    "<div style='max-width:640px;margin:0 auto;background:#FFFFFF;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden'>" +
+    "<div style='background:#0F172A;color:#FFFFFF;padding:16px 22px;font-size:18px;font-weight:bold'>📨 " + title + "</div>" +
+    "<table style='width:100%;border-collapse:collapse;font-size:13px'>";
+}
+
+function notifFooter() {
+  return "</table><div style='padding:12px 22px;font-size:11px;color:#94A3B8;border-top:1px solid #EEF1F5'>" +
+    "Dikirim otomatis oleh sistem YourPrint. Pesanan juga tersimpan di Google Sheets.</div></div></div>";
+}
+
+function sendOrderNotification(kind, payload) {
+  try {
+    const to = getNotifyEmail();
+    if (!to) return false;
+    const waktu = new Date(payload.waktu || Date.now());
+    const waktuStr = (waktu.toString() === "Invalid Date")
+      ? "-"
+      : (waktu.getFullYear() + "-" + String(waktu.getMonth() + 1).padStart(2, "0") + "-" + String(waktu.getDate()).padStart(2, "0") + " " + String(waktu.getHours()).padStart(2, "0") + ":" + String(waktu.getMinutes()).padStart(2, "0") + " WIB");
+
+    let title = "";
+    let subject = "";
+    let body = "";
+
+    if (kind === "atk") {
+      title = "Pesanan ATK Baru — " + payload.orderId;
+      subject = "[Pesanan Baru] " + payload.orderId + " — ATK — " + (payload.customerName || "");
+      body += notifRow("Order ID", escText(payload.orderId));
+      body += notifRow("Waktu", escText(waktuStr));
+      body += notifRow("Nama Pemesan", escText(payload.customerName));
+      body += notifRow("No. WhatsApp", escText(payload.customerPhone));
+      const items = (payload.items || []).map(i => "- " + escText(i.name) + " x " + escText(i.qty || 1) + " = " + fmtRupiah((i.qty || 1) * (i.price || 0))).join("\n");
+      body += notifRow("Detail Produk", items || "(kosong)");
+      body += notifRow("Subtotal", fmtRupiah(payload.subtotal));
+    } else {
+      title = "Pesanan Cetak Baru — " + payload.orderId;
+      subject = "[Pesanan Baru] " + payload.orderId + " — " + (payload.service || "Cetak") + " — " + (payload.customerName || "");
+      body += notifRow("Order ID", escText(payload.orderId));
+      body += notifRow("Waktu", escText(waktuStr));
+      body += notifRow("Nama Pemesan", escText(payload.customerName));
+      body += notifRow("No. WhatsApp", escText(payload.customerPhone));
+      body += notifRow("Layanan", escText(payload.service));
+      body += notifRow("Jenis Cetakan", escText(payload.printTypeLabel));
+      body += notifRow("Mode Warna", escText(payload.modeColorLabel));
+      body += notifRow("Jumlah Halaman", escText(payload.pageCount));
+      body += notifRow("Jumlah Salinan", escText(payload.quantity));
+      body += notifRow("Laminasi", escText(payload.lamLabel));
+      body += notifRow("Detail Opsi", escText(payload.detailOption));
+      body += notifRow("Catatan", escText(payload.notes));
+      const files = (payload.filesInfo || []).map(f => "• " + escText(f.name) + "\n  " + escText(f.url)).join("\n");
+      if (files) body += notifRow("File", files);
+      body += notifRow("Alamat", escText(payload.address));
+      if (payload.mapsLink) body += notifRow("Link Maps", escText(payload.mapsLink));
+      body += notifRow("Metode Bayar", escText(payload.paymentMethod));
+      body += notifRow("Estimasi", fmtRupiah(payload.estimatedPrice));
+      body += notifRow("Biaya Pokok", fmtRupiah(payload.basePrice));
+      body += notifRow("Biaya Tambahan", fmtRupiah(payload.additionalCost));
+      body += notifRow("Total Harga", fmtRupiah(payload.totalPrice));
+    }
+
+    body += notifRow("Status", "Menunggu");
+
+    MailApp.sendEmail({ to: to, subject: subject, htmlBody: notifHeader(title) + body + notifFooter() });
+    return true;
+  } catch (err) {
+    Logger.log("sendOrderNotification error: " + err.message);
+    return false;
+  }
+}
+
 /* ================= ACTIONS ================= */
 
 function saveOrder(data) {
@@ -400,6 +508,14 @@ function saveOrder(data) {
   const itemsText = (data.items || []).map(i => `${i.name} x${i.qty} (Rp${(i.qty * i.price).toLocaleString("id-ID")})`).join("\n");
   sheet.appendRow([orderId, new Date(data.timestamp || Date.now()), data.customerName || "-", data.customerPhone || "-", itemsText, data.subtotal || 0, "Menunggu"]);
   evictSheetCache("Pesanan ATK");
+  sendOrderNotification("atk", {
+    orderId: orderId,
+    customerName: data.customerName,
+    customerPhone: data.customerPhone,
+    items: data.items,
+    subtotal: data.subtotal,
+    waktu: data.timestamp
+  });
   return orderId;
 }
 
@@ -472,6 +588,28 @@ function savePrintJob(data) {
     additionalCost
   ]);
   evictSheetCache("Pesanan Cetak");
+  sendOrderNotification("print", {
+    orderId: orderId,
+    customerName: data.customerName,
+    customerPhone: data.customerPhone,
+    service: data.service,
+    printTypeLabel: printTypeLabel,
+    modeColorLabel: modeColorLabel,
+    pageCount: data.pageCount,
+    quantity: data.quantity,
+    lamLabel: lamLabel,
+    detailOption: detailOption,
+    notes: data.notes,
+    filesInfo: nameParts.map(function (n, i) { return { name: n, url: urlParts[i] || "" }; }),
+    address: data.address,
+    mapsLink: data.mapsLink,
+    paymentMethod: data.paymentMethod,
+    estimatedPrice: data.estimatedPrice,
+    basePrice: data.basePrice,
+    additionalCost: data.additionalCost,
+    totalPrice: data.totalPrice,
+    waktu: data.timestamp
+  });
   return orderId;
 }
 

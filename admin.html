@@ -272,6 +272,16 @@
             <button class="btn-primary shrink-0" onclick="saveDigitalGlobalLink()">Simpan</button>
           </div>
         </div>
+        <div class="bg-white rounded-xl border border-line shadow-sm p-5 mb-4">
+          <div>
+            <h2 class="font-display font-semibold">Email Notifikasi Pesanan</h2>
+            <p class="text-xs text-slate-soft mt-1">Dikirim ke alamat ini setiap ada <b>pesanan cetak atau ATK baru</b>. Kosongkan untuk otomatis memakai email akun aplikasi.</p>
+          </div>
+          <div class="mt-3 flex flex-col sm:flex-row gap-2">
+            <input type="email" id="pengaturan-email" class="input-field" placeholder="nama@email.com">
+            <button class="btn-primary shrink-0" onclick="saveNotifyEmail()">Simpan</button>
+          </div>
+        </div>
         <div class="bg-white rounded-xl border border-line shadow-sm">
           <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left text-sm" id="table-digital">
