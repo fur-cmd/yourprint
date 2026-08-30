@@ -629,20 +629,6 @@ textarea:focus-visible {
   inset: 0;
   place-items: center;
 }
-.print-card__btn {
-  margin-top: 1.1rem;
-  background: var(--ink);
-  color: var(--paper);
-  font-weight: 600;
-  font-size: .82rem;
-  padding: .65rem 1rem;
-  border-radius: .5rem;
-  transition: background .18s ease;
-}
-.print-card__btn:hover {
-  background: var(--stamp);
-}
-
 .upload-zone {
   margin-top: 1.25rem;
   border: 1.5px dashed var(--line-darker);
@@ -650,10 +636,12 @@ textarea:focus-visible {
   padding: .85rem .9rem;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: .55rem;
   cursor: pointer;
   color: var(--slate);
   font-size: .8rem;
+  text-decoration: none;
   transition: border-color .18s ease, background .18s ease, color .18s ease;
 }
 .upload-zone:hover {
@@ -661,60 +649,10 @@ textarea:focus-visible {
   background: rgba(var(--stamp-rgb), 0.04);
   color: var(--stamp);
 }
-.upload-zone.has-file {
-  border-style: solid;
-  border-color: var(--success-dark);
-  background: rgba(var(--success-rgb), 0.06);
-  color: var(--success-dark);
-}
 .file-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.file-list {
-  margin-top: .5rem;
-  max-height: 9.5rem;
-  overflow-y: auto;
-  border: 1px solid var(--line);
-  border-radius: .6rem;
-  background: #fff;
-}
-.file-list__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  padding: .35rem .6rem;
-  font-size: .75rem;
-  border-bottom: 1px solid var(--paper);
-}
-.file-list__row:last-child { border-bottom: none; }
-.file-list__name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--ink);
-}
-.file-list__del {
-  flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  display: grid;
-  place-items: center;
-  border: none;
-  border-radius: .3rem;
-  background: rgba(var(--stamp-rgb), 0.1);
-  color: var(--stamp);
-  font-size: .9rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: background .15s ease, color .15s ease;
-}
-.file-list__del:hover {
-  background: var(--stamp);
-  color: #fff;
 }
 
 /* ---------- Mobile: Layanan Cetak Horizontal Scroll ---------- */
@@ -757,35 +695,6 @@ textarea:focus-visible {
     width: 12px;
     height: 12px;
   }
-  .print-scroll .print-card .file-list {
-    max-height: 7rem;
-    font-size: .65rem;
-  }
-  .print-scroll .print-card .file-list__row {
-    padding: .25rem .4rem;
-    font-size: .65rem;
-  }
-  .print-scroll .print-card .file-list__del {
-    width: 1.05rem;
-    height: 1.05rem;
-    font-size: .75rem;
-  }
-  .print-scroll .print-card .print-card__btn {
-    margin-top: .45rem;
-    font-size: .65rem;
-    padding: .4rem .55rem;
-  }
-  .print-scroll .print-card .print-estimate {
-    font-size: .7rem;
-    padding: .55rem .6rem .6rem;
-  }
-  .print-scroll .print-card .print-estimate__modes {
-    flex-direction: column;
-    gap: .3rem;
-  }
-  .print-scroll .print-card .print-estimate__mode span {
-    font-size: .65rem;
-  }
 }
 /* ---------- End Mobile Layanan Cetak ---------- */
 
@@ -810,57 +719,6 @@ textarea:focus-visible {
   }
 }
 /* ---------- End Mobile Produk Digital Populer ---------- */
-
-/* ---------- Smart Print Calculator (estimasi halaman & harga PDF) ---------- */
-.print-estimate {
-  margin-top: .9rem;
-  border: 1px solid var(--line);
-  border-radius: .6rem;
-  padding: .75rem .85rem .85rem;
-  background: var(--paper-alt);
-  font-size: .82rem;
-}
-.print-estimate.hidden {
-  display: none;
-}
-.print-estimate__row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.print-estimate__pages {
-  font-family: "IBM Plex Mono", monospace;
-  font-weight: 600;
-}
-.print-estimate__modes {
-  display: flex;
-  flex-direction: column;
-  gap: .4rem;
-  margin: .65rem 0;
-}
-.print-estimate__mode {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  cursor: pointer;
-  color: var(--ink);
-}
-.print-estimate__mode input {
-  accent-color: var(--stamp);
-}
-.print-estimate__mode em {
-  font-style: normal;
-  color: var(--slate);
-  margin-left: .25rem;
-}
-.print-estimate__total {
-  padding-top: .6rem;
-  border-top: 1px dashed var(--line-darker);
-  font-family: "Space Grotesk", sans-serif;
-  font-weight: 700;
-  font-size: .95rem;
-  color: var(--stamp);
-}
 
 /* ---------- Produk Populer product cards (compact) ---------- */
 .product-card {

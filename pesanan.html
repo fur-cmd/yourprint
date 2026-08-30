@@ -889,9 +889,13 @@
     var pageManualInput = document.getElementById('pageManualInput');
     var pageManualBtn = document.getElementById('pageManualBtn');
     var dPages = document.getElementById('dPages');
-    pageInputWrap.style.display = 'inline-flex';
-    pageInputWrap.style.alignItems = 'center';
-    dPages.style.display = 'none';
+    // Promosi "set halaman manual" hanya saat sudah ada file, tapi halamannya belum terbaca
+    var hasPendingFiles = order.files && order.files.length > 0;
+    if (hasPendingFiles) {
+      pageInputWrap.style.display = 'inline-flex';
+      pageInputWrap.style.alignItems = 'center';
+      dPages.style.display = 'none';
+    }
     pageCount = 1;
     pageManualBtn.addEventListener('click', function() {
       var v = parseInt(pageManualInput.value) || 1;
@@ -1357,6 +1361,19 @@
 
   function refreshPagesDisplay() {
     if (!dPagesEl) return;
+    // Setelah halaman terbaca (file ditambahkan), sembunyikan input manual & tampilkan hitungannya.
+    // Bila file ada tapi halaman belum terbaca, tampilkan lagi input manual agar bisa diisi sendiri.
+    var pw = document.getElementById('pageInputWrap');
+    if (pw && isDokumen) {
+      if (pageCount > 0) {
+        pw.style.display = 'none';
+        dPagesEl.style.display = '';
+      } else if (fileList.length > 0) {
+        pw.style.display = 'inline-flex';
+        pw.style.alignItems = 'center';
+        dPagesEl.style.display = 'none';
+      }
+    }
     dPagesEl.textContent = isDokumen ? (pageCount ? pageCount + ' halaman' : 'Tidak terbaca') : '1 lembar';
   }
 

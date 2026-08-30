@@ -1,42 +1,8 @@
 /* ==========================================================
    YourPrint — script.js
-   Semua logika interaktif: mobile menu, upload simulasi,
-   katalog produk, dan keranjang belanja dinamis.
+   Semua logika interaktif: mobile menu, katalog produk,
+   layanan cetak (redirect ke form), dan keranjang belanja.
    ========================================================== */
-
-// pdf.js dimuat LAZY — hanya saat user memilih file PDF (agar beban awal
-// halaman tidak membawa ±1,5 MB library). Worker di-set setelah library siap.
-const PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-let pdfScriptPromise = null;
-
-function loadPdfLibrary() {
-  if (window.pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
-    return Promise.resolve();
-  }
-  if (pdfScriptPromise) return pdfScriptPromise;
-  pdfScriptPromise = new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = PDFJS_URL;
-    s.async = true;
-    s.onload = () => {
-      if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
-      resolve();
-    };
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-  return pdfScriptPromise;
-}
-
-// Batas ukuran/kuantitas file — disesuaikan untuk multi-file (IndexedDB).
-const ORDER_FILE_LIMITS = {
-  maxPerFile: 10 * 1024 * 1024,  // 10MB per file
-  maxTotal: 30 * 1024 * 1024,    // 30MB total per pesanan
-  maxCount: 50                   // maksimal 50 file per pesanan
-};
 
 function escapeHtml(s) {
   return String(s == null ? '' : s)
@@ -292,43 +258,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  const SERVICE_TYPES = {
-    dokumen: {
-      accept: '.pdf,.doc,.docx,.xls,.xlsx',
-      mimes: [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      ],
-      fileLabel: 'file PDF/Word/Excel',
-      parsePages: true
-    },
-    foto: {
-      accept: 'image/jpeg,image/png,image/webp',
-      mimes: ['image/jpeg', 'image/png', 'image/webp'],
-      fileLabel: 'foto JPG/PNG/WEBP',
-      parsePages: false
-    },
-    stiker: {
-      accept: 'image/png,image/jpeg,image/webp',
-      mimes: ['image/png', 'image/jpeg', 'image/webp'],
-      fileLabel: 'file PNG/JPG (disarankan PNG untuk transparan)',
-      parsePages: false
-    },
-    custom: {
-      accept: '.pdf,.doc,.docx,.xls,.xlsx,image/*',
-      mimes: [],
-      fileLabel: 'file apa saja',
-      parsePages: false
-    }
-  };
-
-  function getServiceTypeConfig(type) {
-    return SERVICE_TYPES[type] || SERVICE_TYPES.dokumen;
-  }
-
   function parseServiceOptions(raw) {
     if (!raw) return null;
     try {
@@ -342,237 +271,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function initPrintCards() {
     document.querySelectorAll('.print-card').forEach(card => {
-      const fileInput = card.querySelector('.file-input');
-      const uploadZone = card.querySelector('.upload-zone');
-      const fileLabel = card.querySelector('.file-label');
-      const submitBtn = card.querySelector('.print-card__btn');
-      const serviceName = card.dataset.service;
+      const cta = card.querySelector('.upload-zone');
+      const service = card.dataset.service;
       const serviceType = card.dataset.type || 'dokumen';
-      const typeConf = getServiceTypeConfig(serviceType);
       const options = parseServiceOptions(card.dataset.options);
-
-      // --- Smart Print Calculator (opsional, hanya aktif kalau markup-nya ada) ---
-      const estimateBox = card.querySelector('.print-estimate');
-      const pagesEl = estimateBox ? estimateBox.querySelector('.print-estimate__pages') : null;
-      const priceEl = estimateBox ? estimateBox.querySelector('.print-estimate__price') : null;
-      const modeInputs = estimateBox ? estimateBox.querySelectorAll('input[type="radio"]') : [];
       const priceBw = Number(card.dataset.priceBw || 0);
       const priceColor = Number(card.dataset.priceColor || 0);
-      let currentPageCount = 0;
 
-      function getSelectedColorMode() {
-        const checked = Array.from(modeInputs).find(i => i.checked);
-        return checked ? checked.value : 'bw';
-      }
-
-      function updateEstimatePrice() {
-        if (!priceEl) return;
-        const rate = getSelectedColorMode() === 'color' ? priceColor : priceBw;
-        priceEl.textContent = formatRupiah(currentPageCount * rate);
-      }
-
-      modeInputs.forEach(input => {
-        input.addEventListener('change', updateEstimatePrice);
-      });
-
-      async function readPdfPageCount(file) {
-        try {
-          await loadPdfLibrary(); // lazy-load pdf.js hanya saat benar-benar dipakai
-        } catch (e) { return null; } // pdf.js gagal dimuat — kalkulator dilewati
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        return pdf.numPages;
-      }
-      // --- end Smart Print Calculator ---
-
-      const MAX_FILE_SIZE = ORDER_FILE_LIMITS.maxPerFile;
-      const MAX_TOTAL_SIZE = ORDER_FILE_LIMITS.maxTotal;
-      const MAX_FILE_COUNT = ORDER_FILE_LIMITS.maxCount;
-
-      // Daftar file terpilih yang bisa dihapus per item
-      const fileListWrap = document.createElement('div');
-      fileListWrap.className = 'file-list hidden';
-      uploadZone.after(fileListWrap);
-
-      let cardFiles = []; // metadata: {name, type, size, pages}
-      let orderId = null;
-
-      function saveOrderToSession() {
-        const pageCount = cardFiles.reduce((s, f) => s + (f.pages || 0), 0);
+      function goToForm() {
         sessionStorage.setItem('yp_order', JSON.stringify({
-          orderId: orderId,
-          service: serviceName,
+          orderId: null,
+          service: service,
           serviceType: serviceType,
           options: options,
-          pageCount: pageCount,
-          fileCount: cardFiles.length,
-          files: cardFiles.map(f => ({ name: f.name, type: f.type, pages: f.pages, size: f.size })),
-          fileName: cardFiles[0] ? cardFiles[0].name : '',
-          fileType: cardFiles[0] ? cardFiles[0].type : '',
+          pageCount: 0,
+          fileCount: 0,
+          files: [],
+          fileName: '',
+          fileType: '',
           priceBw: priceBw,
           priceColor: priceColor
         }));
-        return pageCount;
+        window.location.href = 'pesanan.html';
       }
 
-      function updateCardEstimate(pageTotal) {
-        if (!estimateBox) return;
-        if (pageTotal > 0) {
-          estimateBox.classList.remove('hidden');
-          currentPageCount = pageTotal;
-          if (pagesEl) pagesEl.textContent = pageTotal + ' lbr';
-          updateEstimatePrice();
-        } else {
-          estimateBox.classList.add('hidden');
-          currentPageCount = 0;
-          if (pagesEl) pagesEl.textContent = '—';
-          if (priceEl) priceEl.textContent = 'Rp0';
-        }
-      }
-
-      function renderFileList() {
-        if (cardFiles.length === 0) {
-          fileListWrap.classList.add('hidden');
-          fileListWrap.innerHTML = '';
-          return;
-        }
-        fileListWrap.classList.remove('hidden');
-        fileListWrap.innerHTML = cardFiles.map((f, i) => `
-          <div class="file-list__row">
-            <span class="file-list__name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</span>
-            <button type="button" class="file-list__del" data-i="${i}" title="Hapus ${escapeHtml(f.name)}" aria-label="Hapus file">&times;</button>
-          </div>
-        `).join('');
-        fileListWrap.querySelectorAll('.file-list__del').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            removeCardFile(Number(btn.dataset.i));
-          });
+      if (cta) {
+        cta.addEventListener('click', (e) => {
+          e.preventDefault();
+          goToForm();
         });
       }
-
-      function removeCardFile(idx) {
-        if (idx < 0 || idx >= cardFiles.length) return;
-        const removedId = orderId;
-        cardFiles.splice(idx, 1);
-        if (removedId && window.FileStore && FileStore.supported()) {
-          FileStore.remove(removedId, idx).catch(function () {});
-        }
-        if (cardFiles.length === 0) {
-          if (removedId) FileStore.clear(removedId).catch(function () {});
-          orderId = null;
-          sessionStorage.removeItem('yp_order');
-          fileLabel.textContent = 'Pilih file untuk diunggah';
-          uploadZone.classList.remove('has-file');
-        } else {
-          saveOrderToSession();
-          fileLabel.textContent = `✓ ${cardFiles.length} file · ${cardFiles[0].name}${cardFiles.length > 1 ? ' dkk' : ''}`;
-        }
-        renderFileList();
-        updateCardEstimate(cardFiles.reduce((s, f) => s + (f.pages || 0), 0));
-      }
-
-      fileInput.addEventListener('change', async () => {
-        const picked = Array.from(fileInput.files || []);
-        if (picked.length === 0) {
-          fileLabel.textContent = 'Pilih file untuk diunggah';
-          uploadZone.classList.remove('has-file');
-          renderFileList();
-          updateCardEstimate(0);
-          return;
-        }
-
-        if (picked.length > MAX_FILE_COUNT) {
-          showToast(`Maksimal ${MAX_FILE_COUNT} file dalam satu pesanan.`);
-          fileInput.value = '';
-          return;
-        }
-
-        // Pilihan baru menggantikan pilihan lama di kartu ini
-        if (orderId && cardFiles.length > 0) {
-          FileStore.clear(orderId).catch(function () {});
-          orderId = null;
-          cardFiles = [];
-        }
-
-        // Validasi format & ukuran per file
-        for (const file of picked) {
-          if (file.size > MAX_FILE_SIZE) {
-            showToast(`${file.name} terlalu besar! Maksimal 10MB per file.`);
-            fileInput.value = '';
-            return;
-          }
-          const isAllowed = typeConf.mimes.length === 0 || typeConf.mimes.indexOf(file.type) !== -1;
-          if (!isAllowed) {
-            showToast(`File ${file.name}: upload ${typeConf.fileLabel}.`);
-            fileInput.value = '';
-            return;
-          }
-        }
-
-        const totalBytes = picked.reduce((s, f) => s + f.size, 0);
-        if (totalBytes > MAX_TOTAL_SIZE) {
-          showToast('Total ukuran file melebihi 30MB. Kurangi jumlah file.');
-          fileInput.value = '';
-          return;
-        }
-
-        showToast(`Memproses ${picked.length} file...`);
-
-        try {
-          const records = [];
-          for (const file of picked) {
-            let pages = 0;
-            if (typeConf.parsePages) {
-              try {
-                if (file.type === 'application/pdf') {
-                  const p = await readPdfPageCount(file);
-                  pages = p || 1;
-                } else {
-                  pages = 1;
-                }
-              } catch (e) {
-                pages = 1;
-              }
-            }
-            const data = await fileToBase64(file);
-            records.push({ name: file.name, type: file.type, size: file.size, pages: pages, data: data });
-          }
-
-          // Simpan blob besar ke IndexedDB; metadata ringkas di sessionStorage
-          if (!window.FileStore || !FileStore.supported()) {
-            showToast('Browser tidak mendukung penyimpanan file. Gunakan browser lain.');
-            fileInput.value = '';
-            return;
-          }
-          orderId = 'o-' + Date.now();
-          await FileStore.save(orderId, records);
-
-          cardFiles = records.map(r => ({ name: r.name, type: r.type, size: r.size, pages: r.pages }));
-          saveOrderToSession();
-
-          fileLabel.textContent = `✓ ${cardFiles.length} file · ${cardFiles[0].name}${cardFiles.length > 1 ? ' dkk' : ''}`;
-          uploadZone.classList.add('has-file');
-          renderFileList();
-          updateCardEstimate(cardFiles.reduce((s, f) => s + (f.pages || 0), 0));
-          fileInput.value = '';
-        } catch (err) {
-          showToast('Gagal membaca file. Coba file lain.');
-          fileLabel.textContent = 'Pilih file untuk diunggah';
-          uploadZone.classList.remove('has-file');
-        }
-      });
-
-
-
-      submitBtn.addEventListener('click', () => {
-        if (cardFiles.length === 0) {
-          showToast(`Pilih ${typeConf.fileLabel} (boleh beberapa) untuk melanjutkan ke halaman pesanan.`);
-          return;
-        }
-        window.location.href = 'pesanan.html';
-      });
     });
   }
 
@@ -665,9 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     printServicesEl.innerHTML = printServices.map(s => {
-      const hasCalc = parseInt(s.priceBw) > 0 || parseInt(s.priceColor) > 0;
       const imgUrl = fixGoogleDriveUrl(s.image);
-      const typeConf = getServiceTypeConfig(s.type);
       const rawOptions = typeof s.options === 'string' ? s.options : (s.options ? JSON.stringify(s.options) : '');
       return `
       <div class="print-card" data-service="${s.service}" data-price-bw="${s.priceBw}" data-price-color="${s.priceColor}" data-type="${s.type || 'dokumen'}" data-options="${rawOptions.replace(/"/g, '&quot;')}">
@@ -680,40 +406,14 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <h3 class="font-display font-semibold text-lg mt-4">${s.service}</h3>
         <p class="text-slate-soft text-sm mt-1.5">${s.description}</p>
-        <label class="upload-zone">
-          <input type="file" class="hidden file-input" accept="${typeConf.accept}" multiple>
+        <a class="upload-zone" href="pesanan.html" aria-label="Pilih file untuk ${escapeHtml(s.service)}">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0-12 4 4m-4-4-4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          <span class="file-label">Pilih file untuk diunggah</span>
-        </label>
-        
-        ${hasCalc ? `
-        <div class="print-estimate hidden">
-          <div class="print-estimate__row">
-            <span>Jumlah Halaman</span>
-            <span class="print-estimate__pages">—</span>
-          </div>
-          <div class="print-estimate__modes">
-            <label class="print-estimate__mode">
-              <input type="radio" name="colorMode-${s.id}" value="bw" checked>
-              <span>Hitam Putih <em>Rp${s.priceBw}/lbr</em></span>
-            </label>
-            <label class="print-estimate__mode">
-              <input type="radio" name="colorMode-${s.id}" value="color">
-              <span>Warna <em>Rp${s.priceColor}/lbr</em></span>
-            </label>
-          </div>
-          <div class="print-estimate__row print-estimate__total">
-            <span>Estimasi Harga</span>
-            <span class="print-estimate__price">Rp0</span>
-          </div>
-        </div>
-        ` : ''}
-
-        <button class="print-card__btn">Kirim untuk Dicetak</button>
+          <span class="file-label">Pilih File</span>
+        </a>
       </div>
     `}).join('');
-    
-    // Inisialisasi ulang event listener upload
+
+    // Pasang navigasi "Pilih File" menuju halaman pesanan
     initPrintCards();
   }
 
@@ -1143,15 +843,6 @@ document.addEventListener('DOMContentLoaded', () => {
       mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload),
-    });
-  }
-
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
     });
   }
 
