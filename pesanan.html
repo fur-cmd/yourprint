@@ -120,6 +120,45 @@
     display: flex; justify-content: space-between; font-size: 1.05rem;
     font-weight: 700; padding-top: .5rem;
   }
+  .summary-sub {
+    font-size: .72rem; color: var(--slate); line-height: 1.5;
+    padding-left: .25rem; padding-bottom: .2rem;
+  }
+
+  /* Kartu pemilihan Jenis Cetakan */
+  .print-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+  @media (max-width: 640px) { .print-type-grid { grid-template-columns: 1fr; } }
+  .print-type-card {
+    display: flex; align-items: flex-start; gap: .65rem; position: relative;
+    background: #fff; border: 1.5px solid var(--line); border-radius: .65rem;
+    padding: .8rem .9rem; cursor: pointer; transition: all .18s ease;
+  }
+  .print-type-card:hover { border-color: rgba(var(--ink-rgb), 0.19); }
+  .print-type-card.selected {
+    border-color: var(--stamp); background: rgba(var(--stamp-rgb), 0.03);
+    box-shadow: 0 0 0 1px var(--stamp);
+  }
+  .print-type-card input[type="radio"] { position: absolute; opacity: 0; }
+  .print-type-card .pt-emoji { font-size: 1.35rem; line-height: 1.2; }
+  .print-type-card .pt-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
+  .print-type-card .pt-title { font-size: .9rem; font-weight: 700; letter-spacing: .02em; }
+  .print-type-card .pt-desc { font-size: .73rem; color: var(--slate); line-height: 1.4; margin-top: .15rem; }
+  .print-type-card .pt-check {
+    flex-shrink: 0; width: 1.15rem; height: 1.15rem; border-radius: 50%;
+    border: 1.5px solid var(--line); display: grid; place-items: center;
+    color: #fff; font-size: .62rem; font-weight: 700; transition: all .15s ease;
+  }
+  .print-type-card.selected .pt-check { background: var(--stamp); border-color: var(--stamp); }
+  .pt-hint { font-size: .74rem; color: var(--slate); margin-top: .65rem; }
+  .pt-hint a { color: var(--stamp); font-weight: 600; text-decoration: underline; }
+
+  /* Section opsi dinamis */
+  .pt-section { border-top: 1px dashed var(--line); margin-top: .75rem; padding-top: 1rem; }
+  .pt-reveal { animation: ptIn .28s ease; }
+  @keyframes ptIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
 
   .submit-btn {
     width: 100%; margin-top: 1.25rem; padding: .85rem 1rem;
@@ -143,6 +182,40 @@
     transition: background .18s ease;
   }
   .back-btn:hover { background: var(--stamp); }
+
+  .file-count-badge {
+    font-size: .7rem; background: rgba(var(--stamp-rgb), .1); color: var(--stamp);
+    padding: .15rem .55rem; border-radius: 999px; font-weight: 600;
+    vertical-align: middle; margin-left: .35rem; white-space: nowrap;
+  }
+  .file-item {
+    display: flex; align-items: center; gap: .65rem;
+    border: 1px solid var(--line); border-radius: .55rem;
+    padding: .55rem .7rem; margin-bottom: .5rem; background: #fff;
+  }
+  .file-item__del {
+    flex-shrink: 0; width: 2rem; height: 2rem; border: none; border-radius: .45rem;
+    background: rgba(var(--stamp-rgb), .08); color: var(--stamp);
+    font-size: .9rem; cursor: pointer; transition: background .15s ease, color .15s ease;
+  }
+  .file-item__del:hover { background: var(--stamp); color: #fff; }
+  .file-item__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
+  .file-item__name { font-size: .85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-item__meta { font-size: .72rem; color: var(--slate); }
+  .file-actions { display: flex; align-items: center; gap: .6rem; margin-top: .25rem; flex-wrap: wrap; }
+  .add-file-btn {
+    display: inline-flex; align-items: center; gap: .4rem; cursor: pointer;
+    background: var(--ink); color: var(--paper); font-weight: 600; font-size: .85rem;
+    padding: .6rem 1rem; border-radius: .55rem; transition: background .18s ease;
+  }
+  .add-file-btn:hover { background: var(--stamp); }
+  .remove-all-btn {
+    display: inline-flex; align-items: center; gap: .35rem; cursor: pointer;
+    background: #fff; color: var(--stamp); border: 1.5px solid rgba(var(--stamp-rgb), .45);
+    font-weight: 600; font-size: .82rem; padding: .55rem .9rem; border-radius: .55rem;
+    transition: background .15s ease, color .15s ease;
+  }
+  .remove-all-btn:hover { background: rgba(var(--stamp-rgb), .06); }
 
   @media (min-width: 640px) {
     .page-content { max-width: 480px; margin: 0 auto; padding: 1.5rem 0; }
@@ -192,6 +265,22 @@
     </div>
   </div>
 
+  <!-- File yang akan dicetak -->
+  <div class="detail-card">
+    <h2>📁 File yang Akan Dicetak <span id="fileCountBadge" class="file-count-badge"></span></h2>
+    <div id="fileListContainer"></div>
+    <p id="fileEmptyMsg" style="display:none;font-size:.85rem;color:#5B6B7F;margin-bottom:.75rem;">Belum ada file terpilih. Kembali ke beranda untuk memilih file, atau tambah file langsung di bawah ini.</p>
+    <div class="file-actions">
+      <label class="add-file-btn" id="addFileLabel">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Tambah File
+        <input type="file" id="addFileInput" class="hidden" multiple>
+      </label>
+      <button type="button" id="removeAllFilesBtn" class="remove-all-btn" style="display:none;">Hapus Semua</button>
+    </div>
+    <p style="font-size:.72rem;color:#5B6B7F;margin-top:.5rem;">Maksimal 10MB/file, 30MB total, dan 50 file per pesanan. File bisa dihapus satu per satu sebelum pesanan dikirim.</p>
+  </div>
+
   <!-- Data Diri -->
   <div class="detail-card">
     <h2>👤 Data Diri</h2>
@@ -233,9 +322,333 @@
     </div>
   </div>
 
+  <!-- Jenis Cetakan -->
+  <div class="detail-card" id="printTypeCard">
+    <h2>🎛️ Jenis Cetakan</h2>
+    <p style="font-size:.8rem;color:#5B6B7F;margin-bottom:.9rem;">Pilih jenis cetakan agar opsi dan harga yang tampil sesuai dengan kebutuhan Anda.</p>
+    <div class="radio-group print-type-grid">
+      <label class="print-type-card selected">
+        <input type="radio" name="printType" value="document" data-label="Dokumen Biasa" checked>
+        <span class="pt-emoji">📄</span>
+        <span class="pt-body">
+          <span class="pt-title">DOKUMEN BIASA</span>
+          <span class="pt-desc">Skripsi, tugas, laporan, materi, surat, dan dokumen lainnya</span>
+        </span>
+        <span class="pt-check">✓</span>
+      </label>
+      <label class="print-type-card">
+        <input type="radio" name="printType" value="certificate" data-label="Sertifikat">
+        <span class="pt-emoji">🏆</span>
+        <span class="pt-body">
+          <span class="pt-title">SERTIFIKAT</span>
+          <span class="pt-desc">Sertifikat penghargaan, seminar, pelatihan, dan lainnya</span>
+        </span>
+        <span class="pt-check">✓</span>
+      </label>
+      <label class="print-type-card">
+        <input type="radio" name="printType" value="thesis" data-label="Skripsi & Jilid">
+        <span class="pt-emoji">📚</span>
+        <span class="pt-body">
+          <span class="pt-title">SKRIPSI & JILID</span>
+          <span class="pt-desc">Skripsi, proposal, makalah, laporan PKL, dan dokumen berjilid</span>
+        </span>
+        <span class="pt-check">✓</span>
+      </label>
+      <label class="print-type-card">
+        <input type="radio" name="printType" value="special" data-label="Cetak Khusus">
+        <span class="pt-emoji">✨</span>
+        <span class="pt-body">
+          <span class="pt-title">CETAK KHUSUS</span>
+          <span class="pt-desc">CV premium, proposal, booklet, company profile, dan kebutuhan khusus</span>
+        </span>
+        <span class="pt-check">✓</span>
+      </label>
+    </div>
+    <p class="pt-hint">Belum yakin memilih jenis cetakan? <a href="https://wa.me/6285242410880" target="_blank" rel="noopener">Hubungi admin</a> untuk konsultasi.</p>
+  </div>
+
   <!-- Opsi Cetak -->
   <div class="detail-card">
     <h2>⚙️ Opsi Cetak</h2>
+
+    <!-- Opsi Dokumen Biasa -->
+    <div class="pt-section" id="secDoc">
+      <div class="option-group">
+        <span class="option-label">Mode Cetak</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="docMode" value="bw" data-label="Hitam Putih" checked>
+            <span class="radio-text">Hitam Putih</span>
+            <span class="radio-price" data-print="doc-bw">Rp500/lbr</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="docMode" value="color" data-label="Warna">
+            <span class="radio-text">Warna</span>
+            <span class="radio-price" data-print="doc-color">Rp1.000/lbr</span>
+          </label>
+        </div>
+      </div>
+      <div class="option-group">
+        <span class="option-label">Ukuran Kertas</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="docSize" value="A4" data-label="A4" checked>
+            <span class="radio-text">A4</span>
+            <span class="radio-price" data-print="doc-size-A4">Standar</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="docSize" value="F4" data-label="F4 / Folio">
+            <span class="radio-text">F4 / Folio</span>
+            <span class="radio-price" data-print="doc-size-F4">Standar</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="docSize" value="A5" data-label="A5">
+            <span class="radio-text">A5</span>
+            <span class="radio-price" data-print="doc-size-A5">Standar</span>
+          </label>
+        </div>
+      </div>
+      <div class="option-group">
+        <span class="option-label">Sisi Cetak</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="docSide" value="single" data-label="Satu Sisi" checked>
+            <span class="radio-text">Satu Sisi</span>
+            <span class="radio-price">Gratis</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="docSide" value="duplex" data-label="Bolak-Balik">
+            <span class="radio-text">Bolak-Balik</span>
+            <span class="radio-price" data-print="doc-duplex">—</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opsi Sertifikat -->
+    <div class="pt-section" id="secCert" style="display:none;">
+      <div class="option-group">
+        <span class="option-label">Ukuran</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="certSize" value="A4" data-label="A4" checked>
+            <span class="radio-text">A4</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="certSize" value="A5" data-label="A5">
+            <span class="radio-text">A5</span>
+          </label>
+        </div>
+      </div>
+      <div class="option-group">
+        <span class="option-label">Jenis Bahan / Paket</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="certPackage" value="standard" data-label="Standard" checked>
+            <span class="radio-body">
+              <span class="radio-text">STANDARD</span>
+              <span class="radio-desc">Kertas standar</span>
+            </span>
+            <span class="radio-price" data-print="cert-standard">Rp5.000/lbr</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="certPackage" value="glossy" data-label="Glossy Premium">
+            <span class="radio-body">
+              <span class="radio-text">GLOSSY PREMIUM</span>
+              <span class="radio-desc">Kertas glossy</span>
+            </span>
+            <span class="radio-price" data-print="cert-glossy">Rp7.000/lbr</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="certPackage" value="premium" data-label="Premium Laminasi">
+            <span class="radio-body">
+              <span class="radio-text">PREMIUM LAMINASI</span>
+              <span class="radio-desc">Cetak + laminasi</span>
+            </span>
+            <span class="radio-price" data-print="cert-premium">Rp10.000/lbr</span>
+          </label>
+        </div>
+      </div>
+      <p class="pt-hint">Harga sertifikat dihitung per lembar sesuai paket yang dipilih.</p>
+    </div>
+
+    <!-- Opsi Skripsi & Jilid -->
+    <div class="pt-section" id="secThesis" style="display:none;">
+      <div class="option-group">
+        <span class="option-label">Mode Cetak Isi</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="thesMode" value="bw" data-label="Hitam Putih" checked>
+            <span class="radio-text">Hitam Putih</span>
+            <span class="radio-price" data-print="thes-bw">Rp500/lbr</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="thesMode" value="color" data-label="Warna">
+            <span class="radio-text">Warna</span>
+            <span class="radio-price" data-print="thes-color">Rp1.000/lbr</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="thesMode" value="mixed" data-label="Campuran">
+            <span class="radio-body">
+              <span class="radio-text">Campuran</span>
+              <span class="radio-desc">Halaman warna & hitam putih</span>
+            </span>
+            <span class="radio-price" data-print="thes-mixed">±Rp500/lbr</span>
+          </label>
+        </div>
+        <p class="pt-hint">Untuk dokumen dengan halaman warna dan hitam putih, admin akan melakukan penyesuaian harga.</p>
+      </div>
+      <div class="option-group">
+        <span class="option-label">Ukuran Kertas</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="thesSize" value="A4" data-label="A4" checked>
+            <span class="radio-text">A4</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="thesSize" value="F4" data-label="F4">
+            <span class="radio-text">F4</span>
+          </label>
+        </div>
+      </div>
+      <div class="option-group">
+        <span class="option-label">Sisi Cetak</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="thesSide" value="single" data-label="Satu Sisi" checked>
+            <span class="radio-text">Satu Sisi</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="thesSide" value="duplex" data-label="Bolak-Balik">
+            <span class="radio-text">Bolak-Balik</span>
+          </label>
+        </div>
+      </div>
+      <div class="option-group">
+        <span class="option-label">Jenis Jilid</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="thesBinding" value="none" data-label="Tidak Dijilid" checked>
+            <span class="radio-text">Tidak Dijilid</span>
+            <span class="radio-price" data-print="thes-binding-none">Gratis</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="thesBinding" value="spiral" data-label="Spiral">
+            <span class="radio-text">Spiral</span>
+            <span class="radio-price" data-print="thes-binding-spiral">+Rp12.000</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="thesBinding" value="softcover" data-label="Soft Cover">
+            <span class="radio-text">Soft Cover</span>
+            <span class="radio-price" data-print="thes-binding-softcover">+Rp15.000</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="thesBinding" value="hardcover" data-label="Hard Cover">
+            <span class="radio-text">Hard Cover</span>
+            <span class="radio-price" data-print="thes-binding-hardcover">+Rp30.000</span>
+          </label>
+        </div>
+      </div>
+      <div class="option-group">
+        <span class="option-label">Cover</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="thesCover" value="none" data-label="Tanpa Cover" checked>
+            <span class="radio-text">Tanpa Cover</span>
+            <span class="radio-price" data-print="thes-cover-none">Gratis</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="thesCover" value="color" data-label="Cover Warna">
+            <span class="radio-text">Cover Warna</span>
+            <span class="radio-price" data-print="thes-cover-color">+Rp5.000</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="thesCover" value="lamination" data-label="Cover Laminasi">
+            <span class="radio-text">Cover Laminasi</span>
+            <span class="radio-price" data-print="thes-cover-lamination">+Rp10.000</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opsi Cetak Khusus -->
+    <div class="pt-section" id="secSpecial" style="display:none;">
+      <div class="option-group">
+        <span class="option-label">Mode Cetak</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="specMode" value="bw" data-label="Hitam Putih" checked>
+            <span class="radio-text">Hitam Putih</span>
+            <span class="radio-price" data-print="spec-bw">Rp500/lbr</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="specMode" value="color" data-label="Full Color">
+            <span class="radio-text">Full Color</span>
+            <span class="radio-price" data-print="spec-color">Rp1.500/lbr</span>
+          </label>
+        </div>
+      </div>
+      <div class="option-group">
+        <span class="option-label">Jenis Kertas</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="specPaper" value="hvs" data-label="HVS" checked>
+            <span class="radio-text">HVS</span>
+            <span class="radio-price" data-print="spec-paper-hvs">Standar</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="specPaper" value="art" data-label="Art Paper">
+            <span class="radio-text">Art Paper</span>
+            <span class="radio-price" data-print="spec-paper-art">+Rp500/lbr</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="specPaper" value="ivory" data-label="Ivory">
+            <span class="radio-text">Ivory</span>
+            <span class="radio-price" data-print="spec-paper-ivory">+Rp800/lbr</span>
+          </label>
+        </div>
+      </div>
+      <div class="option-group">
+        <span class="option-label">Finishing</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="specFinish" value="none" data-label="Tidak Ada" checked>
+            <span class="radio-text">Tidak Ada</span>
+            <span class="radio-price" data-print="spec-finish-none">Gratis</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="specFinish" value="glossy" data-label="Laminasi Glossy">
+            <span class="radio-text">Laminasi Glossy</span>
+            <span class="radio-price" data-print="spec-finish-glossy">+Rp2.000</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="specFinish" value="doff" data-label="Laminasi Doff">
+            <span class="radio-text">Laminasi Doff</span>
+            <span class="radio-price" data-print="spec-finish-doff">+Rp2.000</span>
+          </label>
+        </div>
+      </div>
+      <div class="option-group">
+        <span class="option-label">Jilid</span>
+        <div class="radio-group">
+          <label class="radio-card selected">
+            <input type="radio" name="specBinding" value="none" data-label="Tidak Ada" checked>
+            <span class="radio-text">Tidak Ada</span>
+            <span class="radio-price" data-print="spec-binding-none">Gratis</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="specBinding" value="spiral" data-label="Spiral">
+            <span class="radio-text">Spiral</span>
+            <span class="radio-price" data-print="spec-binding-spiral">+Rp8.000</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="specBinding" value="heatglue" data-label="Lem Panas">
+            <span class="radio-text">Lem Panas</span>
+            <span class="radio-price" data-print="spec-binding-heatglue">+Rp12.000</span>
+          </label>
+        </div>
+      </div>
+    </div>
 
     <!-- Mode Cetak -->
     <div class="option-group" id="optMode">
@@ -267,8 +680,8 @@
     </div>
 
     <!-- Jumlah Salinan -->
-    <div class="option-group">
-      <span class="option-label">Jumlah Salinan</span>
+    <div class="option-group" id="qtyGroup">
+      <span class="option-label" id="qtyLabel">Jumlah Salinan</span>
       <div class="qty-control">
         <button class="qty-btn" id="qtyMinus" disabled>−</button>
         <input type="number" class="qty-value" id="qtyInput" value="1" min="1" max="1000">
@@ -301,28 +714,31 @@
     <!-- Catatan -->
     <div class="option-group">
       <span class="option-label">Catatan (opsional)</span>
-      <textarea class="notes-area" id="notesInput" placeholder="Contoh: jilid spiral, kertas A4, double-sided, dsb."></textarea>
+      <textarea class="notes-area" id="notesInput" placeholder="Contoh: halaman tertentu berwarna, permintaan khusus, deadline, atau instruksi lainnya..."></textarea>
     </div>
   </div>
 
   <!-- Ringkasan Harga -->
   <div class="summary-box">
     <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;margin-bottom:.75rem;">💰 Ringkasan Harga</h2>
-    <div class="summary-row">
-      <span id="summaryPages">—</span>
-      <span id="summaryPagesCalc">—</span>
-    </div>
-    <div class="summary-row">
-      <span>Cetak</span>
-      <span id="summaryPrintPrice">—</span>
-    </div>
-    <div class="summary-row" id="summaryMaterialRow" style="display:none;">
-      <span>Bahan</span>
-      <span id="summaryMaterialPrice">—</span>
-    </div>
-    <div class="summary-row">
-      <span>Laminasi</span>
-      <span id="summaryLamPrice">—</span>
+    <div id="summaryBody"></div>
+    <div id="summaryStatic">
+      <div class="summary-row">
+        <span id="summaryPages">—</span>
+        <span id="summaryPagesCalc">—</span>
+      </div>
+      <div class="summary-row">
+        <span>Cetak</span>
+        <span id="summaryPrintPrice">—</span>
+      </div>
+      <div class="summary-row" id="summaryMaterialRow" style="display:none;">
+        <span>Bahan</span>
+        <span id="summaryMaterialPrice">—</span>
+      </div>
+      <div class="summary-row">
+        <span>Laminasi</span>
+        <span id="summaryLamPrice">—</span>
+      </div>
     </div>
     <div class="summary-divider"></div>
     <div class="summary-total">
@@ -334,12 +750,13 @@
   <!-- Submit -->
   <button class="submit-btn" id="submitBtn">
     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676 1.007 3.503 1.586 5.388 1.591 5.448 0 9.886-4.433 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-    Kirim via WhatsApp
+    Kirim Pesanan
   </button>
 
 </div>
 
 <script src="config.js"></script>
+<script src="storage.js"></script>
 <script>
 (function() {
   var raw = sessionStorage.getItem('yp_order');
@@ -404,6 +821,7 @@
   var isCustom = serviceType === 'custom' || (!isDokumen && !isFoto && !isStiker);
 
   var pageCount = parseInt(order.pageCount) || 0;
+  var printType = 'document'; // Jenis cetakan default untuk layanan Cetak Dokumen
 
   function setVisible(el, show) {
     if (el) el.style.display = show ? '' : 'none';
@@ -411,10 +829,26 @@
 
   // Toggle grup form sesuai tipe layanan
   setVisible(document.getElementById('pageRow'), isDokumen);
-  setVisible(document.getElementById('optMode'), isDokumen);
+  // Mode & Laminasi lama digantikan sistem "Jenis Cetakan" untuk Dokumen
+  setVisible(document.getElementById('optMode'), false);
   setVisible(document.getElementById('optSize'), (isFoto || isStiker) && options && options.sizes && options.sizes.length > 0);
   setVisible(document.getElementById('optMaterial'), isStiker && options && options.materials && options.materials.length > 0);
-  setVisible(document.getElementById('optLam'), isDokumen || isFoto);
+  setVisible(document.getElementById('optLam'), isFoto);
+
+  // Fitur "Jenis Cetakan" hanya untuk Cetak Dokumen
+  var printTypeCardEl = document.getElementById('printTypeCard');
+  setVisible(printTypeCardEl, isDokumen);
+  var ptSections = ['secDoc', 'secCert', 'secThesis', 'secSpecial'];
+  ptSections.forEach(function(id) {
+    setVisible(document.getElementById(id), false);
+  });
+  if (isDokumen) {
+    setVisible(document.getElementById('secDoc'), true); // Default: Dokumen Biasa
+    updatePriceLabels();
+  } else {
+    var qtyLabelEl = document.getElementById('qtyLabel');
+    if (qtyLabelEl) qtyLabelEl.textContent = 'Jumlah Salinan';
+  }
 
   // Isi opsi Ukuran (foto/stiker)
   var sizeOptionsEl = document.getElementById('sizeOptions');
@@ -449,6 +883,7 @@
   }
 
   // Bug Fix: Cegah harga Rp 0 jika file gagal dibaca (hanya untuk dokumen)
+  var pageCountManual = false;
   if (isDokumen && pageCount <= 0) {
     var pageInputWrap = document.getElementById('pageInputWrap');
     var pageManualInput = document.getElementById('pageManualInput');
@@ -462,6 +897,7 @@
       var v = parseInt(pageManualInput.value) || 1;
       if (v < 1) v = 1;
       pageCount = v;
+      pageCountManual = true;
       pageInputWrap.style.display = 'none';
       dPages.style.display = '';
       dPages.textContent = pageCount + ' halaman (manual)';
@@ -510,11 +946,26 @@
   radioCards.forEach(function(card) {
     card.addEventListener('click', function() {
       var group = card.closest('.radio-group');
+      if (!group) return;
       group.querySelectorAll('.radio-card').forEach(function(c) { c.classList.remove('selected'); });
       card.classList.add('selected');
       card.querySelector('input[type="radio"]').checked = true;
       updateSummary();
     });
+  });
+
+  // Kartu pemilihan "Jenis Cetakan" — tampilkan opsi yang relevan
+  var printTypeCards = document.querySelectorAll('.print-type-card');
+  printTypeCards.forEach(function(card) {
+    // Klik hanya mengubah tampilan terpilih; applyTypeUI dijalankan via event "change"
+    card.addEventListener('click', function() {
+      var group = card.closest('.radio-group');
+      if (group) group.querySelectorAll('.print-type-card').forEach(function(c) { c.classList.remove('selected'); });
+      card.classList.add('selected');
+    });
+  });
+  document.querySelectorAll('input[name="printType"]').forEach(function(r) {
+    r.addEventListener('change', function() { applyTypeUI(r.value); });
   });
 
   function formatRupiah(n) {
@@ -526,9 +977,232 @@
     return checked ? checked.value : '';
   }
 
+  /* ===== Jenis Cetakan & Opsi Dinamis ===== */
+
+  var PRINT_TYPE_META = {
+    document:    { label: 'Dokumen Biasa',   sec: 'secDoc',     qtyLabel: 'Jumlah Salinan' },
+    certificate: { label: 'Sertifikat',      sec: 'secCert',    qtyLabel: 'Jumlah Cetak' },
+    thesis:      { label: 'Skripsi & Jilid', sec: 'secThesis',  qtyLabel: 'Jumlah Eksemplar' },
+    special:     { label: 'Cetak Khusus',    sec: 'secSpecial', qtyLabel: 'Jumlah Cetak' }
+  };
+
+  function numberOr(value, def) {
+    var n = Number(value);
+    return isFinite(n) ? n : def;
+  }
+
+  function priceConfig() {
+    return (window.YOURPRINT_PRICE_CONFIG || {});
+  }
+
+  function radioVal(name, def) {
+    var v = getSelectedRadio(name);
+    return v || def;
+  }
+
+  function radioLabel(name, def) {
+    var checked = document.querySelector('input[name="' + name + '"]:checked');
+    return checked && checked.getAttribute('data-label') ? checked.getAttribute('data-label') : def;
+  }
+
+  function moneyAdd(n) {
+    return n > 0 ? '+Rp' + Number(n).toLocaleString('id-ID') : 'Gratis';
+  }
+
+  // Tampilkan/sembunyikan section opsi sesuai jenis cetakan + label jumlah
+  function applyTypeUI(type) {
+    if (!PRINT_TYPE_META[type]) type = 'document';
+    printType = type;
+    var ql = document.getElementById('qtyLabel');
+    if (ql) ql.textContent = PRINT_TYPE_META[type].qtyLabel;
+    Object.keys(PRINT_TYPE_META).forEach(function(k) {
+      var el = document.getElementById(PRINT_TYPE_META[k].sec);
+      if (!el) return;
+      if (k === type) {
+        el.style.display = '';
+        el.classList.remove('pt-reveal');
+        void el.offsetWidth; // restart animasi ringan
+        el.classList.add('pt-reveal');
+      } else {
+        el.style.display = 'none';
+      }
+    });
+    updatePriceLabels();
+    updateSummary();
+  }
+
+  // Isi label harga di opsi langsung dari PRICE_CONFIG
+  function updatePriceLabels() {
+    var C = priceConfig();
+    var d = C.document || {}, c = C.certificate || {}, t = C.thesis || {}, s = C.special || {};
+    function setPrint(key, val) {
+      var els = document.querySelectorAll('[data-print="' + key + '"]');
+      for (var i = 0; i < els.length; i++) els[i].textContent = val;
+    }
+    var bw = numberOr(d.bw, 500), col = numberOr(d.color, 1000);
+    setPrint('doc-bw', 'Rp' + bw.toLocaleString('id-ID') + '/lbr');
+    setPrint('doc-color', 'Rp' + col.toLocaleString('id-ID') + '/lbr');
+    ['A4', 'F4', 'A5'].forEach(function(sz) {
+      var add = numberOr((d.sizes || {})[sz], 0);
+      setPrint('doc-size-' + sz, add > 0 ? '+Rp' + add.toLocaleString('id-ID') + '/lbr' : 'Standar');
+    });
+    setPrint('doc-duplex', moneyAdd(numberOr(d.duplex, 0)));
+
+    setPrint('cert-standard', 'Rp' + numberOr(c.standard, 5000).toLocaleString('id-ID') + '/lbr');
+    setPrint('cert-glossy', 'Rp' + numberOr(c.glossy, 7000).toLocaleString('id-ID') + '/lbr');
+    setPrint('cert-premium', 'Rp' + numberOr(c.premium, 10000).toLocaleString('id-ID') + '/lbr');
+
+    setPrint('thes-bw', 'Rp' + numberOr(t.bw, 500).toLocaleString('id-ID') + '/lbr');
+    setPrint('thes-color', 'Rp' + numberOr(t.color, 1000).toLocaleString('id-ID') + '/lbr');
+    setPrint('thes-mixed', '±Rp' + numberOr(t.mixed, numberOr(t.bw, 500)).toLocaleString('id-ID') + '/lbr');
+    ['none', 'spiral', 'softcover', 'hardcover'].forEach(function(k) {
+      setPrint('thes-binding-' + k, moneyAdd(numberOr((t.binding || {})[k], 0)));
+    });
+    ['none', 'color', 'lamination'].forEach(function(k) {
+      setPrint('thes-cover-' + k, moneyAdd(numberOr((t.cover || {})[k], 0)));
+    });
+
+    setPrint('spec-bw', 'Rp' + numberOr(s.bw, 500).toLocaleString('id-ID') + '/lbr');
+    setPrint('spec-color', 'Rp' + numberOr(s.color, 1500).toLocaleString('id-ID') + '/lbr');
+    ['hvs', 'art', 'ivory'].forEach(function(k) {
+      var add = numberOr((s.paper || {})[k], 0);
+      setPrint('spec-paper-' + k, add > 0 ? '+Rp' + add.toLocaleString('id-ID') + '/lbr' : 'Standar');
+    });
+    ['none', 'glossy', 'doff'].forEach(function(k) {
+      setPrint('spec-finish-' + k, moneyAdd(numberOr((s.finishing || {})[k], 0)));
+    });
+    ['none', 'spiral', 'heatglue'].forEach(function(k) {
+      setPrint('spec-binding-' + k, moneyAdd(numberOr((s.binding || {})[k], 0)));
+    });
+  }
+
+  function currentFileLabel() {
+    if (typeof fileList === 'undefined' || !fileList.length) return 'Tidak ada file';
+    if (fileList.length === 1) return fileList[0].name;
+    return fileList.length + ' file';
+  }
+
+  // Fungsi utama perhitungan harga — semua angka bersumber dari PRICE_CONFIG
+  function calculatePrice() {
+    var C = priceConfig();
+    var q = parseInt(qtyInput.value) || 1;
+    if (q < 1) q = 1;
+    var pages = Math.max(0, pageCount);
+    var res = { type: printType, qty: q, pages: pages, base: 0, additional: 0, total: 0, lines: [], sub: '' };
+
+    function addLine(label, value) { res.lines.push({ label: label, value: value }); }
+
+    if (printType === 'certificate') {
+      var Cc = C.certificate || {};
+      var pkg = radioVal('certPackage', 'standard');
+      var pkgPrice = numberOr(Cc[pkg], 5000);
+      var sizeAdd = numberOr((Cc.sizes || {})[radioVal('certSize', 'A4')], 0);
+      var lembar = (pages > 0 ? pages : (fileList.length || 1)) * q;
+      res.base = lembar * pkgPrice;
+      res.additional = lembar * sizeAdd;
+      addLine('Jenis', 'Sertifikat');
+      addLine('Ukuran', radioLabel('certSize', 'A4'));
+      addLine('Paket', radioLabel('certPackage', 'Standard'));
+      addLine('Jumlah', lembar + ' lembar');
+      addLine('Harga', formatRupiah(pkgPrice) + ' × ' + lembar);
+      addLine('Subtotal Paket', formatRupiah(res.base));
+      if (res.additional > 0) addLine('Tambahan Ukuran', formatRupiah(res.additional));
+    } else if (printType === 'thesis') {
+      var Ct = C.thesis || {};
+      var mode = radioVal('thesMode', 'bw');
+      var rate = mode === 'color' ? numberOr(Ct.color, 1000)
+        : (mode === 'mixed' ? numberOr(Ct.mixed, numberOr(Ct.bw, 500)) : numberOr(Ct.bw, 500));
+      var binding = radioVal('thesBinding', 'none');
+      var bindPrice = numberOr((Ct.binding || {})[binding], 0);
+      var cover = radioVal('thesCover', 'none');
+      var coverPrice = numberOr((Ct.cover || {})[cover], 0);
+      res.base = Math.max(1, pages) * rate * q;
+      res.additional = (bindPrice + coverPrice) * q;
+      addLine('Jenis', 'Skripsi & Jilid');
+      addLine('Jumlah Halaman', pages + ' halaman');
+      addLine('Mode', radioLabel('thesMode', 'Hitam Putih'));
+      addLine('Ukuran', radioLabel('thesSize', 'A4'));
+      addLine('Sisi', radioLabel('thesSide', 'Satu Sisi'));
+      addLine('Jilid', radioLabel('thesBinding', 'Tidak Dijilid'));
+      addLine('Cover', radioLabel('thesCover', 'Tanpa Cover'));
+      addLine('Jumlah Eksemplar', q);
+      addLine('Subtotal Cetak', formatRupiah(res.base));
+      if (res.additional > 0) addLine('Jilid & Cover', formatRupiah(res.additional));
+      if (mode === 'mixed') res.sub = 'Mode Campuran: untuk dokumen dengan halaman warna dan hitam putih, admin akan melakukan penyesuaian harga.';
+    } else if (printType === 'special') {
+      var Cs = C.special || {};
+      var sm = radioVal('specMode', 'bw');
+      var sRate = sm === 'color' ? numberOr(Cs.color, 1500) : numberOr(Cs.bw, 500);
+      var sPaper = radioVal('specPaper', 'hvs');
+      var sPaperAdd = numberOr((Cs.paper || {})[sPaper], 0);
+      var sFinish = radioVal('specFinish', 'none');
+      var sFinishAdd = numberOr((Cs.finishing || {})[sFinish], 0);
+      var sBind = radioVal('specBinding', 'none');
+      var sBindAdd = numberOr((Cs.binding || {})[sBind], 0);
+      res.base = Math.max(1, pages) * (sRate + sPaperAdd) * q;
+      res.additional = (sFinishAdd + sBindAdd) * q;
+      addLine('Jenis', 'Cetak Khusus');
+      addLine('Jumlah Halaman', pages + ' halaman');
+      addLine('Mode', radioLabel('specMode', 'Hitam Putih'));
+      addLine('Kertas', radioLabel('specPaper', 'HVS'));
+      addLine('Finishing', radioLabel('specFinish', 'Tidak Ada'));
+      addLine('Jilid', radioLabel('specBinding', 'Tidak Ada'));
+      addLine('Jumlah Cetak', q);
+      addLine('Subtotal Cetak', formatRupiah(res.base));
+      if (res.additional > 0) addLine('Tambahan Bahan & Finishing', formatRupiah(res.additional));
+    } else {
+      // Dokumen Biasa
+      var Cd = C.document || {};
+      var dm = radioVal('docMode', 'bw');
+      var dRate = dm === 'color' ? numberOr(Cd.color, 1000) : numberOr(Cd.bw, 500);
+      var dSize = radioVal('docSize', 'A4');
+      var dSizeAdd = numberOr((Cd.sizes || {})[dSize], 0);
+      var dSide = radioVal('docSide', 'single');
+      var dDup = dSide === 'duplex' ? numberOr(Cd.duplex, 0) : 0;
+      var sheets = Math.max(1, pages) * q;
+      res.base = sheets * dRate;
+      res.additional = sheets * (dSizeAdd + dDup);
+      addLine('Jenis', 'Dokumen Biasa');
+      addLine('File', escapeHtml(currentFileLabel()));
+      addLine('Jumlah Halaman', pages + ' halaman');
+      addLine('Mode', radioLabel('docMode', 'Hitam Putih'));
+      addLine('Ukuran', radioLabel('docSize', 'A4'));
+      addLine('Sisi', radioLabel('docSide', 'Satu Sisi'));
+      addLine('Jumlah Salinan', q);
+      addLine('Subtotal Cetak', formatRupiah(res.base));
+      if (res.additional > 0) addLine('Tambahan', formatRupiah(res.additional));
+    }
+
+    res.total = res.base + res.additional;
+    if (!isFinite(res.base)) res.base = 0;
+    if (!isFinite(res.additional)) res.additional = 0;
+    if (!isFinite(res.total) || res.total < 0) res.total = 0;
+    return res;
+  }
+
+  // Render Ringkasan Harga dinamis sesuai jenis cetakan
+  function renderDocSummary() {
+    var calc = calculatePrice();
+    var body = document.getElementById('summaryBody');
+    var stat = document.getElementById('summaryStatic');
+    if (body) {
+      body.style.display = '';
+      body.innerHTML = calc.lines.map(function(l) {
+        return '<div class="summary-row"><span>' + l.label + '</span><span>' + l.value + '</span></div>';
+      }).join('') + (calc.sub ? '<p class="summary-sub">' + calc.sub + '</p>' : '');
+    }
+    if (stat) stat.style.display = 'none';
+    document.getElementById('summaryTotal').textContent = formatRupiah(calc.total);
+  }
+
   function updateSummary() {
     var qty = parseInt(qtyInput.value) || 1;
     var materialSummaryRow = document.getElementById('summaryMaterialRow');
+
+    if (isDokumen) {
+      renderDocSummary();
+      return;
+    }
 
     if (isCustom) {
       document.getElementById('summaryPages').textContent = 'Harga menyesuaikan kebutuhan';
@@ -595,7 +1269,253 @@
     document.getElementById('summaryTotal').textContent = formatRupiah(total);
   }
 
+  /* ===== Manajemen File (multi-file) ===== */
+  var orderId = order.orderId || null;
+  var fileList = [];
+  if (order.files && order.files.length) {
+    fileList = order.files.slice();
+  } else if (order.fileData) {
+    fileList = [{ name: order.fileName || 'file', type: order.fileType || 'application/pdf', pages: order.pageCount || 0, size: 0 }];
+  }
+
   updateSummary();
+
+  var fileListContainer = document.getElementById('fileListContainer');
+  var fileEmptyMsg = document.getElementById('fileEmptyMsg');
+  var fileCountBadge = document.getElementById('fileCountBadge');
+  var removeAllBtn = document.getElementById('removeAllFilesBtn');
+  var addFileInput = document.getElementById('addFileInput');
+  var submitBtn = document.getElementById('submitBtn');
+  var dFileEl = document.getElementById('dFile');
+  var dPagesEl = document.getElementById('dPages');
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function formatSize(bytes) {
+    bytes = Number(bytes) || 0;
+    if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+    if (bytes >= 1024) return Math.round(bytes / 1024) + 'KB';
+    return bytes ? bytes + 'B' : '';
+  }
+
+  function recomputePages() {
+    var sum = fileList.reduce(function (s, f) { return s + (Number(f.pages) || 0); }, 0);
+    pageCount = sum || 0;
+    if (!isDokumen && pageCount <= 0) pageCount = 1;
+    return pageCount;
+  }
+
+  function syncOrderStorage() {
+    try {
+      order.files = fileList.map(function (f) { return { name: f.name, type: f.type, pages: f.pages, size: f.size }; });
+      order.pageCount = recomputePages();
+      order.fileCount = fileList.length;
+      if (fileList.length === 0) {
+        order.fileData = null;
+        order.fileName = '';
+        order.fileType = '';
+      }
+      sessionStorage.setItem('yp_order', JSON.stringify(order));
+    } catch (e) {}
+  }
+
+  function renderFileList() {
+    if (!fileListContainer) return;
+    if (fileList.length === 0) {
+      fileListContainer.innerHTML = '';
+      if (fileEmptyMsg) fileEmptyMsg.style.display = '';
+      if (fileCountBadge) fileCountBadge.textContent = '';
+      if (removeAllBtn) removeAllBtn.style.display = 'none';
+      if (submitBtn) submitBtn.disabled = true;
+      if (dFileEl) dFileEl.textContent = 'Tidak ada file';
+      return;
+    }
+    if (fileEmptyMsg) fileEmptyMsg.style.display = 'none';
+    if (fileCountBadge) fileCountBadge.textContent = fileList.length + ' file';
+    if (removeAllBtn) removeAllBtn.style.display = '';
+    if (submitBtn) submitBtn.disabled = false;
+    if (dFileEl) dFileEl.textContent = fileList.length > 1 ? fileList.length + ' file terpilih' : fileList[0].name;
+
+    fileListContainer.innerHTML = fileList.map(function (f, i) {
+      var pagesText = (Number(f.pages) || 0) > 0 ? f.pages + ' hlm' : '1 hlm';
+      var sizeText = formatSize(f.size);
+      return '<div class="file-item">' +
+        '<button class="file-item__del" type="button" data-i="' + i + '" title="Hapus file" aria-label="Hapus file">🗑</button>' +
+        '<div class="file-item__body">' +
+        '<span class="file-item__name" title="' + escapeHtml(f.name) + '">' + escapeHtml(f.name) + '</span>' +
+        '<span class="file-item__meta">' + pagesText + (sizeText ? ' · ' + sizeText : '') + '</span>' +
+        '</div></div>';
+    }).join('');
+
+    fileListContainer.querySelectorAll('.file-item__del').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        removeFileAt(Number(btn.getAttribute('data-i')));
+      });
+    });
+  }
+
+  function refreshPagesDisplay() {
+    if (!dPagesEl) return;
+    dPagesEl.textContent = isDokumen ? (pageCount ? pageCount + ' halaman' : 'Tidak terbaca') : '1 lembar';
+  }
+
+  function removeFileAt(idx) {
+    if (idx < 0 || idx >= fileList.length) return;
+    fileList.splice(idx, 1);
+    if (orderId && window.FileStore && FileStore.supported()) {
+      FileStore.remove(orderId, idx).catch(function () {});
+    }
+    syncOrderStorage();
+    renderFileList();
+    refreshPagesDisplay();
+    updateSummary();
+  }
+
+  if (removeAllBtn) {
+    removeAllBtn.addEventListener('click', function () {
+      if (!fileList.length) return;
+      if (!window.confirm('Hapus semua file yang terpilih?')) return;
+      var gone = orderId;
+      fileList = [];
+      if (gone && window.FileStore && FileStore.supported()) {
+        FileStore.clear(gone).catch(function () {});
+      }
+      syncOrderStorage();
+      renderFileList();
+      refreshPagesDisplay();
+      updateSummary();
+    });
+  }
+
+  /* --- Tambah File --- */
+  function getInputConfig() {
+    var t = serviceType;
+    if (t === 'dokumen') {
+      return { accept: '.pdf,.doc,.docx,.xls,.xlsx', mimes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'], parsePages: true };
+    }
+    if (t === 'foto' || t === 'stiker') {
+      return { accept: 'image/jpeg,image/png,image/webp', mimes: ['image/jpeg', 'image/png', 'image/webp'], parsePages: false };
+    }
+    return { accept: '.pdf,.doc,.docx,.xls,.xlsx,image/*', mimes: [], parsePages: false };
+  }
+
+  var PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  var PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  var pdfScriptPromise = null;
+  function loadPdfLib() {
+    if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL; return Promise.resolve(); }
+    if (pdfScriptPromise) return pdfScriptPromise;
+    pdfScriptPromise = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = PDFJS_URL;
+      s.async = true;
+      s.onload = function () { if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL; resolve(); };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    return pdfScriptPromise;
+  }
+
+  function fileToBase64(blob) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve(r.result.split(',')[1]); };
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+  }
+
+  var MAX_PER_FILE = 10 * 1024 * 1024;
+  var MAX_TOTAL = 30 * 1024 * 1024;
+  var MAX_COUNT = 50;
+
+  if (addFileInput) {
+    addFileInput.setAttribute('accept', getInputConfig().accept);
+
+    addFileInput.addEventListener('change', async function () {
+      var picked = Array.from(addFileInput.files || []);
+      addFileInput.value = '';
+      if (!picked.length) return;
+
+      if (fileList.length + picked.length > MAX_COUNT) {
+        showToast('Maksimal 50 file dalam satu pesanan.');
+        return;
+      }
+      var cfg = getInputConfig();
+      for (var i = 0; i < picked.length; i++) {
+        var f = picked[i];
+        if (f.size > MAX_PER_FILE) {
+          showToast(f.name + ' terlalu besar! Maksimal 10MB per file.');
+          return;
+        }
+        if (cfg.mimes.length && cfg.mimes.indexOf(f.type) === -1) {
+          showToast('File ' + f.name + ': format tidak didukung untuk layanan ini.');
+          return;
+        }
+      }
+      var existingTotal = fileList.reduce(function (s, fl) { return s + (Number(fl.size) || 0); }, 0);
+      var newTotal = existingTotal + picked.reduce(function (s, fl) { return s + fl.size; }, 0);
+      if (newTotal > MAX_TOTAL) {
+        showToast('Total ukuran file melebihi 30MB. Kurangi jumlah file.');
+        return;
+      }
+
+      showToast('Menambahkan ' + picked.length + ' file...');
+      try {
+        var records = [];
+        for (var j = 0; j < picked.length; j++) {
+          var file = picked[j];
+          var pages = 0;
+          if (cfg.parsePages) {
+            try {
+              if (file.type === 'application/pdf') {
+                await loadPdfLib();
+                var ab = await file.arrayBuffer();
+                var pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+                pages = pdf.numPages || 1;
+              } else {
+                pages = 1;
+              }
+            } catch (e) {
+              pages = 1;
+            }
+          }
+          var data = await fileToBase64(file);
+          records.push({ name: file.name, type: file.type, size: file.size, pages: pages, data: data });
+        }
+
+        if (!window.FileStore || !FileStore.supported()) {
+          showToast('Browser tidak mendukung penyimpanan file. Gunakan browser lain.');
+          return;
+        }
+
+        var allRecords = records;
+        if (!orderId) {
+          // Migrasi order lama (fileData inline) agar blob walik ke IndexedDB juga
+          if (order.fileData) {
+            allRecords = [{ name: order.fileName || 'file', type: order.fileType || 'application/pdf', pages: order.pageCount || 0, size: 0, data: order.fileData }].concat(allRecords);
+          }
+          orderId = 'o-' + Date.now();
+          await FileStore.save(orderId, allRecords);
+          fileList = allRecords.map(function (r) { return { name: r.name, type: r.type, size: r.size, pages: r.pages }; });
+        } else {
+          await FileStore.append(orderId, records);
+          fileList = fileList.concat(records.map(function (r) { return { name: r.name, type: r.type, size: r.size, pages: r.pages }; }));
+        }
+        order.fileData = null;
+        syncOrderStorage();
+        renderFileList();
+        refreshPagesDisplay();
+        updateSummary();
+        showToast('✓ ' + fileList.length + ' file siap dicetak');
+      } catch (err) {
+        showToast('Gagal membaca file yang ditambahkan.');
+      }
+    });
+  }
+
+  renderFileList();
 
   // Maps button handler
   var mapsBtn = document.getElementById('mapsBtn');
@@ -638,7 +1558,7 @@
     });
   }
 
-  document.getElementById('submitBtn').addEventListener('click', function() {
+  document.getElementById('submitBtn').addEventListener('click', async function() {
     var name = document.getElementById('nameInput').value.trim();
     var phone = document.getElementById('phoneInput').value.trim();
     var address = document.getElementById('addressInput').value.trim();
@@ -657,6 +1577,11 @@
     if (!address) {
       showToast('Mohon isi alamat lengkap Anda');
       document.getElementById('addressInput').focus();
+      return;
+    }
+
+    if (!fileList.length) {
+      showToast('Tidak ada file yang siap dicetak. Tambahkan file terlebih dahulu.');
       return;
     }
 
@@ -700,30 +1625,137 @@
     var lamRate = (lam === 'none' || isCustom || isStiker) ? 0 : lamPrice;
     var rate = mode === 'color' ? priceColor : priceBw;
 
-    var totalSheets = (isDokumen ? pageCount : 1) * qty;
-    var printCost, materialCost, total;
-    if (isCustom) {
-      printCost = 0; materialCost = 0; total = 0;
-    } else if (isDokumen) {
-      printCost = totalSheets * rate;
-      materialCost = 0;
-      total = printCost + totalSheets * lamRate;
-    } else {
-      printCost = totalSheets * sizeRate;
-      materialCost = totalSheets * materialRate;
-      total = printCost + materialCost + (isFoto ? totalSheets * lamRate : 0);
-    }
-
-    var modeLabel = mode === 'color' ? 'Warna' : 'Hitam Putih';
-    var lamLabel = lam === 'none' ? 'Tidak ada' : (lam === 'glossy' ? 'Glossy' : 'Doff');
-
+    var printTypeLabel = PRINT_TYPE_META[printType] ? PRINT_TYPE_META[printType].label : '';
+    var basePrice = 0, additionalCost = 0;
+    var printCost = 0, materialCost = 0, total = 0;
     var detailOption = '-';
-    if (isFoto && sizeLabel) detailOption = 'Ukuran: ' + sizeLabel;
-    else if (isStiker) detailOption = 'Ukuran: ' + sizeLabel + (materialLabel ? ', Bahan: ' + materialLabel : '');
+    var docPayload = {}; // field tambahan untuk flow "Jenis Cetakan"
+
+    if (isDokumen) {
+      if (!PRINT_TYPE_META[printType]) {
+        showToast('Pilih jenis cetakan terlebih dahulu.');
+        return;
+      }
+      // Jumlah halaman harus terbaca sebelum checkout (kecuali Sertifikat)
+      if (printType === 'document' || printType === 'thesis' || printType === 'special') {
+        var sumPages = fileList.reduce(function (s, f) { return s + (Number(f.pages) || 0); }, 0);
+        if (sumPages <= 0 && !pageCountManual) {
+          showToast('Jumlah halaman belum dapat dibaca otomatis. Silakan coba upload ulang file atau hubungi admin.');
+          return;
+        }
+      }
+
+      var calc = calculatePrice();
+      basePrice = calc.base;
+      additionalCost = calc.additional;
+      total = calc.total;
+      if (!isFinite(total) || total < 0) {
+        showToast('Terjadi kesalahan perhitungan harga. Silakan muat ulang halaman.');
+        return;
+      }
+
+      var optParts = ['Jenis: ' + printTypeLabel];
+      if (printType === 'document') {
+        docPayload = {
+          colorMode: radioVal('docMode', 'bw'),
+          colorModeLabel: radioLabel('docMode', 'Hitam Putih'),
+          paperSize: radioVal('docSize', 'A4'),
+          paperSizeLabel: radioLabel('docSize', 'A4'),
+          printSide: radioVal('docSide', 'single')
+        };
+        optParts.push(
+          'Mode: ' + docPayload.colorModeLabel,
+          'Ukuran: ' + docPayload.paperSizeLabel,
+          'Sisi: ' + (docPayload.printSide === 'single' ? 'Satu Sisi' : 'Bolak-Balik')
+        );
+      } else if (printType === 'certificate') {
+        docPayload = {
+          colorMode: 'color',
+          colorModeLabel: 'Warna',
+          paperSize: radioVal('certSize', 'A4'),
+          paperSizeLabel: radioLabel('certSize', 'A4'),
+          printSide: 'single',
+          certificatePackage: radioVal('certPackage', 'standard')
+        };
+        optParts.push('Ukuran: ' + docPayload.paperSizeLabel, 'Paket: ' + radioLabel('certPackage', 'Standard'));
+      } else if (printType === 'thesis') {
+        docPayload = {
+          colorMode: radioVal('thesMode', 'bw'),
+          colorModeLabel: radioLabel('thesMode', 'Hitam Putih'),
+          paperSize: radioVal('thesSize', 'A4'),
+          paperSizeLabel: radioLabel('thesSize', 'A4'),
+          printSide: radioVal('thesSide', 'single'),
+          bindingType: radioVal('thesBinding', 'none'),
+          coverType: radioVal('thesCover', 'none')
+        };
+        optParts.push(
+          'Mode: ' + docPayload.colorModeLabel,
+          'Ukuran: ' + docPayload.paperSizeLabel,
+          'Sisi: ' + (docPayload.printSide === 'single' ? 'Satu Sisi' : 'Bolak-Balik'),
+          'Jilid: ' + radioLabel('thesBinding', 'Tidak Dijilid'),
+          'Cover: ' + radioLabel('thesCover', 'Tanpa Cover')
+        );
+      } else {
+        docPayload = {
+          colorMode: radioVal('specMode', 'bw'),
+          colorModeLabel: radioLabel('specMode', 'Hitam Putih'),
+          paperSize: 'custom',
+          paperSizeLabel: 'Custom',
+          printSide: 'single',
+          paperMaterial: radioVal('specPaper', 'hvs'),
+          finishing: radioVal('specFinish', 'none'),
+          bindingType: radioVal('specBinding', 'none')
+        };
+        optParts.push(
+          'Mode: ' + docPayload.colorModeLabel,
+          'Kertas: ' + radioLabel('specPaper', 'HVS'),
+          'Finishing: ' + radioLabel('specFinish', 'Tidak Ada'),
+          'Jilid: ' + radioLabel('specBinding', 'Tidak Ada')
+        );
+      }
+      detailOption = optParts.join(', ');
+    } else {
+      var totalSheets = (isDokumen ? pageCount : 1) * qty;
+      if (isCustom) {
+        printCost = 0; materialCost = 0; total = 0;
+      } else if (isDokumen) {
+        printCost = totalSheets * rate;
+        materialCost = 0;
+        total = printCost + totalSheets * lamRate;
+      } else {
+        printCost = totalSheets * sizeRate;
+        materialCost = totalSheets * materialRate;
+        total = printCost + materialCost + (isFoto ? totalSheets * lamRate : 0);
+      }
+
+      var modeLabel = mode === 'color' ? 'Warna' : 'Hitam Putih';
+      var lamLabel = lam === 'none' ? 'Tidak ada' : (lam === 'glossy' ? 'Glossy' : 'Doff');
+
+      if (isFoto && sizeLabel) detailOption = 'Ukuran: ' + sizeLabel;
+      else if (isStiker) detailOption = 'Ukuran: ' + sizeLabel + (materialLabel ? ', Bahan: ' + materialLabel : '');
+    }
 
     var submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Mengirim pesanan...';
+    submitBtn.textContent = 'Memuat file...';
+
+    // Ambil blob base64 dari IndexedDB (atau legacy dari order.fileData)
+    var blobs = [];
+    if (orderId && window.FileStore && FileStore.supported()) {
+      try { blobs = await FileStore.load(orderId) || []; } catch (e) { blobs = []; }
+    }
+    if ((!blobs || blobs.length === 0) && order.fileData) {
+      blobs = [{ name: order.fileName || 'file', type: order.fileType || 'application/pdf', pages: order.pageCount || 0, data: order.fileData }];
+    }
+    if (!blobs || blobs.length === 0) {
+      showToast('File tidak ditemukan. Silakan pilih ulang file.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Kirim Pesanan';
+      return;
+    }
+
+    var actualPages = blobs.reduce(function (s, b) { return s + (Number(b.pages) || 0); }, 0);
+    if (isDokumen && actualPages > 0) pageCount = actualPages;
 
     var cfg = window.YOURPRINT_CONFIG || {};
     var waNumber = cfg.WHATSAPP_NUMBER || '6285242410880';
@@ -737,29 +1769,52 @@
       address: address,
       mapsLink: mapsLink || '-',
       paymentMethod: paymentMethod || 'Tunai',
-      fileName: fileName,
-      fileType: order.fileType || 'application/pdf',
-      fileData: order.fileData || null,
+      fileName: blobs[0].name || 'file',
+      fileType: blobs[0].type || 'application/octet-stream',
+      files: blobs.map(function (b) {
+        return { name: b.name, type: b.type, data: b.data, pages: Number(b.pages) || 0 };
+      }),
+      fileCount: blobs.length,
       pageCount: isDokumen ? pageCount : 1,
-      colorMode: isDokumen ? mode : (isCustom ? '' : 'color'),
+      colorMode: isDokumen ? (docPayload.colorMode || 'bw') : (isCustom ? '' : 'color'),
+      colorModeLabel: isDokumen ? (docPayload.colorModeLabel || '') : (mode === 'color' ? 'Warna' : 'Hitam Putih'),
       estimatedPrice: isCustom ? 0 : total,
       quantity: qty,
       lamination: (isCustom || isStiker) ? 'none' : lam,
       detailOption: detailOption,
       notes: notes || '-',
-      totalPrice: total
+      totalPrice: total,
+      printType: isDokumen ? printType : '',
+      printTypeLabel: isDokumen ? printTypeLabel : '',
+      basePrice: isDokumen ? basePrice : 0,
+      additionalCost: isDokumen ? additionalCost : 0,
+      paperSize: (isDokumen && docPayload.paperSize) || '',
+      paperSizeLabel: (isDokumen && docPayload.paperSizeLabel) || '',
+      printSide: (isDokumen && docPayload.printSide) || '',
+      certificatePackage: (isDokumen && docPayload.certificatePackage) || '',
+      bindingType: (isDokumen && docPayload.bindingType) || '',
+      coverType: (isDokumen && docPayload.coverType) || '',
+      paperMaterial: (isDokumen && docPayload.paperMaterial) || '',
+      finishing: (isDokumen && docPayload.finishing) || ''
     };
 
     var msg = 'Halo YourPrint, saya ingin memesan cetak:\n\n';
     msg += ' Detail Pesanan:\n';
     msg += '• Layanan: ' + serviceName + '\n';
-    msg += '• File: ' + fileName + (isDokumen ? ' (' + pageCount + ' halaman)' : '') + '\n';
-    if (isFoto || isStiker) msg += '• Detail: ' + detailOption + '\n';
-    if (isDokumen) msg += '• Mode: ' + modeLabel + '\n';
-    if (!isCustom) {
+    msg += '• ' + blobs.length + ' file:\n';
+    blobs.forEach(function (b, i) {
+      msg += '   ' + (i + 1) + '. ' + b.name + (Number(b.pages) ? ' (' + b.pages + ' halaman)' : '') + '\n';
+    });
+    if (isDokumen) {
+      msg += '• Jenis Cetakan: ' + printTypeLabel + '\n';
+      msg += '• Opsi: ' + detailOption + '\n';
+      msg += '• Jumlah Halaman: ' + pageCount + ' halaman\n';
+    } else {
+      if (isFoto || isStiker) msg += '• Detail: ' + detailOption + '\n';
+    }
+    if (!isDokumen && !isCustom) {
       msg += '\n Opsi:\n';
-      msg += '• Jumlah: ' + qty + (isDokumen ? ' salinan' : ' lembar') + '\n';
-      if (isDokumen) msg += '• Laminasi: ' + lamLabel + '\n';
+      msg += '• Jumlah: ' + qty + ' lembar\n';
     }
     if (notes) msg += '• Catatan: ' + notes + '\n';
     msg += '\n Data Diri:\n';
@@ -771,8 +1826,11 @@
     if (isCustom) {
       msg += '• Harga: Menyesuaikan kebutuhan (akan dikonfirmasi admin)\n';
     } else if (isDokumen) {
-      msg += '• Cetak: ' + totalSheets + ' lbr × ' + formatRupiah(rate) + ' = ' + formatRupiah(printCost) + '\n';
-      if (lamRate > 0) msg += '• Laminasi: ' + formatRupiah(totalSheets * lamRate) + '\n';
+      var calcMsg = calculatePrice();
+      calcMsg.lines.forEach(function (l) {
+        msg += '• ' + l.label + ': ' + l.value + '\n';
+      });
+      if (calcMsg.sub) msg += '• Catatan: ' + calcMsg.sub + '\n';
       msg += '• Total: ' + formatRupiah(total) + '\n';
     } else {
       msg += '• ' + detailOption + ' × ' + qty + ' lbr\n';
@@ -794,19 +1852,18 @@
       }
     } catch (e) {}
 
-    sendToBackend(payload).then(function() {
+    function onSent() {
       var waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg);
       window.open(waUrl, '_blank');
+      if (orderId && window.FileStore && FileStore.supported()) {
+        FileStore.clear(orderId).catch(function () {});
+      }
       sessionStorage.removeItem('yp_order');
       submitBtn.textContent = '✓ Pesanan Terkirim';
       submitBtn.style.background = '#2E7D32';
-    }).catch(function() {
-      var waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg);
-      window.open(waUrl, '_blank');
-      sessionStorage.removeItem('yp_order');
-      submitBtn.textContent = '✓ Pesanan Terkirim';
-      submitBtn.style.background = '#2E7D32';
-    });
+    }
+
+    sendToBackend(payload).then(onSent).catch(onSent);
   });
 
   function sendToBackend(payload) {

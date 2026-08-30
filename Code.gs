@@ -83,7 +83,7 @@ function seedInitialData() {
   let sheetServices = getOrCreateSheet("Layanan Cetak", ["id", "service", "priceBw", "priceColor", "description", "image", "fallbackGradient", "iconSvg", "type", "options"]);
   if (sheetServices.getLastRow() === 1) {
     const data = [
-      ["s1", "Cetak Dokumen", 500, 1500, "PDF, Word, Excel — hitam-putih atau warna, mulai Rp500/lembar.", "images/services/cetak-dokumen.jpg", "linear-gradient(135deg,#EAF1FB,#D6E4FA)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6M9 13h6M9 17h6\"/></svg>", "dokumen", ""],
+      ["s1", "Cetak Dokumen", 500, 1000, "PDF, Word, Excel — hitam-putih atau warna, mulai Rp500/lembar.", "images/services/cetak-dokumen.jpg", "linear-gradient(135deg,#EAF1FB,#D6E4FA)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6M9 13h6M9 17h6\"/></svg>", "dokumen", ""],
       ["s2", "Cetak Foto", 0, 0, "Kertas glossy/doff, ukuran pasfoto hingga 5R, hasil tajam & tahan lama.", "images/services/cetak-foto.jpg", "linear-gradient(135deg,#FDEFE8,#FBDFCF)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"8.5\" cy=\"8.5\" r=\"1.5\"/><path d=\"m21 15-5-5L5 21\"/></svg>", "foto", '{"sizes":[{"size":"2x3 cm","price":1000,"desc":"Pasfoto dokumen resmi (KTP, ijazah, paspor)."},{"size":"3x4 cm","price":1500,"desc":"Pasfoto dokumen resmi (KTP, ijazah, paspor)."},{"size":"4x6 cm","price":2500,"desc":"Pasfoto ukuran paling besar untuk administrasi resmi."},{"size":"2R (6 x 9 cm)","price":3000,"desc":"Ukuran paling populer untuk disimpan di dompet."},{"size":"3R (8,9 x 12,7 cm)","price":4000,"desc":"Standar minimal untuk album foto keluarga."},{"size":"4R (10,2 x 15,2 cm)","price":5000,"desc":"Paling favorit untuk momen sehari-hari, liburan & acara kasual."},{"size":"5R (12,7 x 17,8 cm)","price":8000,"desc":"Pilihan untuk hasil foto lebih besar dan detail."}]}'],
       ["s3", "Jasa Jilid", 0, 0, "Spiral, lakban, hardcover — rapikan dokumen & laporan Anda.", "images/services/jasa-jilid.jpg", "linear-gradient(135deg,#F1EEFB,#E2DBF7)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"/><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z\"/><path d=\"M8 7h8M8 11h8\"/></svg>", "custom", ""],
       ["s4", "Cetak Banner", 0, 0, "Spanduk, X-banner, MMT — desain sendiri atau kami bantu buatkan.", "images/services/cetak-banner.jpg", "linear-gradient(135deg,#FEF6E0,#FCEBB8)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"1\"/><path d=\"M3 10h18M8 14h.01M12 14h4\"/></svg>", "custom", ""],
@@ -404,22 +404,49 @@ function saveOrder(data) {
 }
 
 function savePrintJob(data) {
-  const sheet = getOrCreateSheet("Pesanan Cetak", ["Order ID", "Waktu", "Nama Pemesan", "No. WhatsApp", "Alamat", "Link Maps", "Metode Bayar", "Layanan", "Nama File", "Link File", "Jumlah Halaman", "Mode Warna", "Estimasi Harga", "Jumlah Salinan", "Laminasi", "Catatan", "Total Harga", "Status", "Detail Opsi"]);
+  const sheet = getOrCreateSheet("Pesanan Cetak", ["Order ID", "Waktu", "Nama Pemesan", "No. WhatsApp", "Alamat", "Link Maps", "Metode Bayar", "Layanan", "Nama File", "Link File", "Jumlah Halaman", "Mode Warna", "Estimasi Harga", "Jumlah Salinan", "Laminasi", "Catatan", "Total Harga", "Status", "Detail Opsi", "Jenis Cetakan", "Biaya Pokok", "Biaya Tambahan"]);
   const orderId = generateOrderId("cetak");
-  let fileUrl = "-";
-  if (data.fileData) {
+  let fileNames = "-";
+  let fileUrls = "-";
+
+  // Dukung banyak file (data.files), dengan fallback ke format lama (fileData tunggal)
+  const files = (data.files && data.files.length)
+    ? data.files
+    : (data.fileData
+      ? [{ name: data.fileName || "file-tanpa-nama", type: data.fileType || "application/octet-stream", data: data.fileData, pages: data.pageCount || 0 }]
+      : []);
+
+  if (files.length > 0) {
     const folder = getOrCreateFolder(DRIVE_FOLDER_NAME);
-    const contentType = data.fileType || "application/octet-stream";
-    const bytes = Utilities.base64Decode(data.fileData);
-    const blob = Utilities.newBlob(bytes, contentType, data.fileName || "file-tanpa-nama");
-    const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    fileUrl = file.getUrl();
+    const nameParts = [];
+    const urlParts = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      if (!f.data) continue;
+      const contentType = f.type || "application/octet-stream";
+      const bytes = Utilities.base64Decode(f.data);
+      const blob = Utilities.newBlob(bytes, contentType, f.name || "file-tanpa-nama");
+      const file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      const fileName = f.name || ("file-" + (i + 1));
+      const pageInfo = Number(f.pages) > 0 ? (" (" + f.pages + " halaman)") : "";
+      nameParts.push((i + 1) + ". " + fileName + pageInfo);
+      urlParts.push(file.getUrl());
+    }
+    if (nameParts.length > 0) fileNames = nameParts.join("\n");
+    if (urlParts.length > 0) fileUrls = urlParts.join("\n");
   }
   var lamLabel = "Tidak ada";
   if (data.lamination === "glossy") lamLabel = "Glossy";
   else if (data.lamination === "doff") lamLabel = "Doff";
   var detailOption = data.detailOption || "-";
+  var modeColorLabel = data.colorModeLabel
+    || (data.colorMode === "color" ? "Warna" : (data.colorMode === "bw" ? "Hitam Putih" : "-"));
+  var printTypeLabel = data.printTypeLabel || "-";
+  var basePrice = (data.basePrice !== undefined && data.basePrice !== null && Number(data.basePrice) > 0)
+    ? Number(data.basePrice) : "-";
+  var additionalCost = (data.additionalCost !== undefined && data.additionalCost !== null && Number(data.additionalCost) > 0)
+    ? Number(data.additionalCost) : "-";
   sheet.appendRow([
     orderId,
     new Date(data.timestamp || Date.now()),
@@ -429,17 +456,20 @@ function savePrintJob(data) {
     data.mapsLink || "-",
     data.paymentMethod || "Tunai",
     data.service || "-",
-    data.fileName || "-",
-    fileUrl,
+    fileNames,
+    fileUrls,
     data.pageCount || "-",
-    data.colorMode === "color" ? "Warna" : (data.colorMode === "bw" ? "Hitam Putih" : "-"),
+    modeColorLabel,
     data.estimatedPrice ? Number(data.estimatedPrice) : "-",
     data.quantity || 1,
     lamLabel,
     data.notes || "-",
     data.totalPrice ? Number(data.totalPrice) : "-",
     "Menunggu",
-    detailOption
+    detailOption,
+    printTypeLabel,
+    basePrice,
+    additionalCost
   ]);
   evictSheetCache("Pesanan Cetak");
   return orderId;

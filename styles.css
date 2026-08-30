@@ -673,6 +673,50 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
+.file-list {
+  margin-top: .5rem;
+  max-height: 9.5rem;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: .6rem;
+  background: #fff;
+}
+.file-list__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .35rem .6rem;
+  font-size: .75rem;
+  border-bottom: 1px solid var(--paper);
+}
+.file-list__row:last-child { border-bottom: none; }
+.file-list__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+}
+.file-list__del {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: .3rem;
+  background: rgba(var(--stamp-rgb), 0.1);
+  color: var(--stamp);
+  font-size: .9rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.file-list__del:hover {
+  background: var(--stamp);
+  color: #fff;
+}
+
 /* ---------- Mobile: Layanan Cetak Horizontal Scroll ---------- */
 @media (max-width: 1023px) {
   .print-scroll {
@@ -712,6 +756,19 @@ textarea:focus-visible {
   .print-scroll .print-card .upload-zone svg {
     width: 12px;
     height: 12px;
+  }
+  .print-scroll .print-card .file-list {
+    max-height: 7rem;
+    font-size: .65rem;
+  }
+  .print-scroll .print-card .file-list__row {
+    padding: .25rem .4rem;
+    font-size: .65rem;
+  }
+  .print-scroll .print-card .file-list__del {
+    width: 1.05rem;
+    height: 1.05rem;
+    font-size: .75rem;
   }
   .print-scroll .print-card .print-card__btn {
     margin-top: .45rem;

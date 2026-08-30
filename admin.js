@@ -1525,6 +1525,40 @@
 
   /* ==================== Orders Cetak ==================== */
 
+  function splitNameLine(line) {
+    var text = String(line || '');
+    var info = '';
+    var open = text.lastIndexOf(' (');
+    if (open > 0 && text.indexOf(')', open) === text.length - 1) {
+      info = text.substring(open + 2, text.length - 1);
+      text = text.substring(0, open);
+    }
+    text = text.replace(/^\s*\d+[\.\s)\s]+\s*/, '');
+    return { text: text, info: info };
+  }
+
+  // Render kolom File: satu link per file (banyak file → daftar link terpisah).
+  function buildFileLinks(o, linkClass, infoClass) {
+    var rawLinks = String(o['Link File'] || '');
+    var names = String(o['Nama File'] || '');
+    if (!rawLinks || rawLinks === '-' || rawLinks === '') {
+      return (o['Nama File'] && o['Nama File'] !== '-') ? o['Nama File'] : '-';
+    }
+    var linkLines = rawLinks.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+    var nameLines = names.split('\n');
+    var parts = [];
+    for (var i = 0; i < linkLines.length; i++) {
+      var href = linkLines[i];
+      if (!/^https?:\/\//i.test(href)) href = 'https://' + href;
+      var parsed = splitNameLine(nameLines[i] || ('File ' + (i + 1)));
+      var label = parsed.text || ('File ' + (i + 1));
+      var row = '<a href="' + href + '" target="_blank" rel="noopener" class="' + linkClass + '">' + label + '</a>';
+      if (parsed.info) row += ' <span class="' + infoClass + '">(' + parsed.info + ')</span>';
+      parts.push('<div class="leading-snug">' + row + '</div>');
+    }
+    return '<div class="flex flex-col gap-0.5">' + parts.join('') + '</div>';
+  }
+
   function renderOrdersCetak(orders) {
     var tbody = document.querySelector('#table-orders-cetak tbody');
     if (!tbody) return;
@@ -1539,12 +1573,13 @@
       var options = ['Menunggu', 'Dikonfirmasi', 'Diproses', 'Siap Diambil', 'Selesai', 'Dibatalkan'].map(function (s) {
         return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + s + '</option>';
       }).join('');
-      var fileLink = o['Link File'] && o['Link File'] !== '-' ? '<a href="' + o['Link File'] + '" target="_blank" class="text-stamp underline text-xs">' + (o['Nama File'] || 'File') + '</a>' : (o['Nama File'] || '-');
+      var fileLink = buildFileLinks(o, 'text-stamp underline text-xs', 'text-[9px] text-slate-soft');
       var mapsLink = o['Link Maps'] && o['Link Maps'] !== '-' ? '<br><a href="' + o['Link Maps'] + '" target="_blank" class="text-blue-600 underline text-xs">📍 Buka Maps</a>' : '';
       var detailCetak = [
+        o['Jenis Cetakan'] && o['Jenis Cetakan'] !== '-' ? 'Jenis: ' + o['Jenis Cetakan'] : '',
         o['Detail Opsi'] && o['Detail Opsi'] !== '-' ? o['Detail Opsi'] : '',
         o['Jumlah Halaman'] ? o['Jumlah Halaman'] + ' hlm' : '',
-        o['Mode Warna'] || '',
+        o['Mode Warna'] && o['Mode Warna'] !== '-' ? o['Mode Warna'] : '',
         o['Jumlah Salinan'] ? o['Jumlah Salinan'] + 'x' : '',
         o['Laminasi'] && o['Laminasi'] !== 'Tidak ada' ? o['Laminasi'] : ''
       ].filter(Boolean).join(', ') || '-';
@@ -1569,12 +1604,13 @@
       var options = ['Menunggu', 'Dikonfirmasi', 'Diproses', 'Siap Diambil', 'Selesai', 'Dibatalkan'].map(function (s) {
         return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + s + '</option>';
       }).join('');
-      var fileLink = o['Link File'] && o['Link File'] !== '-' ? '<a href="' + o['Link File'] + '" target="_blank" class="text-stamp underline">' + (o['Nama File'] || 'File') + '</a>' : (o['Nama File'] || '-');
+      var fileLink = buildFileLinks(o, 'text-stamp underline', 'text-[10px] text-slate-soft');
       var mapsLink = o['Link Maps'] && o['Link Maps'] !== '-' ? '<a href="' + o['Link Maps'] + '" target="_blank" class="text-blue-600 underline" style="font-size:.75rem;">📍 Buka Maps</a>' : '-';
       var detailCetak = [
+        o['Jenis Cetakan'] && o['Jenis Cetakan'] !== '-' ? 'Jenis: ' + o['Jenis Cetakan'] : '',
         o['Detail Opsi'] && o['Detail Opsi'] !== '-' ? o['Detail Opsi'] : '',
         o['Jumlah Halaman'] ? o['Jumlah Halaman'] + ' hlm' : '',
-        o['Mode Warna'] || '',
+        o['Mode Warna'] && o['Mode Warna'] !== '-' ? o['Mode Warna'] : '',
         o['Jumlah Salinan'] ? o['Jumlah Salinan'] + 'x' : '',
         o['Laminasi'] && o['Laminasi'] !== 'Tidak ada' ? o['Laminasi'] : ''
       ].filter(Boolean).join(', ') || '-';

@@ -31,6 +31,21 @@ function loadPdfLibrary() {
   return pdfScriptPromise;
 }
 
+// Batas ukuran/kuantitas file — disesuaikan untuk multi-file (IndexedDB).
+const ORDER_FILE_LIMITS = {
+  maxPerFile: 10 * 1024 * 1024,  // 10MB per file
+  maxTotal: 30 * 1024 * 1024,    // 30MB total per pesanan
+  maxCount: 50                   // maksimal 50 file per pesanan
+};
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   /* ------------------------------------------------------
@@ -370,70 +385,180 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       // --- end Smart Print Calculator ---
 
-      const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB — batas aman untuk sessionStorage
+      const MAX_FILE_SIZE = ORDER_FILE_LIMITS.maxPerFile;
+      const MAX_TOTAL_SIZE = ORDER_FILE_LIMITS.maxTotal;
+      const MAX_FILE_COUNT = ORDER_FILE_LIMITS.maxCount;
+
+      // Daftar file terpilih yang bisa dihapus per item
+      const fileListWrap = document.createElement('div');
+      fileListWrap.className = 'file-list hidden';
+      uploadZone.after(fileListWrap);
+
+      let cardFiles = []; // metadata: {name, type, size, pages}
+      let orderId = null;
+
+      function saveOrderToSession() {
+        const pageCount = cardFiles.reduce((s, f) => s + (f.pages || 0), 0);
+        sessionStorage.setItem('yp_order', JSON.stringify({
+          orderId: orderId,
+          service: serviceName,
+          serviceType: serviceType,
+          options: options,
+          pageCount: pageCount,
+          fileCount: cardFiles.length,
+          files: cardFiles.map(f => ({ name: f.name, type: f.type, pages: f.pages, size: f.size })),
+          fileName: cardFiles[0] ? cardFiles[0].name : '',
+          fileType: cardFiles[0] ? cardFiles[0].type : '',
+          priceBw: priceBw,
+          priceColor: priceColor
+        }));
+        return pageCount;
+      }
+
+      function updateCardEstimate(pageTotal) {
+        if (!estimateBox) return;
+        if (pageTotal > 0) {
+          estimateBox.classList.remove('hidden');
+          currentPageCount = pageTotal;
+          if (pagesEl) pagesEl.textContent = pageTotal + ' lbr';
+          updateEstimatePrice();
+        } else {
+          estimateBox.classList.add('hidden');
+          currentPageCount = 0;
+          if (pagesEl) pagesEl.textContent = '—';
+          if (priceEl) priceEl.textContent = 'Rp0';
+        }
+      }
+
+      function renderFileList() {
+        if (cardFiles.length === 0) {
+          fileListWrap.classList.add('hidden');
+          fileListWrap.innerHTML = '';
+          return;
+        }
+        fileListWrap.classList.remove('hidden');
+        fileListWrap.innerHTML = cardFiles.map((f, i) => `
+          <div class="file-list__row">
+            <span class="file-list__name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</span>
+            <button type="button" class="file-list__del" data-i="${i}" title="Hapus ${escapeHtml(f.name)}" aria-label="Hapus file">&times;</button>
+          </div>
+        `).join('');
+        fileListWrap.querySelectorAll('.file-list__del').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            removeCardFile(Number(btn.dataset.i));
+          });
+        });
+      }
+
+      function removeCardFile(idx) {
+        if (idx < 0 || idx >= cardFiles.length) return;
+        const removedId = orderId;
+        cardFiles.splice(idx, 1);
+        if (removedId && window.FileStore && FileStore.supported()) {
+          FileStore.remove(removedId, idx).catch(function () {});
+        }
+        if (cardFiles.length === 0) {
+          if (removedId) FileStore.clear(removedId).catch(function () {});
+          orderId = null;
+          sessionStorage.removeItem('yp_order');
+          fileLabel.textContent = 'Pilih file untuk diunggah';
+          uploadZone.classList.remove('has-file');
+        } else {
+          saveOrderToSession();
+          fileLabel.textContent = `✓ ${cardFiles.length} file · ${cardFiles[0].name}${cardFiles.length > 1 ? ' dkk' : ''}`;
+        }
+        renderFileList();
+        updateCardEstimate(cardFiles.reduce((s, f) => s + (f.pages || 0), 0));
+      }
 
       fileInput.addEventListener('change', async () => {
-        if (fileInput.files.length > 0) {
-          const file = fileInput.files[0];
+        const picked = Array.from(fileInput.files || []);
+        if (picked.length === 0) {
+          fileLabel.textContent = 'Pilih file untuk diunggah';
+          uploadZone.classList.remove('has-file');
+          renderFileList();
+          updateCardEstimate(0);
+          return;
+        }
 
+        if (picked.length > MAX_FILE_COUNT) {
+          showToast(`Maksimal ${MAX_FILE_COUNT} file dalam satu pesanan.`);
+          fileInput.value = '';
+          return;
+        }
+
+        // Pilihan baru menggantikan pilihan lama di kartu ini
+        if (orderId && cardFiles.length > 0) {
+          FileStore.clear(orderId).catch(function () {});
+          orderId = null;
+          cardFiles = [];
+        }
+
+        // Validasi format & ukuran per file
+        for (const file of picked) {
           if (file.size > MAX_FILE_SIZE) {
-            showToast('Ukuran file terlalu besar! Maksimal 4MB agar pesanan lancar.');
+            showToast(`${file.name} terlalu besar! Maksimal 10MB per file.`);
             fileInput.value = '';
-            fileLabel.textContent = 'Pilih file untuk diunggah';
-            uploadZone.classList.remove('has-file');
             return;
           }
-
           const isAllowed = typeConf.mimes.length === 0 || typeConf.mimes.indexOf(file.type) !== -1;
           if (!isAllowed) {
-            showToast(`Upload ${typeConf.fileLabel} untuk melanjutkan.`);
+            showToast(`File ${file.name}: upload ${typeConf.fileLabel}.`);
             fileInput.value = '';
-            fileLabel.textContent = 'Pilih file untuk diunggah';
-            uploadZone.classList.remove('has-file');
             return;
           }
+        }
 
-          fileLabel.textContent = `✓ ${file.name}`;
-          uploadZone.classList.add('has-file');
+        const totalBytes = picked.reduce((s, f) => s + f.size, 0);
+        if (totalBytes > MAX_TOTAL_SIZE) {
+          showToast('Total ukuran file melebihi 30MB. Kurangi jumlah file.');
+          fileInput.value = '';
+          return;
+        }
 
-          try {
-            let pageCount = 0;
-            let fileData = null;
+        showToast(`Memproses ${picked.length} file...`);
 
+        try {
+          const records = [];
+          for (const file of picked) {
+            let pages = 0;
             if (typeConf.parsePages) {
-              showToast('Membaca jumlah halaman...');
-              let pages = null;
               try {
                 if (file.type === 'application/pdf') {
-                  pages = await readPdfPageCount(file);
+                  const p = await readPdfPageCount(file);
+                  pages = p || 1;
+                } else {
+                  pages = 1;
                 }
               } catch (e) {
-                pages = null;
+                pages = 1;
               }
-              fileData = await fileToBase64(file);
-              pageCount = pages || 0;
-            } else {
-              fileData = await fileToBase64(file);
             }
-
-            sessionStorage.setItem('yp_order', JSON.stringify({
-              service: serviceName,
-              serviceType: serviceType,
-              options: options,
-              pageCount: pageCount,
-              fileName: file.name,
-              fileType: file.type,
-              fileData: fileData,
-              priceBw: priceBw,
-              priceColor: priceColor
-            }));
-            window.location.href = 'pesanan.html';
-          } catch (err) {
-            showToast('Gagal membaca file. Coba file lain.');
-            fileLabel.textContent = 'Pilih file untuk diunggah';
-            uploadZone.classList.remove('has-file');
+            const data = await fileToBase64(file);
+            records.push({ name: file.name, type: file.type, size: file.size, pages: pages, data: data });
           }
-        } else {
+
+          // Simpan blob besar ke IndexedDB; metadata ringkas di sessionStorage
+          if (!window.FileStore || !FileStore.supported()) {
+            showToast('Browser tidak mendukung penyimpanan file. Gunakan browser lain.');
+            fileInput.value = '';
+            return;
+          }
+          orderId = 'o-' + Date.now();
+          await FileStore.save(orderId, records);
+
+          cardFiles = records.map(r => ({ name: r.name, type: r.type, size: r.size, pages: r.pages }));
+          saveOrderToSession();
+
+          fileLabel.textContent = `✓ ${cardFiles.length} file · ${cardFiles[0].name}${cardFiles.length > 1 ? ' dkk' : ''}`;
+          uploadZone.classList.add('has-file');
+          renderFileList();
+          updateCardEstimate(cardFiles.reduce((s, f) => s + (f.pages || 0), 0));
+          fileInput.value = '';
+        } catch (err) {
+          showToast('Gagal membaca file. Coba file lain.');
           fileLabel.textContent = 'Pilih file untuk diunggah';
           uploadZone.classList.remove('has-file');
         }
@@ -442,7 +567,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
       submitBtn.addEventListener('click', () => {
-        showToast(`Upload ${typeConf.fileLabel} untuk melanjutkan ke halaman pesanan.`);
+        if (cardFiles.length === 0) {
+          showToast(`Pilih ${typeConf.fileLabel} (boleh beberapa) untuk melanjutkan ke halaman pesanan.`);
+          return;
+        }
+        window.location.href = 'pesanan.html';
       });
     });
   }
@@ -552,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <h3 class="font-display font-semibold text-lg mt-4">${s.service}</h3>
         <p class="text-slate-soft text-sm mt-1.5">${s.description}</p>
         <label class="upload-zone">
-          <input type="file" class="hidden file-input" accept="${typeConf.accept}">
+          <input type="file" class="hidden file-input" accept="${typeConf.accept}" multiple>
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0-12 4 4m-4-4-4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           <span class="file-label">Pilih file untuk diunggah</span>
         </label>
