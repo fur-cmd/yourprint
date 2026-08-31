@@ -265,6 +265,9 @@
     </div>
   </div>
 
+  <!-- Wizard Cetak Stiker (opsi stiker) -->
+  <div id="stickerWizard" class="detail-card" style="display:none;" aria-label="Pemesanan Cetak Stiker"></div>
+
   <!-- File yang akan dicetak -->
   <div class="detail-card">
     <h2>📁 File yang Akan Dicetak <span id="fileCountBadge" class="file-count-badge"></span></h2>
@@ -817,7 +820,7 @@
   var options = order.options || null;
   var isDokumen = serviceType === 'dokumen';
   var isFoto = serviceType === 'foto';
-  var isStiker = serviceType === 'stiker';
+  var isStiker = serviceType === 'stiker' || /stiker/i.test(serviceName);
   var isCustom = serviceType === 'custom' || (!isDokumen && !isFoto && !isStiker);
 
   var pageCount = parseInt(order.pageCount) || 0;
@@ -848,6 +851,53 @@
   } else {
     var qtyLabelEl = document.getElementById('qtyLabel');
     if (qtyLabelEl) qtyLabelEl.textContent = 'Jumlah Salinan';
+  }
+
+  // ===== CETAK STIKER: ganti seluruh form lama dengan wizard pemesanan =====
+  if (isStiker) {
+    // Sembunyikan bagian-bagian form lama yang tidak dipakai lagi
+    ['fileListContainer', 'nameInput', 'optSize'].forEach(function (anchorId) {
+      var el = document.getElementById(anchorId);
+      if (el && el.closest) setVisible(el.closest('.detail-card'), false);
+    });
+    var summaryBoxEl = document.querySelector('.summary-box');
+    if (summaryBoxEl) setVisible(summaryBoxEl, false);
+    setVisible(document.getElementById('submitBtn'), false);
+    var dFileRowEl = document.getElementById('dFile');
+    if (dFileRowEl && dFileRowEl.closest) setVisible(dFileRowEl.closest('.detail-row'), false);
+
+    // Beri tahu stiker.js data pemesan awal (mode embed)
+    window.YP_STICKER_PREFILL = {
+      name: (document.getElementById('nameInput') || {}).value || '',
+      phone: (document.getElementById('phoneInput') || {}).value || '',
+      address: (document.getElementById('addressInput') || {}).value || '',
+      payment: getSelectedRadio('paymentMethod') || 'Tunai'
+    };
+
+    var wizardHost = document.getElementById('stickerWizard');
+    if (wizardHost) {
+      setVisible(wizardHost, true);
+      wizardHost.innerHTML =
+        '<div class="stk-progress mb-3" id="phaseProgress" aria-label="Progres pemesanan stiker">' +
+        '<div class="stk-progress__item is-active" data-phase="0"><span class="stk-dot">1</span><span>Jenis</span></div>' +
+        '<span class="stk-progress__sep">→</span>' +
+        '<div class="stk-progress__item" data-phase="1"><span class="stk-dot">2</span><span>Spesifikasi</span></div>' +
+        '<span class="stk-progress__sep">→</span>' +
+        '<div class="stk-progress__item" data-phase="2"><span class="stk-dot">3</span><span>Desain</span></div>' +
+        '<span class="stk-progress__sep">→</span>' +
+        '<div class="stk-progress__item" data-phase="3"><span class="stk-dot">4</span><span>Pesanan</span></div>' +
+        '</div>' +
+        '<div class="stk-subnav mb-3 hidden" id="specSubnav"></div>' +
+        '<section id="stepContent" class="min-w-0" aria-live="polite"></section>' +
+        '<div class="summary-panel summary-card mt-4" id="summaryPanel"></div>' +
+        '<div class="mobile-bar" id="mobileBar">' +
+        '<div class="min-w-0 flex-1">' +
+        '<div class="mb-label">Estimasi</div>' +
+        '<div class="mb-price" id="mobileBarPrice">—</div>' +
+        '</div>' +
+        '<button type="button" class="stk-btn-primary" id="mobileBarBtn">Lanjutkan</button>' +
+        '</div>';
+    }
   }
 
   // Isi opsi Ukuran (foto/stiker)
@@ -1915,5 +1965,7 @@
   }
 })();
 </script>
+<script src="sticker-config.js"></script>
+<script src="stiker.js"></script>
 </body>
 </html>
