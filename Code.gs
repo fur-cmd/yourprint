@@ -88,7 +88,8 @@ function seedInitialData() {
       ["s3", "Jasa Jilid", 0, 0, "Spiral, lakban, hardcover — rapikan dokumen & laporan Anda.", "images/services/jasa-jilid.jpg", "linear-gradient(135deg,#F1EEFB,#E2DBF7)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"/><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z\"/><path d=\"M8 7h8M8 11h8\"/></svg>", "custom", ""],
       ["s4", "Cetak Banner", 0, 0, "Spanduk, X-banner, MMT — desain sendiri atau kami bantu buatkan.", "images/services/cetak-banner.jpg", "linear-gradient(135deg,#FEF6E0,#FCEBB8)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"1\"/><path d=\"M3 10h18M8 14h.01M12 14h4\"/></svg>", "custom", ""],
       ["s5", "Cetak Stiker", 0, 0, "Stiker vinyl/transparan/putih — custom ukuran, tahan air & awet.", "images/services/cetak-stiker.jpg", "linear-gradient(135deg,#E8F6EE,#D3F0DF)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 2l2.4 4.9L20 8l-4 3.9.9 5.6L12 14.7 7.1 17.5 8 11.9 4 8l5.6-1.1z\"/></svg>", "stiker", '{"sizes":[{"size":"A6","price":5000},{"size":"A5","price":8000},{"size":"A4","price":12000},{"size":"A3","price":20000}],"materials":[{"name":"Vinyl","price":0},{"name":"Transparan","price":3000},{"name":"Putih Glossy","price":2000}]}'],
-      ["s6", "Cetak Custom", 0, 0, "Cetak apa aja — mug, kaos, pin, dan lainnya. Harga menyesuaikan kebutuhan.", "images/services/cetak-custom.jpg", "linear-gradient(135deg,#F1EEFB,#E2DBF7)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l1.9 5.7a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z\"/></svg>", "custom", ""]
+      ["s6", "Cetak Custom", 0, 0, "Cetak apa aja — mug, kaos, pin, dan lainnya. Harga menyesuaikan kebutuhan.", "images/services/cetak-custom.jpg", "linear-gradient(135deg,#F1EEFB,#E2DBF7)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l1.9 5.7a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z\"/></svg>", "custom", ""],
+      ["s7", "Jasa Joki Tugas", 0, 0, "Bantuan mengerjakan tugas, makalah, laporan, PPT, dan lainnya. Isi form, admin konfirmasi via WhatsApp.", "images/services/joki-tugas.jpg", "linear-gradient(135deg,#FEF6E0,#FCEBB8)", "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M22 10v6M2 10l10-5 10 5-10 5z\"/><path d=\"M6 12v5c3 3 9 3 12 0v-5\"/></svg>", "joki", '{"jenisTugas":[{"name":"Essay / Makalah","desc":"Tulisan akademik, esai, atau makalah"},{"name":"Laporan","desc":"Laporan praktikum, PKL, magang"},{"name":"PPT / Slide","desc":"Presentasi, slide pendukung"},{"name":"Soal Hitungan","desc":"Matematika, fisika, akuntansi"},{"name":"Coding / Program","desc":"Tugas pemrograman, script, aplikasi"},{"name":"Tugas Lainnya","desc":"Jenis tugas lainnya — diskusikan via WA"}],"level":[{"name":"SD / SMP"},{"name":"SMA / SMK"},{"name":"Kuliah / D3 / D4 / S1"},{"name":"Pasca Sarjana"}]}']
     ];
     sheetServices.getRange(2, 1, data.length, data[0].length).setValues(data);
   }
@@ -147,6 +148,46 @@ function seedInitialData() {
 
   // Fix any column misalignment issues
   fixCetakSheet();
+}
+
+// MIGRATION: Jalankan SEKALI untuk menambahkan layanan "Jasa Joki Tugas" (s7)
+// ke sheet "Layanan Cetak" yang sudah terisi lama (seedInitialData tidak menimpa).
+function migrateAddJokiService() {
+  const sheet = getOrCreateSheet("Layanan Cetak", ["id", "service", "priceBw", "priceColor", "description", "image", "fallbackGradient", "iconSvg", "type", "options"]);
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]).trim() === "s7") {
+      Logger.log("migrateAddJokiService: s7 sudah ada, lewati.");
+      return;
+    }
+  }
+  const row = [
+    "s7", "Jasa Joki Tugas", 0, 0,
+    "Bantuan mengerjakan tugas, makalah, laporan, PPT, dan lainnya. Isi form, admin konfirmasi via WhatsApp.",
+    "images/services/joki-tugas.jpg",
+    "linear-gradient(135deg,#FEF6E0,#FCEBB8)",
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-9 h-9 text-ink/70\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M22 10v6M2 10l10-5 10 5-10 5z\"/><path d=\"M6 12v5c3 3 9 3 12 0v-5\"/></svg>",
+    "joki",
+    JSON.stringify({
+      jenisTugas: [
+        { name: "Essay / Makalah", desc: "Tulisan akademik, esai, atau makalah" },
+        { name: "Laporan", desc: "Laporan praktikum, PKL, magang" },
+        { name: "PPT / Slide", desc: "Presentasi, slide pendukung" },
+        { name: "Soal Hitungan", desc: "Matematika, fisika, akuntansi" },
+        { name: "Coding / Program", desc: "Tugas pemrograman, script, aplikasi" },
+        { name: "Tugas Lainnya", desc: "Jenis tugas lainnya — diskusikan via WA" }
+      ],
+      level: [
+        { name: "SD / SMP" },
+        { name: "SMA / SMK" },
+        { name: "Kuliah / D3 / D4 / S1" },
+        { name: "Pasca Sarjana" }
+      ]
+    })
+  ];
+  sheet.appendRow(row);
+  evictSheetCache("Layanan Cetak");
+  Logger.log("migrateAddJokiService: layanan s7 ditambahkan.");
 }
 
 // MIGRATION: Jalankan sekali untuk menambahkan Order ID ke data pesanan yang sudah ada
@@ -556,6 +597,20 @@ function savePrintJob(data) {
   if (data.lamination === "glossy") lamLabel = "Glossy";
   else if (data.lamination === "doff") lamLabel = "Doff";
   var detailOption = data.detailOption || "-";
+  // Jasa Joki Tugas: gabungkan detail spesifik ke dalam Detail Opsi agar tersimpan
+  // di kolom yang sudah ada (dan tampil di notifikasi email / tracking pesanan).
+  if (String(data.serviceType || "").toLowerCase() === "joki") {
+    var jb = [];
+    if (data.taskType && data.taskType !== "-") jb.push("Jenis Tugas: " + data.taskType);
+    if (data.subject && data.subject !== "-") jb.push("Mata Kuliah/Pelajaran: " + data.subject);
+    if (data.deadline && data.deadline !== "-") jb.push("Deadline: " + data.deadline);
+    var jokiDesc = data.description || data.topic || "";
+    if (jokiDesc && jokiDesc !== "-") jb.push("Deskripsi: " + jokiDesc);
+    if (data.taskAmount && data.taskAmount !== "-") jb.push("Jumlah: " + data.taskAmount);
+    if (data.difficulty && data.difficulty !== "-") jb.push("Level: " + data.difficulty);
+    if (data.referenceLink && data.referenceLink !== "-") jb.push("Link Referensi: " + data.referenceLink);
+    if (jb.length) detailOption = jb.join(" | ");
+  }
   var modeColorLabel = data.colorModeLabel
     || (data.colorMode === "color" ? "Warna" : (data.colorMode === "bw" ? "Hitam Putih" : "-"));
   var printTypeLabel = data.printTypeLabel || "-";

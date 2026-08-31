@@ -230,7 +230,7 @@
     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
     Kembali
   </a>
-  <h1>Pesanan Cetak</h1>
+  <h1 id="pageTitle">Pesanan Cetak</h1>
 </header>
 
 <!-- EMPTY STATE (jika tidak ada data) -->
@@ -270,7 +270,7 @@
 
   <!-- File yang akan dicetak -->
   <div class="detail-card">
-    <h2>📁 File yang Akan Dicetak <span id="fileCountBadge" class="file-count-badge"></span></h2>
+    <h2 id="fileCardTitle">📁 File yang Akan Dicetak <span id="fileCountBadge" class="file-count-badge"></span></h2>
     <div id="fileListContainer"></div>
     <p id="fileEmptyMsg" style="display:none;font-size:.85rem;color:#5B6B7F;margin-bottom:.75rem;">Belum ada file terpilih. Kembali ke beranda untuk memilih file, atau tambah file langsung di bawah ini.</p>
     <div class="file-actions">
@@ -281,7 +281,7 @@
       </label>
       <button type="button" id="removeAllFilesBtn" class="remove-all-btn" style="display:none;">Hapus Semua</button>
     </div>
-    <p style="font-size:.72rem;color:#5B6B7F;margin-top:.5rem;">Maksimal 10MB/file, 30MB total, dan 50 file per pesanan. File bisa dihapus satu per satu sebelum pesanan dikirim.</p>
+    <p id="fileLimitMsg" style="font-size:.72rem;color:#5B6B7F;margin-top:.5rem;">Maksimal 10MB/file, 30MB total, dan 50 file per pesanan. File bisa dihapus satu per satu sebelum pesanan dikirim.</p>
   </div>
 
   <!-- Data Diri -->
@@ -322,6 +322,40 @@
           <span class="radio-price">Konfirmasi ke admin</span>
         </label>
       </div>
+    </div>
+  </div>
+
+  <!-- ===== JASA JOKI TUGAS (form khusus, hidden kecuali layanan joki) ===== -->
+  <div class="detail-card" id="jokiCard" style="display:none;">
+    <h2>📝 Detail Jasa Joki Tugas</h2>
+    <p style="font-size:.8rem;color:#5B6B7F;margin-bottom:.9rem;">
+      Lengkapi detail tugas Anda. Admin akan mengonfirmasi harga & pengerjaan via WhatsApp.
+      Terapkan untuk membantu tugas yang Anda perbolehkan dikerjakan pihak lain; pastikan sesuai ketentuan kampus/sekolah Anda.
+    </p>
+
+    <div class="option-group">
+      <span class="option-label">Jenis Tugas <span style="color:#E4572E;">*</span></span>
+      <div class="radio-group" id="jokiJenisTugas"></div>
+    </div>
+
+    <div class="option-group">
+      <span class="option-label">Mata Kuliah / Pelajaran <span style="color:#E4572E;">*</span></span>
+      <input type="text" id="jokiSubject" class="notes-area" style="min-height:auto;resize:none;" placeholder="Contoh: Analisis Data, Filsafat, Matematika" required>
+    </div>
+
+    <div class="option-group">
+      <span class="option-label">Deadline <span style="color:#E4572E;">*</span></span>
+      <input type="date" id="jokiDeadline" class="notes-area" style="min-height:auto;resize:none;height:auto;padding:.6rem;" required>
+    </div>
+
+    <div class="option-group">
+      <span class="option-label">Deskripsi Tugas <span style="color:#E4572E;">*</span></span>
+      <textarea class="notes-area" id="jokiDescription" placeholder="Ceritakan singkat tugas Anda, misalnya: judul/topik, target atau banyaknya (10 halaman, 15 slide, 20 soal), level pendidikan, ketentuan dosen, serta link bahan/materi bila ada." required></textarea>
+    </div>
+
+    <div class="option-group">
+      <span class="option-label">Unggah Soal / Bahan (opsional)</span>
+      <p style="font-size:.74rem;color:#5B6B7F;margin-bottom:.5rem;">Anda dapat mengunggah soal atau bahan referensi pada bagian "File" di atas (PDF, gambar, dokumen). Ini opsional — bukan prasyarat.</p>
     </div>
   </div>
 
@@ -818,10 +852,11 @@
   var serviceName = order.service || 'Cetak Dokumen';
   var serviceType = order.serviceType || 'dokumen';
   var options = order.options || null;
+  var isJoki = serviceType === 'joki' || /joki/i.test(serviceName);
   var isDokumen = serviceType === 'dokumen';
   var isFoto = serviceType === 'foto';
   var isStiker = serviceType === 'stiker' || /stiker/i.test(serviceName);
-  var isCustom = serviceType === 'custom' || (!isDokumen && !isFoto && !isStiker);
+  var isCustom = serviceType === 'custom' || (!isJoki && !isDokumen && !isFoto && !isStiker);
 
   var pageCount = parseInt(order.pageCount) || 0;
   var printType = 'document'; // Jenis cetakan default untuk layanan Cetak Dokumen
@@ -851,6 +886,76 @@
   } else {
     var qtyLabelEl = document.getElementById('qtyLabel');
     if (qtyLabelEl) qtyLabelEl.textContent = 'Jumlah Salinan';
+  }
+
+  // ===== JASA JOKI TUGAS: form khusus (bukan cetak fisik) =====
+  if (isJoki) {
+    var pageTitleEl = document.getElementById('pageTitle');
+    if (pageTitleEl) pageTitleEl.textContent = 'Pesan Jasa Joki Tugas';
+
+    // Sembunyikan bagian form cetak yang tak relevan
+    setVisible(document.getElementById('pageRow'), false);
+    setVisible(document.getElementById('optMode'), false);
+    setVisible(document.getElementById('optSize'), false);
+    setVisible(document.getElementById('optMaterial'), false);
+    setVisible(document.getElementById('optLam'), false);
+    setVisible(document.getElementById('printTypeCard'), false);
+    setVisible(document.getElementById('qtyGroup'), false);
+    var summaryBoxJ = document.querySelector('.summary-box');
+    if (summaryBoxJ) setVisible(summaryBoxJ, false);
+
+    // Alamat, maps & pembayaran tidak relevan untuk joki (konsultasi via WA)
+    ['addressInput', 'mapsBtn', 'mapsStatus'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && el.closest) setVisible(el.closest('.option-group'), false);
+    });
+    var dFileRowJ = document.getElementById('dFile');
+    if (dFileRowJ && dFileRowJ.closest) setVisible(dFileRowJ.closest('.detail-row'), false);
+
+    // Sesuaikan label card file → upload bahan/soal referensi
+    var fileCardTitleJ = document.getElementById('fileCardTitle');
+    if (fileCardTitleJ) fileCardTitleJ.innerHTML = '📎 Soal / Bahan Referensi (opsional) <span id="fileCountBadge" class="file-count-badge"></span>';
+    var fileEmptyMsgJ = document.getElementById('fileEmptyMsg');
+    if (fileEmptyMsgJ) fileEmptyMsgJ.textContent = 'Belum ada bahan. Bahan bersifat opsional — Anda bisa langsung kirim permintaan tanpa file.';
+    var fileLimitMsgJ = document.getElementById('fileLimitMsg');
+    if (fileLimitMsgJ) fileLimitMsgJ.textContent = 'Unggah soal, gambar, atau dokumen pendukung (opsional). Maksimal 10MB/file dan 30MB total.';
+
+    // Isi daftar Jenis Tugas dari options (default sheet)
+    var jenisTugasEl = document.getElementById('jokiJenisTugas');
+    var jenisList = (Array.isArray(options) ? options : (options && options.jenisTugas)) || [];
+    if (jenisTugasEl) {
+      jenisTugasEl.innerHTML = (jenisList.length ? jenisList : [
+        { name: 'Essay / Makalah', desc: '' },
+        { name: 'Laporan', desc: '' },
+        { name: 'PPT / Slide', desc: '' },
+        { name: 'Soal Hitungan', desc: '' },
+        { name: 'Coding / Program', desc: '' },
+        { name: 'Tugas Lainnya', desc: '' }
+      ]).map(function (t, i) {
+        var selected = i === 0 ? ' selected' : '';
+        var checked = i === 0 ? ' checked' : '';
+        return '<label class="radio-card' + selected + '">' +
+          '<input type="radio" name="jokiTaskType" value="' + escapeHtml(t.name) + '"' + checked + '>' +
+          '<span class="radio-body">' +
+          '<span class="radio-text">' + escapeHtml(t.name) + '</span>' +
+          (t.desc ? '<span class="radio-desc">' + escapeHtml(t.desc) + '</span>' : '') +
+          '</span></label>';
+      }).join('');
+    }
+
+    // Pasang interaksi radio-card untuk field joki (sama pola di atas)
+    document.querySelectorAll('#jokiCard .radio-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var group = card.closest('.radio-group');
+        if (!group) return;
+        group.querySelectorAll('.radio-card').forEach(function (c) { c.classList.remove('selected'); });
+        card.classList.add('selected');
+        card.querySelector('input[type="radio"]').checked = true;
+      });
+    });
+
+    // Tampilkan form joki
+    setVisible(document.getElementById('jokiCard'), true);
   }
 
   // ===== CETAK STIKER: ganti seluruh form lama dengan wizard pemesanan =====
@@ -1255,6 +1360,7 @@
   }
 
   function updateSummary() {
+    if (isJoki) return; // joki: ringkasan harga otomatis tidak dipakai (estimasi via admin)
     var qty = parseInt(qtyInput.value) || 1;
     var materialSummaryRow = document.getElementById('summaryMaterialRow');
 
@@ -1386,7 +1492,8 @@
       if (fileEmptyMsg) fileEmptyMsg.style.display = '';
       if (fileCountBadge) fileCountBadge.textContent = '';
       if (removeAllBtn) removeAllBtn.style.display = 'none';
-      if (submitBtn) submitBtn.disabled = true;
+      // Joki: file opsional → tombol submit tetap aktif
+      if (submitBtn) submitBtn.disabled = isJoki ? false : true;
       if (dFileEl) dFileEl.textContent = 'Tidak ada file';
       return;
     }
@@ -1635,6 +1742,12 @@
     var phone = document.getElementById('phoneInput').value.trim();
     var address = document.getElementById('addressInput').value.trim();
     var paymentMethod = getSelectedRadio('paymentMethod');
+
+    // ===== JASA JOKI TUGAS (flow khusus) =====
+    if (isJoki) {
+      submitJoki(name, phone);
+      return;
+    }
 
     if (!name) {
       showToast('Mohon isi nama lengkap Anda');
@@ -1937,6 +2050,124 @@
 
     sendToBackend(payload).then(onSent).catch(onSent);
   });
+
+  // ===== SUBMIT KHUSUS: JASA JOKI TUGAS =====
+  function submitJoki(name, phone) {
+    function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+    var taskType = getSelectedRadio('jokiTaskType') || '';
+    var subject = val('jokiSubject');
+    var deadline = val('jokiDeadline');
+    var description = val('jokiDescription');
+
+    var requiredTitles = [['subject', 'Mata Kuliah / Pelajaran', subject], ['deadline', 'Deadline', deadline], ['jokiDescription', 'Deskripsi Tugas', description]];
+    for (var r = 0; r < requiredTitles.length; r++) {
+      if (!requiredTitles[r][2]) {
+        showToast('Mohon isi ' + requiredTitles[r][1]);
+        var f = document.getElementById(requiredTitles[r][0]);
+        if (f) f.focus();
+        return;
+      }
+    }
+    if (!taskType) {
+      showToast('Mohon pilih jenis tugas');
+      return;
+    }
+
+    var taskTypeLabel = taskType;
+    var deadlineLabel = deadline;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(deadline)) {
+      try {
+        var dd = new Date(deadline + 'T00:00:00');
+        deadlineLabel = dd.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      } catch (e) { deadlineLabel = deadline; }
+    }
+
+    var cfg = window.YOURPRINT_CONFIG || {};
+    var waNumber = cfg.WHATSAPP_NUMBER || '6285242410880';
+
+    var submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Mengirim permintaan...';
+
+    // Muat file referensi (opsional)
+    var blobs = [];
+    var collectFiles = Promise.resolve();
+    if (orderId && window.FileStore && FileStore.supported()) {
+      collectFiles = FileStore.load(orderId).then(function (b) { blobs = b || []; }).catch(function () { blobs = []; });
+    } else if (order.fileData) {
+      blobs = [{ name: order.fileName || 'file', type: order.fileType || 'application/pdf', pages: order.pageCount || 0, data: order.fileData }];
+    }
+
+    collectFiles.then(function () {
+      var fileCount = blobs.length;
+      var payload = {
+        type: 'print',
+        timestamp: Date.now(),
+        service: serviceName,
+        serviceType: 'joki',
+        customerName: name,
+        customerPhone: phone,
+        address: '-',
+        mapsLink: '-',
+        paymentMethod: 'Konsultasi WA',
+        files: blobs.map(function (b) {
+          return { name: b.name, type: b.type, data: b.data, pages: Number(b.pages) || 0 };
+        }),
+        fileCount: fileCount,
+        fileName: blobs.length ? blobs[0].name : 'file',
+        fileType: blobs.length ? blobs[0].type : 'application/octet-stream',
+        pageCount: 0,
+        colorMode: '',
+        colorModeLabel: '',
+        estimatedPrice: 0,
+        quantity: 1,
+        lamination: 'none',
+        detailOption: '-',
+        notes: description || '-',
+        totalPrice: 0,
+        printType: '',
+        printTypeLabel: '',
+        basePrice: 0,
+        additionalCost: 0,
+        // Field spesifik joki (dibaca Code.gs → savePrintJob)
+        taskType: taskTypeLabel,
+        subject: subject,
+        topic: description,
+        taskAmount: '',
+        deadline: deadlineLabel,
+        difficulty: '',
+        referenceLink: '',
+        description: description
+      };
+
+      // Ringkasan untuk pesan WhatsApp
+      var msg = 'Halo YourPrint, saya ingin memesan Jasa Joki Tugas:\n\n';
+      msg += ' Detail Tugas:\n';
+      msg += '• Jenis Tugas: ' + taskTypeLabel + '\n';
+      msg += '• Mata Kuliah/Pelajaran: ' + subject + '\n';
+      msg += '• Deadline: ' + deadlineLabel + '\n';
+      msg += '• Deskripsi: ' + description + '\n';
+      if (fileCount) msg += '• File/Bahan: ' + fileCount + ' file terunggah\n';
+      msg += '\n Data Diri:\n';
+      msg += '• Nama: ' + name + '\n';
+      msg += '• WhatsApp: ' + phone + '\n';
+      msg += '\n Harga menyesuaikan — mohon konfirmasi estimasi & ketersediaan, terima kasih!';
+
+      function onSentJ() {
+        var waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg);
+        window.open(waUrl, '_blank');
+        if (orderId && window.FileStore && FileStore.supported()) {
+          FileStore.clear(orderId).catch(function () {});
+        }
+        sessionStorage.removeItem('yp_order');
+        submitBtn.textContent = '✓ Permintaan Terkirim';
+        submitBtn.style.background = '#2E7D32';
+      }
+
+      sendToBackend(payload).then(onSentJ).catch(onSentJ);
+    });
+  }
 
   function sendToBackend(payload) {
     var cfg = window.YOURPRINT_CONFIG || {};

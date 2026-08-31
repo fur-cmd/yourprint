@@ -629,6 +629,32 @@ textarea:focus-visible {
   inset: 0;
   place-items: center;
 }
+.print-card__badge {
+  position: absolute;
+  top: .6rem;
+  left: .6rem;
+  z-index: 3;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: .28rem .6rem;
+  border-radius: 9999px;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,.18);
+  pointer-events: none;
+}
+.print-card__badge--highlight {
+  background: linear-gradient(135deg, var(--highlight), #F5B301);
+  color: var(--ink);
+}
+.print-card--joki {
+  border-color: rgba(var(--highlight-rgb), .6);
+}
+.print-card--joki:hover {
+  border-color: var(--highlight);
+  box-shadow: 0 12px 30px -8px rgba(255, 197, 61, .35);
+}
 .upload-zone {
   margin-top: 1.25rem;
   border: 1.5px dashed var(--line-darker);
