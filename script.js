@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!raw) return null;
     try {
       const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.sizes)) return parsed;
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
       return null;
     } catch (e) {
       return null;

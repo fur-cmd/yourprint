@@ -1,11 +1,16 @@
 /* =========================================================================
-   KONFIGURASI CETAK STIKER — SATU-SATUNYA SUMBER PILIHAN & HARGA.
+   KONFIGURASI CETAK STIKER — SUMBER DEFAULT PILIHAN & HARGA.
 
-   Yang Anda ubah di file ini akan otomatis mengubah tampilan wizard
-   "Cetak Stiker" (di-embed di pesanan.html) dan perhitungan estimasi harganya.
+   Ini adalah nilai BAWAAN (default). Admin bisa menimpa harga/pilihan
+   langsung dari halaman admin: isi kolom "Options Ukuran & Harga (JSON)"
+   pada baris layanan "Cetak Stiker" (sheet "Layanan Cetak"), lalu paste
+   template dari file sticker-options-template.json. JSON tersebut akan
+   menutupi (deep-merge) nilai bawaan di file ini. Biarkan kolom Kosong
+   bila ingin memakai bawaan ini.
 
    ⚠️ PENTING — SEMUA ANGKA HARGA DI BAWAH ADALAH CONTOH/PLACEHOLDER.
-      GANTI DENGAN HARGA BISNIS YOURPRINT sebelum dipakai produksi.
+      GANTI DENGAN HARGA BISNIS YOURPRINT sebelum dipakai produksi
+      (baik di file ini, maupun di kolom Options pada halaman admin).
       Cari komentar  "← GANTI DENGAN HARGA BISNIS"  di bagian pricing.
    ========================================================================= */
 window.YOURPRINT_STICKER_CONFIG = {

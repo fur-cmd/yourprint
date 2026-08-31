@@ -874,6 +874,11 @@
       payment: getSelectedRadio('paymentMethod') || 'Tunai'
     };
 
+    // Teruskan opsi harga dari halaman admin (kolom "Options" baris Cetak Stiker
+    // di sheet "Layanan Cetak"). Bila berisi, akan menimpa harga bawaan di
+    // sticker-config.js. Bila kosong, sticker-config.js tetap dipakai.
+    window.YP_STICKER_RUNTIME_OPTIONS = options && typeof options === 'object' ? options : null;
+
     var wizardHost = document.getElementById('stickerWizard');
     if (wizardHost) {
       setVisible(wizardHost, true);

@@ -11,6 +11,34 @@
   var CFG = window.YOURPRINT_STICKER_CONFIG || {};
   var APP = window.YOURPRINT_CONFIG || {};
 
+  /* ----------------------------------------------------------
+     Harga & pilihan bisa ditimpa dari halaman ADMIN:
+     kolom "Options Ukuran & Harga (JSON)" pada baris layanan
+     "Cetak Stiker" di sheet "Layanan Cetak" (pesanan.html
+     meneruskannya lewat window.YP_STICKER_RUNTIME_OPTIONS).
+     JSON tersebut di-merge DEEP di atas sticker-config.js.
+     Bila kosong / salah format, sticker-config.js tetap dipakai.
+     ---------------------------------------------------------- */
+  var RUNTIME_CFG = window.YP_STICKER_RUNTIME_OPTIONS || null;
+  function isPlainObject(v) {
+    return !!v && typeof v === 'object' && !Array.isArray(v) && !(v instanceof Date);
+  }
+  function deepMerge(base, extra) {
+    if (!isPlainObject(extra)) return base;
+    if (!isPlainObject(base)) return extra;
+    var out = {};
+    Object.keys(base).forEach(function (k) { out[k] = base[k]; });
+    Object.keys(extra).forEach(function (k) {
+      var bv = base[k], ev = extra[k];
+      if (isPlainObject(bv) && isPlainObject(ev)) out[k] = deepMerge(bv, ev);
+      else out[k] = ev;
+    });
+    return out;
+  }
+  if (isPlainObject(RUNTIME_CFG)) {
+    CFG = deepMerge(CFG, RUNTIME_CFG);
+  }
+
   var LS_KEY = 'yp_sticker_draft';
   var CHECKOUT_INDEX = 8;
 
