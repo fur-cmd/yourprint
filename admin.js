@@ -46,9 +46,17 @@
     return url;
   }
 
+  function toNumber(v) {
+    if (v === undefined || v === null || v === '') return 0;
+    if (typeof v === 'number') return isNaN(v) ? 0 : v;
+    var n = Number(String(v).replace(/[^0-9.\-]/g, ''));
+    return isNaN(n) ? 0 : n;
+  }
+
   function formatRupiah(num) {
     if (num === undefined || num === null || num === '' || num === '-') return '-';
-    return 'Rp' + Number(num).toLocaleString('id-ID');
+    var n = toNumber(num);
+    return 'Rp' + n.toLocaleString('id-ID');
   }
 
   function formatDate(d) {
@@ -401,7 +409,7 @@
     $('statToday').textContent = todayOrders.length;
 
     var revenue = allOrders.reduce(function (sum, o) {
-      return sum + Number(o.Subtotal || o['Total Harga'] || o['Estimasi Harga'] || 0);
+      return sum + toNumber(o.Subtotal || o['Total Harga'] || o['Estimasi Harga']);
     }, 0);
     $('statRevenue').textContent = formatRupiah(revenue);
 
