@@ -12,8 +12,8 @@
   --stamp: #E4572E;
   --stamp-rgb: 228, 87, 46;
   --stamp-dark: #C6431E;
-  --line: #D8DEE4;
-  --line-darker: #C7CFD8;
+  --line: #E3E7EC;
+  --line-darker: #D6DBE1;
   --slate: #5B6B7F;
   --slate-soft: #78849B;
   --paper: #F3F5F7;
@@ -23,8 +23,22 @@
   --success: #22C55E;
   --success-dark: #2E7D32;
   --success-rgb: 46, 125, 50;
+  --paper-rgb: 243, 245, 247;
+  --paper-alt-rgb: 248, 249, 251;
+  --line-rgb: 227, 231, 236;
+  --line-darker-rgb: 214, 219, 225;
+  --slate-soft-rgb: 120, 132, 155;
+  --ink-light-rgb: 36, 54, 92;
+  --ink-rgb-space: 22 35 63;
+  --ink-light-rgb-space: 36 54 92;
+  --paper-rgb-space: 243 245 247;
+  --stamp-rgb-space: 228 87 46;
+  --highlight-rgb-space: 255 197 61;
+  --slate-soft-rgb-space: 120 132 155;
+  --line-rgb-space: 227 231 236;
   --skeleton: #e5e7eb;
   --skeleton-light: #f3f4f6;
+  --surface: #fff;
   --danger: #DC2626;
   --warning-bg: #FEF6E0;
   --warning-text: #92600A;
@@ -54,6 +68,76 @@
   --scroll-top: 165px;
   --body-padding-bottom: 62px;
   --bottom-nav-height: 62px;
+}
+
+/* ==========================================================
+   DARK MODE — override token via atribut data-theme="dark"
+   (dipakai bersama Tailwind config yang merujuk ke var rgb)
+   ========================================================== */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ink: #E6EBF5;
+  --ink-rgb: 230, 235, 245;
+  --ink-light: #B9C3D8;
+  --ink-light-rgb: 185, 195, 216;
+  --ink-rgb-space: 230 235 245;
+  --ink-light-rgb-space: 185 195 216;
+  --line: #232C3C;
+  --line-rgb: 35, 44, 60;
+  --line-darker: #2C3648;
+  --line-darker-rgb: 44, 54, 72;
+  --line-rgb-space: 35 44 60;
+  --slate: #A6B2C6;
+  --slate-soft: #8B97AC;
+  --slate-soft-rgb: 139, 151, 172;
+  --slate-soft-rgb-space: 139 151 172;
+  --paper: #0E1420;
+  --paper-rgb: 14, 20, 32;
+  --paper-alt: #141B2A;
+  --paper-alt-rgb: 20, 27, 42;
+  --paper-rgb-space: 14 20 32;
+  --skeleton: #1B2436;
+  --skeleton-light: #232E44;
+  --surface: var(--paper-alt);
+  --warning-bg: #2A2410;
+  --warning-text: #E8C06A;
+
+  --shadow-stamp-sm: 0 4px 14px rgba(228, 87, 46, .28);
+  --shadow-stamp-lg: 0 6px 18px rgba(228, 87, 46, .35);
+  --shadow-card: 0 12px 30px -8px rgba(0, 0, 0, .5);
+  --shadow-card-hover: 0 14px 30px -12px rgba(0, 0, 0, .5);
+  --shadow-product-hover: 0 10px 22px -12px rgba(0, 0, 0, .55);
+  --shadow-order-hover: 0 4px 14px rgba(0, 0, 0, .45);
+  --shadow-add-cart: 0 3px 10px rgba(0, 0, 0, .6);
+  --shadow-toast: 0 10px 26px -8px rgba(0, 0, 0, .6);
+}
+
+/* Surface utility — pengganti bg-white agar ikut mode */
+.surface {
+  background: var(--surface);
+}
+
+/* Blok brand (latar ink gelap permanen) — pertahankan gelap di dark mode */
+:root[data-theme="dark"] .brand-dark {
+  --ink: #16233F;
+  --ink-rgb: 22, 35, 63;
+  --ink-light: #24365C;
+  --ink-light-rgb: 36, 54, 92;
+  --ink-rgb-space: 22 35 63;
+  --ink-light-rgb-space: 36 54 92;
+  --paper: #F3F5F7;
+  --paper-rgb: 243, 245, 247;
+  --paper-rgb-space: 243 245 247;
+}
+
+/* Overlay & tombol yang memakai bg-ink harus tetap gelap di dark mode */
+:root[data-theme="dark"] .overlay-ink,
+:root[data-theme="dark"] .btn-ink {
+  --ink-rgb: 22, 35, 63;
+  --ink-light-rgb: 36, 54, 92;
+  --ink-rgb-space: 22 35 63;
+  --ink-light-rgb-space: 36 54 92;
 }
 
 html {
@@ -114,7 +198,7 @@ body {
   left: 0; right: 0; bottom: 0;
   z-index: 50;
   display: flex;
-  background: #fff;
+  background: var(--surface);
   border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
@@ -329,7 +413,7 @@ textarea:focus-visible {
   position: absolute;
   width: 200px;
   height: 130px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: .75rem;
   padding: 1.1rem;
@@ -415,7 +499,7 @@ textarea:focus-visible {
   padding: 0;
 }
 .banner-dot.active {
-  background: #fff;
+  background: var(--surface);
   width: 1.2rem;
 }
 .banner-empty {
@@ -465,7 +549,7 @@ textarea:focus-visible {
 .yp-ticker {
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--ink), var(--ink-light));
+  background: linear-gradient(135deg, var(--stamp), var(--stamp-dark));
   color: #fff;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -638,7 +722,7 @@ textarea:focus-visible {
 
 /* ---------- Layanan Percetakan cards ---------- */
 .print-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: .75rem;
   padding: 1rem;
@@ -811,7 +895,7 @@ textarea:focus-visible {
 
 /* ---------- Produk Populer product cards (compact) ---------- */
 .product-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: .6rem;
   padding: .4rem .4rem .55rem;
@@ -1012,7 +1096,7 @@ textarea:focus-visible {
 .detail-actions {
   position: fixed;
   left: 0; right: 0; bottom: 0;
-  background: #fff;
+  background: var(--surface);
   border-top: 1px solid var(--line);
   padding: .75rem 1rem;
   padding-bottom: calc(.75rem + env(safe-area-inset-bottom, 0));
@@ -1067,7 +1151,7 @@ textarea:focus-visible {
 
 /* ======================== ORDER TRACKING ======================== */
 .order-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: .75rem;
   padding: 1.25rem;
@@ -1275,7 +1359,7 @@ html.js-digital .reveal.is-visible {
   font-size: .74rem;
   font-weight: 500;
   color: var(--ink);
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 9999px;
   padding: .4rem .85rem;
@@ -1285,7 +1369,7 @@ html.js-digital .reveal.is-visible {
 
 /* ---------- Kartu kategori ---------- */
 .digital-cat-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 1rem;
   padding: 1.1rem 1.1rem 1rem;
@@ -1339,7 +1423,7 @@ html.js-digital .reveal.is-visible {
 
 /* ---------- Kartu produk digital ---------- */
 .digital-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 1rem;
   overflow: hidden;
@@ -1508,7 +1592,7 @@ html.js-digital .reveal.is-visible {
 /* ---------- Card Coming Soon (Undangan Digital) ---------- */
 .coming-soon-card {
   position: relative;
-  background: #fff;
+  background: var(--surface);
   border: 2px dashed var(--line-darker);
   border-radius: 1.1rem;
   padding: 1.25rem;
@@ -1562,7 +1646,7 @@ html.js-digital .reveal.is-visible {
 #stickerWizard .stk-progress__item {
   flex: 1; min-width: 0; display: flex; align-items: center; gap: .45rem;
   padding: .5rem .6rem; border-radius: .6rem;
-  background: #fff; border: 1.5px solid var(--line);
+  background: var(--surface); border: 1.5px solid var(--line);
   color: var(--slate-soft); font-size: .72rem; font-weight: 600;
   transition: all .2s ease; white-space: nowrap; overflow: hidden;
 }
@@ -1587,7 +1671,7 @@ html.js-digital .reveal.is-visible {
 #stickerWizard .stk-subnav { display: flex; gap: .4rem; overflow-x: auto; padding-bottom: .15rem; }
 #stickerWizard .stk-subnav__item {
   flex-shrink: 0; font-size: .7rem; font-weight: 600; color: var(--slate-soft);
-  border: 1.5px solid var(--line); background: #fff;
+  border: 1.5px solid var(--line); background: var(--surface);
   padding: .3rem .7rem; border-radius: 999px; display: inline-flex; align-items: center; gap: .35rem;
 }
 #stickerWizard .stk-subnav__item.is-done { border-color: rgba(var(--stamp-rgb), .45); background: rgba(var(--stamp-rgb), .06); color: var(--stamp-dark); }
@@ -1602,7 +1686,7 @@ html.js-digital .reveal.is-visible {
 
 #stickerWizard .stk-card {
   position: relative; width: 100%; text-align: left;
-  background: #fff; border: 1.5px solid var(--line); border-radius: .75rem;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: .75rem;
   padding: .95rem 1rem; cursor: pointer;
   display: flex; gap: .75rem; align-items: flex-start;
   transition: border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .12s ease;
@@ -1642,7 +1726,7 @@ html.js-digital .reveal.is-visible {
 
 #stickerWizard .stk-size-chip {
   display: inline-flex; align-items: center; justify-content: center;
-  background: #fff; border: 1.5px solid var(--line); border-radius: .55rem;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: .55rem;
   padding: .55rem .7rem; font-size: .82rem; font-weight: 600; cursor: pointer;
   transition: all .15s ease;
 }
@@ -1652,7 +1736,7 @@ html.js-digital .reveal.is-visible {
 
 #stickerWizard .stk-label { display: block; font-size: .8rem; font-weight: 600; margin-bottom: .35rem; }
 #stickerWizard .stk-input {
-  width: 100%; background: #fff; border: 1.5px solid var(--line); border-radius: .6rem;
+  width: 100%; background: var(--surface); border: 1.5px solid var(--line); border-radius: .6rem;
   padding: .62rem .8rem; font-size: .9rem; color: var(--ink);
   transition: border-color .15s ease, box-shadow .15s ease;
 }
@@ -1664,7 +1748,7 @@ html.js-digital .reveal.is-visible {
 #stickerWizard .stk-quickpick { display: flex; flex-wrap: wrap; gap: .5rem; }
 
 #stickerWizard .stk-dropzone {
-  border: 2px dashed var(--line-darker); border-radius: .8rem; background: #fff;
+  border: 2px dashed var(--line-darker); border-radius: .8rem; background: var(--surface);
   padding: 2.2rem 1.2rem; text-align: center; cursor: pointer;
   transition: all .16s ease;
 }
@@ -1673,7 +1757,7 @@ html.js-digital .reveal.is-visible {
 #stickerWizard .stk-dropzone:focus-visible { outline: none; border-color: var(--stamp); box-shadow: 0 0 0 3px rgba(var(--stamp-rgb), .22); }
 #stickerWizard .stk-file {
   display: flex; align-items: center; gap: .8rem;
-  background: #fff; border: 1.5px solid var(--line); border-radius: .7rem; padding: .7rem .8rem;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: .7rem; padding: .7rem .8rem;
 }
 #stickerWizard .stk-file__thumb {
   width: 3.2rem; height: 3.2rem; border-radius: .5rem; object-fit: cover;
@@ -1701,7 +1785,7 @@ html.js-digital .reveal.is-visible {
 #stickerWizard .stk-btn-wa:disabled { opacity: .55; cursor: not-allowed; }
 #stickerWizard .stk-btn-back {
   display: inline-flex; align-items: center; gap: .4rem;
-  background: #fff; color: var(--ink); font-weight: 600; font-size: .88rem;
+  background: var(--surface); color: var(--ink); font-weight: 600; font-size: .88rem;
   padding: .75rem 1.3rem; border-radius: .6rem; border: 1.5px solid var(--line);
   cursor: pointer; transition: all .15s ease;
 }
@@ -1709,7 +1793,7 @@ html.js-digital .reveal.is-visible {
 #stickerWizard .stk-btn-back:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(var(--ink-rgb), .18); }
 
 #stickerWizard .summary-panel { position: static; }
-#stickerWizard .summary-card { background: #fff; border: 1.5px solid var(--line); border-radius: .9rem; padding: 1.15rem 1.2rem; }
+#stickerWizard .summary-card { background: var(--surface); border: 1.5px solid var(--line); border-radius: .9rem; padding: 1.15rem 1.2rem; }
 #stickerWizard .summary-row { display: flex; justify-content: space-between; gap: 1rem; font-size: .82rem; padding: .28rem 0; }
 #stickerWizard .summary-row .s-label { color: var(--slate-soft); flex-shrink: 0; }
 #stickerWizard .summary-row .s-value { font-weight: 600; text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1722,7 +1806,7 @@ html.js-digital .reveal.is-visible {
 
 #stickerWizard .mobile-bar {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 45;
-  background: #fff; border-top: 1.5px solid var(--line);
+  background: var(--surface); border-top: 1.5px solid var(--line);
   padding: .65rem 1rem calc(.65rem + env(safe-area-inset-bottom));
   display: flex; align-items: center; gap: .8rem;
   box-shadow: 0 -6px 20px -12px rgba(var(--ink-rgb), .25);

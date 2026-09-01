@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('yp_theme');
+      if (t !== 'dark' && t !== 'light' && t !== 'auto') t = 'light';
+      function apply(t) {
+        var dark = t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      }
+      apply(t);
+      window.__ypTheme = t;
+    } catch (e) {}
+  })();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>YourPrint — ATK & Jasa Percetakan Online</title>
@@ -34,19 +49,19 @@
       extend: {
         colors: {
           ink: {
-            DEFAULT: '#16233F',
-            light: '#24365C',
+            DEFAULT: 'rgb(var(--ink-rgb-space) / <alpha-value>)',
+            light: 'rgb(var(--ink-light-rgb-space) / <alpha-value>)',
           },
-          paper: '#F3F5F7',
+          paper: 'rgb(var(--paper-rgb-space) / <alpha-value>)',
           stamp: {
-            DEFAULT: '#E4572E',
+            DEFAULT: 'rgb(var(--stamp-rgb-space) / <alpha-value>)',
             dark: '#C6431E',
           },
-          highlight: '#FFC53D',
+          highlight: 'rgb(var(--highlight-rgb-space) / <alpha-value>)',
           slate: {
-            soft: '#5B6B7F',
+            soft: 'rgb(var(--slate-soft-rgb-space) / <alpha-value>)',
           },
-          line: '#D8DEE4',
+          line: 'rgb(var(--line-rgb-space) / <alpha-value>)',
         },
         fontFamily: {
           display: ['"Space Grotesk"', 'sans-serif'],
@@ -74,7 +89,7 @@
 
       <!-- Logo -->
       <a href="#home" class="flex items-center gap-2 group">
-        <span class="relative grid place-items-center w-8 h-8 md:w-9 md:h-9 rounded-md overflow-hidden bg-ink text-paper font-display font-bold text-lg rotate-[-3deg] group-hover:rotate-0 transition-transform">
+        <span class="brand-dark relative grid place-items-center w-8 h-8 md:w-9 md:h-9 rounded-md overflow-hidden bg-ink text-paper font-display font-bold text-lg rotate-[-3deg] group-hover:rotate-0 transition-transform">
           <img src="images/logo/logo.png" alt="YourPrint — ATK & Jasa Percetakan Online" class="w-full h-full object-cover"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
           <span class="logo-fallback">Y</span>
@@ -102,6 +117,11 @@
           <span id="cartBadge" class="absolute -top-2 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full grid place-items-center hidden">0</span>
         </button>
 
+        <button id="themeToggle" class="relative flex items-center justify-center w-9 h-9 rounded-md border border-ink/15 hover:border-stamp hover:text-stamp transition-colors" aria-label="Ganti mode terang/gelap" aria-live="polite">
+          <svg id="themeIconMoon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="themeIconSun" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
+
         <button id="mobileMenuBtn" class="lg:hidden p-2 -mr-2" aria-label="Buka menu">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
@@ -113,7 +133,7 @@
       <div class="relative">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute left-3.5 md:left-4 top-1/2 -translate-y-1/2 text-slate-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input id="productSearch" type="search" placeholder="Cari produk ATK... misal: pulpen, kertas, buku"
-          class="w-full h-9 md:h-10 pl-9 md:pl-10 pr-8 md:pr-9 rounded-full border border-line bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-stamp/40 focus:border-stamp">
+          class="w-full h-9 md:h-10 pl-9 md:pl-10 pr-8 md:pr-9 rounded-full border border-line surface text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-stamp/40 focus:border-stamp">
         <button id="productSearchClear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-soft hover:text-stamp" aria-label="Hapus pencarian">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
@@ -173,15 +193,15 @@
 
     <div class="print-scroll lg:grid lg:grid-cols-4 lg:gap-4" id="printServices">
     <!-- Skeleton loading -->
-    <div class="print-card animate-pulse" style="height: 260px; background: #f9fafb;"></div>
-    <div class="print-card animate-pulse" style="height: 260px; background: #f9fafb;"></div>
-    <div class="print-card animate-pulse" style="height: 260px; background: #f9fafb;"></div>
-    <div class="print-card animate-pulse" style="height: 260px; background: #f9fafb;"></div>
+    <div class="print-card animate-pulse" style="height: 260px; background: var(--skeleton-light);"></div>
+    <div class="print-card animate-pulse" style="height: 260px; background: var(--skeleton-light);"></div>
+    <div class="print-card animate-pulse" style="height: 260px; background: var(--skeleton-light);"></div>
+    <div class="print-card animate-pulse" style="height: 260px; background: var(--skeleton-light);"></div>
   </div>
 </section>
 
 <!-- ============ MARKET DIGITAL — PRODUK DIGITAL (YOURPRINT) ============ -->
-<section id="digital" class="bg-white border-t border-line">
+<section id="digital" class="surface border-t border-line">
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
 
     <!-- Header section -->
@@ -203,17 +223,17 @@
 
     <div id="digitalProducts" class="digital-scroll lg:grid lg:grid-cols-4 lg:gap-4">
       <!-- Skeleton loading -->
-      <div class="digital-card animate-pulse" style="height: 285px; background: #f9fafb; border: none;"></div>
-      <div class="digital-card animate-pulse" style="height: 285px; background: #f9fafb; border: none;"></div>
-      <div class="digital-card animate-pulse" style="height: 285px; background: #f9fafb; border: none;"></div>
-      <div class="digital-card animate-pulse" style="height: 285px; background: #f9fafb; border: none;"></div>
+      <div class="digital-card animate-pulse" style="height: 285px; background: var(--skeleton-light); border: none;"></div>
+      <div class="digital-card animate-pulse" style="height: 285px; background: var(--skeleton-light); border: none;"></div>
+      <div class="digital-card animate-pulse" style="height: 285px; background: var(--skeleton-light); border: none;"></div>
+      <div class="digital-card animate-pulse" style="height: 285px; background: var(--skeleton-light); border: none;"></div>
     </div>
 
   </div>
 </section>
 
 <!-- ============ PRODUK POPULER ============ -->
-<section id="produk" class="bg-white border-y border-line">
+<section id="produk" class="surface border-y border-line">
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
     <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
       <div class="max-w-2xl">
@@ -234,10 +254,10 @@
 
     <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 md:gap-3.5">
       <!-- Skeleton loading -->
-      <div class="product-card animate-pulse" style="height: 180px; background: #f9fafb;"></div>
-      <div class="product-card animate-pulse" style="height: 180px; background: #f9fafb;"></div>
-      <div class="product-card animate-pulse" style="height: 180px; background: #f9fafb;"></div>
-      <div class="product-card animate-pulse" style="height: 180px; background: #f9fafb;"></div>
+      <div class="product-card animate-pulse" style="height: 180px; background: var(--skeleton-light);"></div>
+      <div class="product-card animate-pulse" style="height: 180px; background: var(--skeleton-light);"></div>
+      <div class="product-card animate-pulse" style="height: 180px; background: var(--skeleton-light);"></div>
+      <div class="product-card animate-pulse" style="height: 180px; background: var(--skeleton-light);"></div>
     </div>
 
     <p id="productEmptyMsg" class="hidden text-center text-slate-soft text-sm py-10">
@@ -255,7 +275,7 @@
 </section>
 
 <!-- ============ LAYANAN UNGGULAN ============ -->
-<section id="unggulan" class="relative overflow-hidden bg-ink text-paper py-10 md:py-14">
+<section id="unggulan" class="brand-dark relative overflow-hidden bg-ink text-paper py-10 md:py-14">
   <div class="absolute -left-16 -top-16 w-72 h-72 rounded-full bg-stamp/20 blur-3xl"></div>
   <div class="absolute -right-10 bottom-0 w-56 h-56 rounded-full bg-highlight/10 blur-3xl"></div>
 
@@ -339,7 +359,7 @@
 </section>
 
 <!-- ============ GALERI BUKU ============ -->
-<section id="galeri" class="bg-ink border-t border-white/5 py-8 md:py-12">
+<section id="galeri" class="brand-dark bg-ink border-t border-white/5 py-8 md:py-12">
   <div class="max-w-7xl mx-auto px-4 md:px-8">
     <div class="flex items-center justify-between gap-4 mb-1.5">
       <h3 class="font-display font-semibold text-base md:text-lg text-white">Contoh Buku yang Pernah Kami Buat</h3>
@@ -366,7 +386,7 @@
 
 <!-- ============ KONTAK / CTA STRIP ============ -->
 <section id="kontak-cta" class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-10">
-  <div class="rounded-xl md:rounded-2xl bg-ink text-paper px-5 md:px-10 py-6 md:py-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 relative overflow-hidden">
+  <div class="brand-dark rounded-xl md:rounded-2xl bg-ink text-paper px-5 md:px-10 py-6 md:py-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 relative overflow-hidden">
     <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-stamp/20 blur-2xl"></div>
     <div class="relative text-center md:text-left">
       <h3 class="font-display font-bold text-xl md:text-2xl">Butuh cetak dalam jumlah besar?</h3>
@@ -380,7 +400,7 @@
 </section>
 
 <!-- ============ FOOTER ============ -->
-<footer id="kontak" class="bg-ink text-paper/80">
+<footer id="kontak" class="brand-dark bg-ink text-paper/80">
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-14 grid sm:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-10">
 
     <div>
@@ -441,9 +461,9 @@
 </footer>
 
 <!-- ============ CART DRAWER ============ -->
-<div id="cartOverlay" class="fixed inset-0 bg-ink/40 backdrop-blur-sm z-50 hidden"></div>
+<div id="cartOverlay" class="overlay-ink fixed inset-0 bg-ink/40 backdrop-blur-sm z-50 hidden"></div>
 
-<aside id="cartDrawer" class="fixed top-0 right-0 h-full w-full sm:w-[380px] bg-white z-50 translate-x-full transition-transform duration-300 ease-out flex flex-col shadow-2xl">
+<aside id="cartDrawer" class="fixed top-0 right-0 h-full w-full sm:w-[380px] surface z-50 translate-x-full transition-transform duration-300 ease-out flex flex-col shadow-2xl">
 
   <!-- Header + Tab Bar -->
   <div class="border-b border-dashed border-ink/20">
@@ -490,7 +510,7 @@
       <div id="orderLookupForm" class="flex gap-2 mb-4">
         <input id="orderPhoneInput" type="tel" placeholder="08xxxxxxxxxx"
           class="flex-1 min-w-0 border border-line rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-stamp/40 focus:border-stamp">
-        <button id="orderLookupBtn" class="bg-ink text-white text-sm font-semibold px-3 py-2.5 rounded-lg hover:bg-ink-light transition-colors shrink-0">
+        <button id="orderLookupBtn" class="btn-ink bg-ink text-white text-sm font-semibold px-3 py-2.5 rounded-lg hover:bg-ink-light transition-colors shrink-0">
           Cek
         </button>
       </div>
@@ -508,8 +528,8 @@
 </aside>
 
 <!-- ============ MODAL: DATA PEMESAN ============ -->
-<div id="customerModalOverlay" class="fixed inset-0 bg-ink/50 backdrop-blur-sm z-[60] hidden grid place-items-center px-5">
-  <div class="bg-white rounded-2xl w-full max-w-sm p-6 relative">
+<div id="customerModalOverlay" class="overlay-ink fixed inset-0 bg-ink/50 backdrop-blur-sm z-[60] hidden grid place-items-center px-5">
+  <div class="surface rounded-2xl w-full max-w-sm p-6 relative">
     <button id="customerModalClose" class="absolute top-4 right-4 text-slate-soft hover:text-stamp" aria-label="Tutup">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>

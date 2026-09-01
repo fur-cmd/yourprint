@@ -39,6 +39,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  /* ------------------------------------------------------
+     1b) TEMA TERANG/GELAP (2 mode)
+         Kompatibilitas: nilai 'auto' lama tetap dihormati.
+  ------------------------------------------------------ */
+  const THEME_CYCLE = ['light', 'dark'];
+  const themeToggle = document.getElementById('themeToggle');
+  const iconMoon = document.getElementById('themeIconMoon');
+  const iconSun = document.getElementById('themeIconSun');
+
+  function matchPrefersDark() {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  function isDark(theme) {
+    return theme === 'dark' || (theme === 'auto' && matchPrefersDark());
+  }
+
+  function applyTheme(theme, persist) {
+    const dark = isDark(theme);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    window.__ypTheme = theme;
+
+    if (persist) {
+      try { localStorage.setItem('yp_theme', theme); } catch (e) {}
+    }
+
+    if (iconMoon) iconMoon.classList.toggle('hidden', dark);
+    if (iconSun) iconSun.classList.toggle('hidden', !dark);
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const cur = window.__ypTheme || 'light';
+      const resolved = isDark(cur) ? 'dark' : 'light';
+      const next = resolved === 'dark' ? 'light' : 'dark';
+      applyTheme(next, true);
+      themeToggle.setAttribute('aria-label', 'Mode: ' + (next === 'dark' ? 'gelap' : 'terang'));
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (window.__ypTheme === 'auto') applyTheme('auto', false);
+    });
+  }
+
+  // Inisialisasi ikon tombol dengan mode saat ini (tanpa menimpa localStorage).
+  // Default terang untuk pengguna baru; hormati 'auto' bagi pengguna lama.
+  if (themeToggle) {
+    let initTheme = 'light';
+    try { initTheme = localStorage.getItem('yp_theme') || initTheme; } catch (e) {}
+    applyTheme(initTheme, false);
+    themeToggle.setAttribute('aria-label', 'Mode: ' + (isDark(initTheme) ? 'gelap' : 'terang'));
+  }
+
+
 
   /* ------------------------------------------------------
       0) WA FLOAT ROTASI — Konsultasi Admin / Buat Desain / Joki Tugas
@@ -50,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!waFloat || !waLabel) return;
 
     const WA_ITEMS = [
-      { label: 'Konsultasi', waText: 'Halo YourPrint, saya ingin konsultasi.' },
+      { label: 'Hub Admin', waText: 'Halo YourPrint, saya ingin konsultasi.' },
       { label: 'Joki Tugas', waText: 'Halo YourPrint, saya ingin konsultasi joki tugas' },
       { label: 'Jasa Desain', waText: 'Halo YourPrint, saya ingin konsultasi buat desain' }
     ];
@@ -61,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let idx = 0;
     let timer = null;
     let isHovering = false;
-    const INTERVAL = 4000;
+    const INTERVAL = 3000;
     const EXIT_MS = 350;
 
     function applyItem(i) {
