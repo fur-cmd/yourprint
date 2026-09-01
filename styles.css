@@ -195,7 +195,7 @@ body {
     padding: .7rem 1.2rem;
   }
   .wa-float svg { width: 1.35rem; height: 1.35rem; }
-  .wa-float__label { min-width: 6.5rem; }
+  .wa-float__label { min-width: 5.2rem; }
 }
 
 /* ---------- Nav links ---------- */
