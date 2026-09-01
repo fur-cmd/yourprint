@@ -396,14 +396,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function initPrintCards() {
     document.querySelectorAll('.print-card').forEach(card => {
-      const cta = card.querySelector('.upload-zone');
       const service = card.dataset.service;
       const serviceType = /stiker/i.test(service) ? 'stiker' : (card.dataset.type || 'dokumen');
       const options = parseServiceOptions(card.dataset.options);
       const priceBw = Number(card.dataset.priceBw || 0);
       const priceColor = Number(card.dataset.priceColor || 0);
 
-      function goToForm() {
+      card.addEventListener('click', (e) => {
+        e.preventDefault();
         sessionStorage.setItem('yp_order', JSON.stringify({
           orderId: null,
           service: service,
@@ -418,14 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
           priceColor: priceColor
         }));
         window.location.href = 'pesanan.html';
-      }
-
-      if (cta) {
-        cta.addEventListener('click', (e) => {
-          e.preventDefault();
-          goToForm();
-        });
-      }
+      });
     });
   }
 
@@ -536,10 +529,10 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <h3 class="font-display font-semibold text-lg mt-4">${s.service}</h3>
         <p class="text-slate-soft text-sm mt-1.5">${s.description}</p>
-        <a class="upload-zone" href="pesanan.html" aria-label="${escapeHtml(ctaLabel)} untuk ${escapeHtml(s.service)}">
+        <div class="upload-zone" role="button" aria-label="${escapeHtml(ctaLabel)} untuk ${escapeHtml(s.service)}">
           ${ctaIcon}
           <span class="file-label">${ctaLabel}</span>
-        </a>
+        </div>
       </div>
     `}).join('');
 
