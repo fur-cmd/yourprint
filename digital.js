@@ -422,6 +422,54 @@
   }
 
   /* ------------------------------------------------------
+     HTML BARIS PRODUK DIGITAL (landing page / index.html)
+     Baris list yang seluruh area-nya bisa diklik.
+  ------------------------------------------------------ */
+  function landingProductRowHTML(p) {
+    var link = p.link || DIGITAL_LYNK_URL;
+    var oldPrice = p.oldPrice ? '<span class="digital-row__price-old">' + formatRupiah(p.oldPrice) + '</span>' : '';
+
+    var imgUrl = fixGoogleDriveUrl(p.image);
+    var coverMedia;
+    if (imgUrl) {
+      coverMedia = '<img src="' + imgUrl + '" alt="' + p.name + '" loading="lazy" class="digital-row__cover-img" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+        '<span class="digital-row__cover-emoji" style="display:none;">' + (p.emoji || '📦') + '</span>';
+    } else {
+      coverMedia = '<span class="digital-row__cover-emoji">' + (p.emoji || '📦') + '</span>';
+    }
+
+    var rating = Number(p.rating) || 0;
+    var ratingCount = Number(p.ratingCount) || 0;
+    var ratingHtml = '';
+    if (rating > 0) {
+      ratingHtml = '<span class="digital-row__rating">' +
+        ratingStars(rating) +
+        '<span class="digital-row__rating-text">' + rating.toFixed(1) + ' (' + ratingCount + ')</span>' +
+        '</span>';
+    }
+
+    return '' +
+      '<a href="' + link + '" target="_blank" rel="noopener" class="digital-row reveal">' +
+        '<span class="digital-row__cover" style="background:' + (p.cover || 'linear-gradient(135deg, #334155, #0F172A)') + '">' +
+          badgeHTML(p) +
+          coverMedia +
+        '</span>' +
+        '<span class="digital-row__body">' +
+          '<span class="digital-row__cat">' + categoryTitle(p.category) + '</span>' +
+          '<span class="digital-row__name">' + p.name + '</span>' +
+          '<span class="digital-row__price-row">' +
+            '<span class="digital-row__price">' + formatRupiah(p.price) + '</span>' +
+            oldPrice +
+          '</span>' +
+          ratingHtml +
+        '</span>' +
+        '<span class="digital-row__arrow" aria-hidden="true">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>' +
+        '</span>' +
+      '</a>';
+  }
+
+  /* ------------------------------------------------------
      RENDER: Landing page (index.html)
   ------------------------------------------------------ */
   function renderLandingCategories() {
@@ -445,7 +493,7 @@
     if (!el) return;
     var limit = 8;
     var sorted = sortByOrder(PRODUCTS);
-    el.innerHTML = sorted.slice(0, limit).map(productCardHTML).join('');
+    el.innerHTML = sorted.slice(0, limit).map(landingProductRowHTML).join('');
   }
 
   /* ------------------------------------------------------
