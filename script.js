@@ -41,7 +41,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   /* ------------------------------------------------------
-     DYNAMIC DATA FROM SHEET
+      0) WA FLOAT ROTASI — Konsultasi Admin / Buat Desain / Joki Tugas
+         Interval 4 detik, slide-up, pause on hover/focus, respect reduced-motion.
+  ------------------------------------------------------ */
+  (function initWaFloatRotate() {
+    const waFloat = document.getElementById('waFloat');
+    const waLabel = document.getElementById('waFloatLabel');
+    if (!waFloat || !waLabel) return;
+
+    const WA_ITEMS = [
+      { label: 'Konsultasi Admin', waText: 'Halo YourPrint, saya ingin konsultasi.' },
+      { label: 'Buat Desain', waText: 'Halo YourPrint, saya ingin konsultasi buat desain' },
+      { label: 'Joki Tugas', waText: 'Halo YourPrint, saya ingin konsultasi joki tugas' }
+    ];
+    if (WA_ITEMS.length <= 1) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const WA_NUMBER = (window.YOURPRINT_CONFIG && window.YOURPRINT_CONFIG.WHATSAPP_NUMBER) || '6285242410880';
+    let idx = 0;
+    let timer = null;
+    let isHovering = false;
+    const INTERVAL = 4000;
+    const EXIT_MS = 350;
+
+    function applyItem(i) {
+      const item = WA_ITEMS[i];
+      waFloat.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(item.waText);
+      waFloat.setAttribute('aria-label', item.label);
+    }
+
+    function rotate() {
+      // exit
+      waLabel.classList.add('is-exit');
+      setTimeout(() => {
+        idx = (idx + 1) % WA_ITEMS.length;
+        const item = WA_ITEMS[idx];
+        waLabel.textContent = item.label;
+        applyItem(idx);
+        waLabel.classList.remove('is-exit');
+        waLabel.classList.add('is-enter');
+        // force reflow biar transisi enter jalan
+        void waLabel.offsetWidth;
+        waLabel.classList.remove('is-enter');
+      }, EXIT_MS);
+    }
+
+    function start() {
+      if (timer) clearInterval(timer);
+      timer = setInterval(() => {
+        if (isHovering) return;
+        if (document.hidden) return;
+        rotate();
+      }, INTERVAL);
+    }
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    waFloat.addEventListener('mouseenter', () => { isHovering = true; });
+    waFloat.addEventListener('mouseleave', () => { isHovering = false; });
+    waFloat.addEventListener('focusin', () => { isHovering = true; });
+    waFloat.addEventListener('focusout', () => { isHovering = false; });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    start();
+  })();
+
+  /* ------------------------------------------------------
+      DYNAMIC DATA FROM SHEET
   ------------------------------------------------------ */
   let products = [];
   let bookGallery = [];

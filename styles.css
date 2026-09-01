@@ -164,6 +164,28 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 10px 22px -6px rgba(37, 211, 102, .65);
 }
+/* Label rotasi — slide-up */
+.wa-float__label {
+  display: inline-block;
+  min-width: 8rem;
+  text-align: center;
+  white-space: nowrap;
+  will-change: transform, opacity;
+  transition: transform .35s ease, opacity .35s ease;
+}
+.wa-float__label.is-exit {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+.wa-float__label.is-enter {
+  transform: translateY(10px);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wa-float__label { transition: none; }
+  .wa-float__label.is-exit,
+  .wa-float__label.is-enter { transform: none; }
+}
 @media (min-width: 768px) {
   .wa-float {
     right: 1.5rem;
@@ -173,6 +195,7 @@ body {
     padding: .7rem 1.2rem;
   }
   .wa-float svg { width: 1.35rem; height: 1.35rem; }
+  .wa-float__label { min-width: 6.5rem; }
 }
 
 /* ---------- Nav links ---------- */
