@@ -50,9 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!waFloat || !waLabel) return;
 
     const WA_ITEMS = [
-      { label: 'Konsultasi Admin', waText: 'Halo YourPrint, saya ingin konsultasi.' },
-      { label: 'Buat Desain', waText: 'Halo YourPrint, saya ingin konsultasi buat desain' },
-      { label: 'Joki Tugas', waText: 'Halo YourPrint, saya ingin konsultasi joki tugas' }
+      { label: 'Konsultasi', waText: 'Halo YourPrint, saya ingin konsultasi.' },
+      { label: 'Joki Tugas', waText: 'Halo YourPrint, saya ingin konsultasi joki tugas' },
+      { label: 'Jasa Desain', waText: 'Halo YourPrint, saya ingin konsultasi buat desain' }
     ];
     if (WA_ITEMS.length <= 1) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

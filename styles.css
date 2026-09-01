@@ -167,7 +167,7 @@ body {
 /* Label rotasi — slide-up */
 .wa-float__label {
   display: inline-block;
-  min-width: 8rem;
+  min-width: 5.8rem;
   text-align: center;
   white-space: nowrap;
   will-change: transform, opacity;
